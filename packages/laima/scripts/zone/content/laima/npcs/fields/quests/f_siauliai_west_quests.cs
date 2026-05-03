@@ -289,12 +289,12 @@ public class FSiauliaiWestQuestNpcsScript : GeneralScript
 
 		// Bridge Guard
 		//-------------------------------------------------------------------------
-		AddNpc(150219, L("[Bridge Guard] Tomas"), "f_siauliai_west", 334, -331, 45, async dialog =>
+		AddNpc(150219, L("[Bridge Guard] Linas"), "f_siauliai_west", 334, -331, 45, async dialog =>
 		{
 			var character = dialog.Player;
 			var questId = new QuestId("f_siauliai_west", 1004);
 
-			dialog.SetTitle(L("Tomas"));
+			dialog.SetTitle(L("Linas"));
 
 			if (!character.Quests.Has(questId))
 			{
@@ -567,14 +567,14 @@ public class FSiauliaiWestRunestoneQuest : QuestScript
 		SetId("f_siauliai_west", 1004);
 		SetName(L("Bridge Maintenance"));
 		SetType(QuestType.Sub);
-		SetDescription(L("Help bridge guard Tomas reinforce the bridge by collecting Infrorocktor Fragments from Infrorocktor monsters."));
+		SetDescription(L("Help bridge guard Linas reinforce the bridge by collecting Infrorocktor Fragments from Infrorocktor monsters."));
 		SetLocation("f_siauliai_west");
 		SetAutoTracked(true);
 
 		SetReceive(QuestReceiveType.Manual);
 		SetCancelable(true);
 		SetUnlock(QuestUnlockType.AllAtOnce);
-		AddQuestGiver(L("[Bridge Guard] Tomas"), "f_siauliai_west");
+		AddQuestGiver(L("[Bridge Guard] Linas"), "f_siauliai_west");
 
 		// Add quest item drops
 		AddDrop(666025, 0.35f, MonsterId.InfroRocktor);

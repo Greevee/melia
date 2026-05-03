@@ -114,6 +114,7 @@ namespace Melia.Zone.World.Quests.Objectives
 		public override void Load()
 		{
 			ZoneServer.Instance.ServerEvents.EntityKilled.Subscribe(this.OnEntityKilled);
+			ZoneServer.Instance.ServerEvents.PlayerAbandonedQuest.Subscribe(this.OnPlayerAbandonedQuest);
 		}
 
 		/// <summary>
@@ -122,6 +123,21 @@ namespace Melia.Zone.World.Quests.Objectives
 		public override void Unload()
 		{
 			ZoneServer.Instance.ServerEvents.EntityKilled.Unsubscribe(this.OnEntityKilled);
+			ZoneServer.Instance.ServerEvents.PlayerAbandonedQuest.Unsubscribe(this.OnPlayerAbandonedQuest);
+		}
+
+		private void OnPlayerAbandonedQuest(object sender, PlayerAbandonedQuestEventArgs args)
+		{
+			var character = args.Character;
+			if (character == null)
+				return;
+
+			var key = this.StateKeyById(args.QuestId);
+			if (!character.Variables.Temp.GetBool(key, false))
+				return;
+
+			character.Variables.Temp.Remove(key);
+			this.ReturnFromLayer(character);
 		}
 
 		/// <summary>
@@ -310,15 +326,18 @@ namespace Melia.Zone.World.Quests.Objectives
 		}
 
 		private string StateKey(Quest quest)
-			=> "LayeredKill." + quest.Data.Id.Value + "." + this.Ident + ".spawned";
+			=> this.StateKeyById(quest.Data.Id.Value);
+
+		private string StateKeyById(long questId)
+			=> "LayeredKill." + questId + "." + this.Ident + ".spawned";
 
 		private bool IsSpawned(Character character, Quest quest)
-			=> character.Variables.Perm.GetBool(this.StateKey(quest), false);
+			=> character.Variables.Temp.GetBool(this.StateKey(quest), false);
 
 		private void SetSpawned(Character character, Quest quest, bool value)
-			=> character.Variables.Perm.SetBool(this.StateKey(quest), value);
+			=> character.Variables.Temp.SetBool(this.StateKey(quest), value);
 
 		private void ClearSpawned(Character character, Quest quest)
-			=> character.Variables.Perm.Remove(this.StateKey(quest));
+			=> character.Variables.Temp.Remove(this.StateKey(quest));
 	}
 }

@@ -85,10 +85,7 @@ namespace Melia.Zone.World.Quests.Objectives
 		{
 			character.Quests.UpdateObjectives<UnlimitedKillObjective>((quest, objective, progress) =>
 			{
-				if (objective != this)
-					return;
-
-				if (!_matches(mob, character))
+				if (!objective._matches(mob, character))
 					return;
 
 				if (progress.Count < int.MaxValue)

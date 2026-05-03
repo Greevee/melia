@@ -78,14 +78,14 @@ public class F3Cmlake83QuestNpcsScript : GeneralScript
 			}
 		});
 
-		// Quest 2: Forge Provisions — Milda-II
+		// Quest 2: Forge Provisions — Aiste
 		//-------------------------------------------------------------------------
-		AddNpc(147515, L("[Armorer] Milda-II"), "f_3cmlake_83", -884, 1075, 180, async dialog =>
+		AddNpc(147515, L("[Armorer] Aiste"), "f_3cmlake_83", -884, 1075, 180, async dialog =>
 		{
 			var character = dialog.Player;
 			var questId = new QuestId("f_3cmlake_83", 1002);
 
-			dialog.SetTitle(L("Milda-II"));
+			dialog.SetTitle(L("Aiste"));
 
 			if (!character.Quests.Has(questId))
 			{
@@ -419,13 +419,13 @@ public class F3Cmlake83Quest1002 : QuestScript
 		SetId("f_3cmlake_83", 1002);
 		SetName(L("Forge Provisions"));
 		SetType(QuestType.Sub);
-		SetDescription(L("Hunt Rajatadpoles and Merog Shamans for Milda's field forge."));
+		SetDescription(L("Hunt Rajatadpoles and Merog Shamans for Aiste's field forge."));
 		SetLocation("f_3cmlake_83");
 		SetAutoTracked(true);
 		SetReceive(QuestReceiveType.Manual);
 		SetCancelable(true);
 		SetUnlock(QuestUnlockType.AllAtOnce);
-		AddQuestGiver(L("[Armorer] Milda-II"), "f_3cmlake_83");
+		AddQuestGiver(L("[Armorer] Aiste"), "f_3cmlake_83");
 
 		AddObjective("huntTadpoles", L("Hunt Rajatadpoles"),
 			new KillObjective(25, new[] { MonsterId.Rajatadpole }));

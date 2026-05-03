@@ -201,12 +201,12 @@ public class FSiauliai11ReQuestNpcsScript : GeneralScript
 		// =====================================================================
 		// Herbalist Scout - Paslaptis Hideout
 		//---------------------------------------------------------------------
-		AddNpc(155019, L("[Herbalist] Ruta"), "f_siauliai_11_re", 1418, 504, 0, async dialog =>
+		AddNpc(155019, L("[Herbalist] Inga"), "f_siauliai_11_re", 1418, 504, 0, async dialog =>
 		{
 			var character = dialog.Player;
 			var questId = new QuestId("f_siauliai_11_re", 1003);
 
-			dialog.SetTitle(L("Ruta"));
+			dialog.SetTitle(L("Inga"));
 
 			if (!character.Quests.Has(questId))
 			{
@@ -773,7 +773,7 @@ public class FSiauliai11ReQuestNpcsScript : GeneralScript
 
 				if (currentCount >= 5)
 				{
-					character.ServerMessage(L("{#FFD700}All Moonlight Flowers collected! Return to Herbalist Ruta.{/}"));
+					character.ServerMessage(L("{#FFD700}All Moonlight Flowers collected! Return to Herbalist Inga.{/}"));
 				}
 			}
 			else
@@ -935,14 +935,14 @@ public class HerbalRainHarvestQuest : QuestScript
 		SetId("f_siauliai_11_re", 1003);
 		SetName(L("Herbal Rain Harvest"));
 		SetType(QuestType.Sub);
-		SetDescription(L("Help Herbalist Ruta gather rare Moonlight Flowers that bloom during Paupys Crossing's endless rain."));
+		SetDescription(L("Help Herbalist Inga gather rare Moonlight Flowers that bloom during Paupys Crossing's endless rain."));
 		SetLocation("f_siauliai_11_re");
 		SetAutoTracked(true);
 
 		SetReceive(QuestReceiveType.Manual);
 		SetCancelable(true);
 		SetUnlock(QuestUnlockType.AllAtOnce);
-		AddQuestGiver(L("[Herbalist] Ruta"), "f_siauliai_11_re");
+		AddQuestGiver(L("[Herbalist] Inga"), "f_siauliai_11_re");
 		// Objectives
 		AddObjective("collectFlowers", L("Gather Moonlight Flowers from five locations"),
 			new CollectItemObjective(666062, 5));

@@ -26,12 +26,12 @@ public class FSiauliai15ReQuestNpcsScript : GeneralScript
 		// =====================================================================
 		// Scout Adventurer - Near Orsha Entrance
 		//-------------------------------------------------------------------------
-		AddNpc(57264, L("[Scout] Milda"), "f_siauliai_15_re", 2621, 99, 0, async dialog =>
+		AddNpc(57264, L("[Scout] Vida"), "f_siauliai_15_re", 2621, 99, 0, async dialog =>
 		{
 			var character = dialog.Player;
 			var questId = new QuestId("f_siauliai_15_re", 1001);
 
-			dialog.SetTitle(L("Milda"));
+			dialog.SetTitle(L("Vida"));
 
 			if (!character.Quests.Has(questId))
 			{
@@ -971,14 +971,14 @@ public class CleansingCorruptedAirQuest : QuestScript
 		SetId("f_siauliai_15_re", 1001);
 		SetName(L("Cleansing the Corrupted Air"));
 		SetType(QuestType.Sub);
-		SetDescription(L("Kill the infected creatures spreading poison throughout the woods to help Scout Milda contain the contamination."));
+		SetDescription(L("Kill the infected creatures spreading poison throughout the woods to help Scout Vida contain the contamination."));
 		SetLocation("f_siauliai_15_re");
 		SetAutoTracked(true);
 
 		SetReceive(QuestReceiveType.Manual);
 		SetCancelable(true);
 		SetUnlock(QuestUnlockType.AllAtOnce);
-		AddQuestGiver(L("[Scout] Milda"), "f_siauliai_15_re");
+		AddQuestGiver(L("[Scout] Vida"), "f_siauliai_15_re");
 
 		AddObjective("killJukopus", L("Hunt corrupted Jukopus"),
 			new KillObjective(15, new[] { MonsterId.Sec_Jukopus }));

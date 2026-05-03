@@ -10,6 +10,7 @@ using Melia.Zone.World.Actors.Monsters;
 [Ai("Guard")]
 public class GuardAiScript : AiScript
 {
+	// They don't really have a skill so we use one from a mob we hopefully never use
 	private const SkillId AttackSkillId = SkillId.Mon_Mandara_soldier_Skill_1;
 
 	protected override void Setup()
@@ -47,6 +48,9 @@ public class GuardAiScript : AiScript
 	public override bool IsHostileTowards(ICombatEntity otherEntity)
 	{
 		if (otherEntity is not Mob mob || mob.IsDead)
+			return false;
+
+		if (this.Entity.IsAlly(mob))
 			return false;
 
 		if (mob.CombatState.AttackState)

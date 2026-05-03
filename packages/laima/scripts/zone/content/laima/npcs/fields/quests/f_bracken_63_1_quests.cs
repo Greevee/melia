@@ -434,12 +434,12 @@ public class FBracken631QuestNpcsScript : GeneralScript
 
 		// Quest 5: Lost in the Mist
 		//-------------------------------------------------------------------------
-		AddNpc(20114, L("[Lost Traveler] Milda"), "f_bracken_63_1", -1000, 278, 45, async dialog =>
+		AddNpc(20114, L("[Lost Traveler] Dovile"), "f_bracken_63_1", -1000, 278, 45, async dialog =>
 		{
 			var character = dialog.Player;
 			var questId = new QuestId("f_bracken_63_1", 1005);
 
-			dialog.SetTitle(L("Milda"));
+			dialog.SetTitle(L("Dovile"));
 
 			if (!character.Quests.Has(questId))
 			{
@@ -547,7 +547,7 @@ public class FBracken631QuestNpcsScript : GeneralScript
 
 					if (currentCount >= 5)
 					{
-						character.ServerMessage(L("{#FFD700}All supplies recovered! Return to Milda.{/}"));
+						character.ServerMessage(L("{#FFD700}All supplies recovered! Return to Dovile.{/}"));
 					}
 				}
 				else
@@ -834,7 +834,7 @@ public class LostInTheMistQuest : QuestScript
 		SetReceive(QuestReceiveType.Manual);
 		SetCancelable(true);
 		SetUnlock(QuestUnlockType.AllAtOnce);
-		AddQuestGiver(L("[Lost Traveler] Milda"), "f_bracken_63_1");
+		AddQuestGiver(L("[Lost Traveler] Dovile"), "f_bracken_63_1");
 
 		AddObjective("clearLeafnut", L("Clear Leafnut threats"),
 			new KillObjective(12, new[] { MonsterId.Leafnut }));

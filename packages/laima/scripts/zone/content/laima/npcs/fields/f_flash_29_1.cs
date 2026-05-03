@@ -20,6 +20,13 @@ public class FFlash291NpcScript : GeneralScript
 		//-------------------------------------------------------------------------
 		AddNpc(1000, 147392, "Lv1 Treasure Chest", "f_flash_29_1", -1129.15, 0.12, -835.57, 135, "TREASUREBOX_LV_F_FLASH_29_11000", "", "");
 
+		// Wall Patrol Guards
+		//-------------------------------------------------------------------------
+		AddCombatNpc(147415, "Wall Patrol", "f_flash_29_1", -280, -572, 0, level: 95);
+		AddCombatNpc(147416, "Wall Patrol", "f_flash_29_1", -247, -567, 180, level: 95);
+		AddCombatNpc(20060, "Patrol Guard", "f_flash_29_1", 1342, 122, 0, level: 90);
+		AddCombatNpc(20060, "Patrol Guard", "f_flash_29_1", 1248, 145, 0, level: 90);
+
 		// Map-Wide Petrification Curse
 		//-------------------------------------------------------------------------
 		var petrifyTrigger = AddAreaTrigger("f_flash_29_1", 0, 0, 99999, async (args) =>

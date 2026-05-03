@@ -158,17 +158,10 @@ namespace Melia.Zone.Scripting
 		///
 		/// The monster id passed in supplies the visual model and base data;
 		/// only models that have walk/run AND attack animations work
-		/// correctly. Verified IDs:
-		///
-		///   20059  - orsha_soldier_f         (Orsha Soldier, female)
-		///   20060  - orsha_soldier_m         (Orsha Soldier, male)
-		///   147410 - npc_soldier_female_01   (Female Guard variant 1)
-		///   147415 - npc_soldier_female_02   (Female Guard variant 2)
-		///   147416 - npc_soldier_female_03   (Female Guard variant 3)
-		///
-		/// Models confirmed to have idle-only animations (do NOT use):
-		/// soldier_axe, orsha_soldier_f (anim folder is empty in client),
-		/// most monster_* soldiers (they're enemies, not guards).
+		/// correctly. The full verified list (and the script that regenerates
+		/// it from the client extract) lives in
+		/// melia/doc/scripting/combat_npc_models.md — consult it before
+		/// picking a model.
 		/// </remarks>
 		/// <param name="monsterClassId">Monster id used for visuals/base data.</param>
 		/// <param name="name">Display name. Pass null to keep the data name.</param>

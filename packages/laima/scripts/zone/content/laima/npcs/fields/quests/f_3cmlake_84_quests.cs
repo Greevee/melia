@@ -145,14 +145,14 @@ public class F3Cmlake84QuestNpcsScript : GeneralScript
 		AddShrineMarker(4, -369, -1088, 0,
 			L("{#666666}*The marker glows almost black — the central channel is the worst affected.*{/}"));
 
-		// Quest 2: Bile Phials — Ruta
+		// Quest 2: Bile Phials — Edita
 		//-------------------------------------------------------------------------
-		AddNpc(20107, L("[Shrine-Attendant] Ruta"), "f_3cmlake_84", -207, 211, 90, async dialog =>
+		AddNpc(20107, L("[Shrine-Attendant] Edita"), "f_3cmlake_84", -207, 211, 90, async dialog =>
 		{
 			var character = dialog.Player;
 			var questId = new QuestId("f_3cmlake_84", 1002);
 
-			dialog.SetTitle(L("Ruta"));
+			dialog.SetTitle(L("Edita"));
 
 			if (!character.Quests.Has(questId))
 			{
@@ -500,13 +500,13 @@ public class F3Cmlake84Quest1002 : QuestScript
 		SetId("f_3cmlake_84", 1002);
 		SetName(L("Bile Phials"));
 		SetType(QuestType.Sub);
-		SetDescription(L("Thin the Blue Slimes and bring six fresh-drawn bile phials to Ruta for the purging rite."));
+		SetDescription(L("Thin the Blue Slimes and bring six fresh-drawn bile phials to Edita for the purging rite."));
 		SetLocation("f_3cmlake_84");
 		SetAutoTracked(true);
 		SetReceive(QuestReceiveType.Manual);
 		SetCancelable(true);
 		SetUnlock(QuestUnlockType.AllAtOnce);
-		AddQuestGiver(L("[Shrine-Attendant] Ruta"), "f_3cmlake_84");
+		AddQuestGiver(L("[Shrine-Attendant] Edita"), "f_3cmlake_84");
 
 		AddDrop(650095, 0.35f, MonsterId.Slime_Dark_Blue);
 

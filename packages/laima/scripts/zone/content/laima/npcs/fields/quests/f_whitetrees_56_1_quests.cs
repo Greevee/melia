@@ -26,12 +26,12 @@ public class FWhitetrees561QuestNpcsScript : GeneralScript
 		// =====================================================================
 		// QUEST 1001: Floron Spore-Drift
 		// =====================================================================
-		AddNpc(20109, L("[Forester] Milda"), "f_whitetrees_56_1", 850, 280, 270, async dialog =>
+		AddNpc(20109, L("[Forester] Gabija"), "f_whitetrees_56_1", 850, 280, 270, async dialog =>
 		{
 			var character = dialog.Player;
 			var questId = new QuestId("f_whitetrees_56_1", 1001);
 
-			dialog.SetTitle(L("Milda"));
+			dialog.SetTitle(L("Gabija"));
 
 			if (!character.Quests.Has(questId))
 			{
@@ -423,13 +423,13 @@ public class FloronSporeDriftQuest : QuestScript
 		SetId("f_whitetrees_56_1", 1001);
 		SetName("Floron Spore-Drift");
 		SetType(QuestType.Sub);
-		SetDescription("Forester Milda needs twenty Florons thinned to clear the spore-drift so the woodcutters can work a full shift.");
+		SetDescription("Forester Gabija needs twenty Florons thinned to clear the spore-drift so the woodcutters can work a full shift.");
 		SetLocation("f_whitetrees_56_1");
 		SetAutoTracked(true);
 		SetReceive(QuestReceiveType.Manual);
 		SetCancelable(true);
 		SetUnlock(QuestUnlockType.AllAtOnce);
-		AddQuestGiver("[Forester] Milda", "f_whitetrees_56_1");
+		AddQuestGiver("[Forester] Gabija", "f_whitetrees_56_1");
 		AddObjective("killFloron", "Thin Florons in the spore-drift",
 			new KillObjective(20, new[] { MonsterId.Floron }));
 		AddReward(new ExpReward(1550, 1090));

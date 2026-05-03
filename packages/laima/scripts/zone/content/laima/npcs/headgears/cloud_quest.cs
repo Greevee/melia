@@ -13,7 +13,7 @@ public class CloudQuestScript : QuestScript
 	private new readonly QuestId QuestId = new(QuestNamespace, QuestNumber);
 	private const string QuestNamespace = "Laima.Quests";
 	private const string QuestName = "Dreams of the Waterfall";
-	private const string QuestDescription = "Help Tomas the dreamer craft a Cloud headpiece using the soft fur leaves of the Siaulamb near Dina Bee Farm.";
+	private const string QuestDescription = "Help Saulius the dreamer craft a Cloud headpiece using the soft fur leaves of the Siaulamb near Dina Bee Farm.";
 
 	private const int SiaulambFurLeafId = 645590;
 	private const int SiaulambFurLeafAmount = 120;
@@ -28,20 +28,20 @@ public class CloudQuestScript : QuestScript
 		SetUnlock(QuestUnlockType.AllAtOnce);
 		SetCancelable(true);
 		SetReceive(QuestReceiveType.Manual);
-		AddQuestGiver(L("[Dreamer] Tomas"), "f_siauliai_46_4");
+		AddQuestGiver(L("[Dreamer] Saulius"), "f_siauliai_46_4");
 
 		AddObjective("collect_fur_leaves", "Collect 120 Siaulamb Fur Leaves", new CollectItemObjective(SiaulambFurLeafId, SiaulambFurLeafAmount));
 		AddReward(new ItemReward(CloudHeadgearId, 1));
 
-		AddNpc(20117, L("[Dreamer] Tomas"), "f_siauliai_46_4", 899, 87, 90, TomasDialog);
+		AddNpc(20117, L("[Dreamer] Saulius"), "f_siauliai_46_4", 899, 87, 90, SauliusDialog);
 	}
 
-	private async Task TomasDialog(Dialog dialog)
+	private async Task SauliusDialog(Dialog dialog)
 	{
 		var player = dialog.Player;
 		var hasActiveQuest = player.Quests.IsActive(QuestId);
 
-		dialog.SetTitle(L("Tomas"));
+		dialog.SetTitle(L("Saulius"));
 
 		if (!hasActiveQuest)
 		{
