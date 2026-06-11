@@ -257,7 +257,6 @@ namespace Melia.Zone.Network
 				map.AddCharacter(character);
 
 				conn.LoggedIn = true;
-				conn.LastHeartBeat = DateTime.Now;
 				conn.SessionKey = sessionKey;
 				character.IsOnline = true;
 
@@ -4414,17 +4413,17 @@ namespace Melia.Zone.Network
 		/// <summary>
 		/// Sent regularly from the client (every 10 seconds).
 		/// </summary>
+		/// <remarks>
+		/// No liveness handling here; ZoneConnection.OnPacketReceived
+		/// stamps LastHeartBeat for every received packet, and the
+		/// DeadConnectionSweepService handles stale connections.
+		/// </remarks>
 		/// <param name="conn"></param>
 		/// <param name="packet"></param>
 		[PacketHandler(Op.CZ_HEARTBEAT)]
 		public void CZ_HEARTBEAT(IZoneConnection conn, Packet packet)
 		{
 			var secondsSinceStart = packet.GetFloat();
-
-			// If it's been more than 60 seconds since last heart beat, disconnect the client.
-			if (conn.LastHeartBeat < DateTime.Now.AddSeconds(-60))
-				conn.Close();
-			conn.LastHeartBeat = DateTime.Now;
 		}
 
 		[PacketHandler(Op.CZ_WAREHOUSE_TAKE_LIST)]

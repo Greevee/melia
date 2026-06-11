@@ -28,6 +28,7 @@ namespace Melia.Zone.Database
 		/// </summary>
 		public Character GetCharacter(long accountId, long characterId)
 		{
+			var loadSw = Stopwatch.StartNew();
 			var adjustedCharId = characterId > ObjectIdRanges.Characters ? characterId - ObjectIdRanges.Characters : characterId;
 			var charNameForLog = $"ID:{adjustedCharId}"; // Initial name for logging
 
@@ -73,6 +74,8 @@ namespace Melia.Zone.Database
 				}
 			}
 
+			var baseLoadMs = loadSw.ElapsedMilliseconds;
+
 			// Calls to partial class methods for loading components
 			this.LoadCharacterComponentData(character, charNameForLog);
 
@@ -93,6 +96,11 @@ namespace Melia.Zone.Database
 			character.Etc.Properties.SetFloat(PropertyName.HAT_L_Visible, (character.VisibleEquip & VisibleEquip.Headgear3) != 0 ? 1 : 0);
 			character.Etc.Properties.SetFloat(PropertyName.HAIR_WIG_Visible, (character.VisibleEquip & VisibleEquip.Wig) != 0 ? 1 : 0);
 
+			loadSw.Stop();
+			if (loadSw.ElapsedMilliseconds > 500)
+				Log.Debug("GetCharacter: Loaded '{0}' ({1}) in {2}ms (base={3}ms, components={4}ms).",
+					character.Name, character.DbId, loadSw.ElapsedMilliseconds, baseLoadMs, loadSw.ElapsedMilliseconds - baseLoadMs);
+
 			return character;
 		}
 
@@ -105,21 +113,29 @@ namespace Melia.Zone.Database
 			character.TeamStorage.InitSize();
 			this.LoadStorage(character.TeamStorage, "storage_team", "accountId", character.AccountDbId);
 
-			//account.Properties.ClearAllDirtyFlags();
-			//character.Properties.ClearAllDirtyFlags();
-			//character.Etc.Properties.ClearAllDirtyFlags();
+		// Clear dirty flags after initial load so only subsequent changes
+		// are written on the next save.
+		account.Properties.ClearDirty();
+		character.Properties.ClearDirty();
+		character.Etc.Properties.ClearDirty();
 
-			foreach (var item in account.TeamStorage.GetItems().Values)
-			{
-				//item.Properties.ClearAllDirtyFlags();
-			}
-		}
+		foreach (var item in account.TeamStorage.GetItems().Values)
+			item.Properties.ClearDirty();
+
+		// Also clear dirty flags for character inventory items
+		foreach (var item in character.Inventory.GetItems().Values)
+			item.Properties.ClearDirty();
+		foreach (var item in character.Inventory.GetEquip().Values)
+			item?.Properties.ClearDirty();
+		foreach (var item in character.Inventory.GetCards().Values)
+			item?.Properties.ClearDirty();
+	}
 
 		/// <summary>
 		/// Saves all player data (character + account) within a single,
 		/// robust, deadlock-aware transaction. When account is null (e.g.
 		/// for autotrading characters), only character data is saved.
-		/// Uses Monitor-based per-character locking to prevent concurrent saves.
+		/// Uses Monitor-based per-account and per-character locking to prevent concurrent saves.
 		/// </summary>
 		private const long SlowSaveThresholdMs = 3000;
 
@@ -130,8 +146,10 @@ namespace Melia.Zone.Database
 
 			if (character.Variables.Temp.GetBool("Melia.NoSave", false)) return;
 
-			var lockTaken = false;
-			object acquiredLock = null;
+			var accountLockTaken = false;
+			var characterLockTaken = false;
+			object acquiredAccountLock = null;
+			object acquiredCharacterLock = null;
 			const int maxRetries = 3;
 			var saveStopwatch = new Stopwatch();
 			saveStopwatch.Start();
@@ -142,9 +160,20 @@ namespace Melia.Zone.Database
 				try
 				{
 					var lockStart = saveStopwatch.ElapsedMilliseconds;
-					CharacterLockManager.TryAcquire(character.DbId, TimeSpan.FromSeconds(3), "SavePlayerData", ref lockTaken, out acquiredLock);
+
+					if (account != null)
+					{
+						AccountLockManager.TryAcquire(account.Id, TimeSpan.FromSeconds(3), "SavePlayerData", ref accountLockTaken, out acquiredAccountLock);
+						if (!accountLockTaken)
+						{
+							Log.Error($"SavePlayerData: Failed to acquire C# lock for account {account.Id} after 3s. Aborting save.");
+							return;
+						}
+					}
+
+					CharacterLockManager.TryAcquire(character.DbId, TimeSpan.FromSeconds(3), "SavePlayerData", ref characterLockTaken, out acquiredCharacterLock);
 					lockMs = saveStopwatch.ElapsedMilliseconds - lockStart;
-					if (!lockTaken)
+					if (!characterLockTaken)
 					{
 						Log.Error($"SavePlayerData: Failed to acquire C# lock for character {character.DbId} after 3s. Aborting save.");
 						return;
@@ -224,13 +253,48 @@ namespace Melia.Zone.Database
 								this.InternalSaveAdventureBookItems(character, conn, trans);
 							}
 
-							trans.Commit();
-							character.LastSaved = DateTime.UtcNow;
-							transMs = saveStopwatch.ElapsedMilliseconds - transStart;
+						trans.Commit();
+						character.LastSaved = DateTime.UtcNow;
 
-							saveStopwatch.Stop();
-							if (saveStopwatch.ElapsedMilliseconds > SlowSaveThresholdMs)
-								Log.Warning($"SavePlayerData: Slow save for '{character.Name}' ({character.DbId}): {saveStopwatch.ElapsedMilliseconds}ms [lock={lockMs}ms, transaction={transMs}ms]. (Thread {Thread.CurrentThread.ManagedThreadId})");
+					// Clear dirty flags after successful save so the next
+					// save only writes changed properties.
+					character.Properties.ClearDirty();
+					character.Etc.Properties.ClearDirty();
+					account?.Properties.ClearDirty();
+					foreach (var item in character.Inventory.GetItems().Values)
+						item.Properties.ClearDirty();
+					foreach (var item in character.Inventory.GetEquip().Values)
+						item?.Properties.ClearDirty();
+					foreach (var item in character.Inventory.GetCards().Values)
+						item?.Properties.ClearDirty();
+					foreach (var item in character.PersonalStorage.GetItems().Values)
+						item.Properties.ClearDirty();
+					if (account?.TeamStorage != null)
+					{
+						foreach (var item in account.TeamStorage.GetItems().Values)
+							item.Properties.ClearDirty();
+					}
+
+					transMs = saveStopwatch.ElapsedMilliseconds - transStart;
+
+						saveStopwatch.Stop();
+						if (saveStopwatch.ElapsedMilliseconds > SlowSaveThresholdMs)
+						{
+							// Gather property counts for bottleneck diagnosis
+							var charPropTotal = character.Properties.Count();
+							var charPropDirty = character.Properties.CountDirty();
+							var etcPropTotal = character.Etc.Properties.Count();
+							var etcPropDirty = character.Etc.Properties.CountDirty();
+							var itemCount = character.Inventory.GetItems().Count + character.Inventory.GetEquip().Count;
+						var itemDirtyCount = 0;
+						foreach (var invItem in character.Inventory.GetItems().Values)
+							if (invItem.Properties.CountDirty() > 0) itemDirtyCount++;
+						foreach (var equipItem in character.Inventory.GetEquip().Values)
+							if (equipItem?.Properties.CountDirty() > 0 == true) itemDirtyCount++;
+
+							Log.Warning($"SavePlayerData: Slow save for '{character.Name}' ({character.DbId}): {saveStopwatch.ElapsedMilliseconds}ms [lock={lockMs}ms, transaction={transMs}ms] " +
+								$"props(char={charPropDirty}/{charPropTotal}, etc={etcPropDirty}/{etcPropTotal}, itemsDirty={itemDirtyCount}/{itemCount}). (Thread {Thread.CurrentThread.ManagedThreadId})");
+						}
 
 							return; // Success, exit retry loop
 						}
@@ -241,12 +305,17 @@ namespace Melia.Zone.Database
 							try { trans.Rollback(); } catch (Exception rbEx) { Log.Error($"Rollback after {errorType} failed: {rbEx}"); }
 							if (i == maxRetries - 1) throw;
 
-							// Release lock before sleeping so other operations
-							// on this character aren't blocked during backoff
-							if (lockTaken)
+							// Release locks before sleeping so other operations
+							// aren't blocked during backoff.
+							if (characterLockTaken)
 							{
-								CharacterLockManager.Release(acquiredLock, character.DbId, "SavePlayerData");
-								lockTaken = false;
+								CharacterLockManager.Release(acquiredCharacterLock, character.DbId, "SavePlayerData");
+								characterLockTaken = false;
+							}
+							if (accountLockTaken)
+							{
+								AccountLockManager.Release(acquiredAccountLock, account.Id, "SavePlayerData");
+								accountLockTaken = false;
 							}
 							Thread.Sleep(50 + RandomProvider.Get().Next(100));
 						}
@@ -260,10 +329,15 @@ namespace Melia.Zone.Database
 				}
 				finally
 				{
-					if (lockTaken)
+					if (characterLockTaken)
 					{
-						CharacterLockManager.Release(acquiredLock, character.DbId, "SavePlayerData");
-						lockTaken = false; // Reset for retry loop
+						CharacterLockManager.Release(acquiredCharacterLock, character.DbId, "SavePlayerData");
+						characterLockTaken = false; // Reset for retry loop
+					}
+					if (accountLockTaken)
+					{
+						AccountLockManager.Release(acquiredAccountLock, account.Id, "SavePlayerData");
+						accountLockTaken = false; // Reset for retry loop
 					}
 				}
 			}

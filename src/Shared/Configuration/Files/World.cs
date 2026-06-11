@@ -224,6 +224,10 @@ namespace Melia.Shared.Configuration.Files
 		public int LogCleanupRetentionDays { get; protected set; }
 		public int LogCleanupIntervalHours { get; protected set; }
 
+		// Dead connection sweep settings
+		public int DeadConnectionTimeoutSeconds { get; protected set; }
+		public int DeadConnectionSweepIntervalSeconds { get; protected set; }
+
 		// party.conf - Quest Sharing
 		public bool PartyQuestSharingEnabled { get; protected set; }
 		public float PartyQuestSharingRange { get; protected set; }
@@ -399,6 +403,9 @@ namespace Melia.Shared.Configuration.Files
 
 			this.LogCleanupRetentionDays = this.GetInt("log_cleanup_retention_days", 7);
 			this.LogCleanupIntervalHours = this.GetInt("log_cleanup_interval_hours", 6);
+
+			this.DeadConnectionTimeoutSeconds = this.GetInt("dead_connection_timeout_seconds", 120);
+			this.DeadConnectionSweepIntervalSeconds = this.GetInt("dead_connection_sweep_interval_seconds", 30);
 
 			this.GlobalDropSuperMobItemThreshold = this.GetBool("global_drop_super_mob_item_threshold", false);
 			this.GlobalDropSuperMobItemReroll = this.GetBool("global_drop_super_mob_item_reroll", false);
