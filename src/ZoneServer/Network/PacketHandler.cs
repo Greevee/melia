@@ -4978,6 +4978,9 @@ namespace Melia.Zone.Network
 		{
 			var language = (Language)packet.GetShort();
 
+			if (conn.Account == null)
+				return;
+
 			if (!Enum.IsDefined(typeof(Language), language))
 			{
 				Log.Warning("CZ_SELECTED_LANGUAGE: Invalid language '{0}' received from '{1}'.", language, conn.Account.Name);
@@ -4986,6 +4989,7 @@ namespace Melia.Zone.Network
 
 			conn.Account.Language = language.ToString();
 			conn.SelectedLanguage = conn.Account.Language;
+			conn.Account.Variables.Perm.SetString("Melia.SelectedLanguage", conn.SelectedLanguage);
 		}
 
 		/// <summary>
