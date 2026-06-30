@@ -13963,3 +13963,275 @@ msgstr "Буфф применен!"
 msgid "Here's your {0}!"
 msgstr "Вот ваш {0}!"
 
+
+
+# ============================================================================
+# Maple Leaf Sanctuary (id_maple_01.cs)
+# ============================================================================
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Welcome, mysterious one. I am Laima, goddess of Fate, and creator of this sanctuary."
+msgstr "Добро пожаловать, загадочный гость. Я — Лайма, богиня Судьбы и создательница этого святилища."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "I see. It might be beneficial to seek them out. They can provide valuable insights about this sanctuary and our world."
+msgstr "Понятно. Возможно, стоило бы с ними познакомиться. Они могут поделиться ценной информацией об этом заповеднике и о нашем мире."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Excellent. I hope they were able to offer you some clarity about your situation."
+msgstr "Отлично. Надеюсь, им удалось прояснить для вас вашу ситуацию."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Though I am the goddess of Fate, your future remains a mystery even to me. Your presence here is unprecedented, and your path is yours to choose."
+msgstr "Хотя я и являюсь богиней Судьбы, твоё будущее остаётся загадкой даже для меня. Твоё появление здесь — беспрецедентное событие, и только тебе решать, каким будет твой путь."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "A noble choice. Your help will be most welcome in this important task."
+msgstr "Благородный выбор. Ваша помощь будет весьма кстати в решении этой важной задачи."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Souls arrive in the sanctuary sporadically. Sometimes we may see several in a day, other times it might be weeks before a new soul appears. This duty requires patience, but it is an important task to keep souls pure from corruption and evil powers."
+msgstr "Души появляются в святилище нерегулярно. Иногда за день мы можем увидеть сразу несколько, а иногда проходят целые недели, прежде чем появится новая душа. Эта работа требует терпения, но она очень важна, поскольку позволяет сохранить души чистыми от разложения и злых сил."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "I understand your desire to explore the world beyond this sanctuary. While I cannot foresee your future, I believe you have an important role to play."
+msgstr "Я понимаю ваше желание исследовать мир за пределами этого убежища. Хотя я не могу предсказать ваше будущее, я верю, что вам суждено сыграть важную роль."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Remember, you can always return to this sanctuary if you need guidance. Now, where would you like to begin your journey?"
+msgstr "Помните, что вы всегда можете вернуться в это убежище, если вам понадобится помощь. Итак, с чего бы вы хотели начать своё путешествие?"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Welcome, lost soul. I am Raphaella, an angel in service of Goddess Laima. Your presence here is... unexpected, but not unwelcome."
+msgstr "Добро пожаловать, заблудшая душа. Я — Рафаэлла, ангел на службе у богини Лаймы. Твое появление здесь… неожиданно, но не нежелательно."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "This is the Maple Leaf Sanctuary, created by Goddess Laima after the great war. It serves as a beacon for lost souls and a refuge for those seeking the missing goddesses."
+msgstr "Это Святилище Кленового Листа, созданное богиней Лаймой после Великой войны. Оно служит маяком для заблудших душ и убежищем для тех, кто ищет пропавших богинь."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "The sanctuary's power draws in beings from various worlds, hoping to find clues about the goddesses' whereabouts."
+msgstr "Сила святилища притягивает существ из разных миров, надеющихся найти подсказки о местонахождении богинь."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "A terrible war raged between the goddesses and the demon lords. Both sides suffered greatly, and many lives were lost."
+msgstr "Между богинями и повелителями демонов разразилась ужасная война. Обе стороны понесли огромные потери, и погибло множество людей."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "In the aftermath, several goddesses vanished. We don't know how many survived or where they might be. That's why this sanctuary exists - to find them."
+msgstr "В результате несколько богинь исчезли. Мы не знаем, сколько из них выжило и где они могут находиться. Именно для этого и существует это святилище — чтобы найти их."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "You are a unique case. We typically guide lost souls of this world, but you seem to be from another world entirely. Your arrival was unforeseen."
+msgstr "Вы — уникальный случай. Обычно мы помогаем заблудшим душам этого мира, но вы, похоже, пришли из совершенно другого мира. Ваше появление было неожиданным."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Perhaps you have a greater purpose here. The sanctuary's power must have drawn you for a reason."
+msgstr "Возможно, у вас здесь есть какая-то высшая цель. Сила этого святилища, должно быть, привлекла вас не просто так."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "At the peak of this sanctuary you will find Goddess Laima herself, please talk to her, she will guide you further on your journey. May the light of the goddesses guide your path."
+msgstr "На вершине этого святилища вы встретите саму богиню Лайму. Поговорите с ней — она укажет вам дальнейший путь. Пусть свет богинь освещает ваш путь."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Greetings, traveler from another realm. I am Seraphina, keeper of celestial knowledge."
+msgstr "Приветствую тебя, путешественник из другого мира. Я — Серафина, хранительница небесных знаний."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Our world is in a remarkable state of recovery. Despite the scars left by the war between goddesses and demon lords, humanity has shown incredible resilience."
+msgstr "Наш мир переживает период удивительного возрождения. Несмотря на шрамы, оставленные войной между богинями и повелителями демонов, человечество продемонстрировало невероятную стойкость."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "The human kingdoms have flourished, building great cities and advancing in knowledge and technology. However, many wild regions are still plagued by monsters and dark energies."
+msgstr "Царства людей процветали, строили великие города и достигали прогресса в области знаний и технологий. Однако многие дикие регионы по-прежнему страдают от нападений монстров и темных сил."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Demon lords are powerful entities of chaos and destruction. They sought to overthrow the goddesses and claim our world for themselves."
+msgstr "Повелители демонов — могущественные воплощения хаоса и разрушения. Они стремились свергнуть богинь и захватить наш мир."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "While the war has ended, some demon lords may still lurk in the shadows, waiting to strike again. But fear not, Goddess Laima will be watching over you."
+msgstr "Хотя война и закончилась, некоторые повелители демонов, возможно, по-прежнему скрываются в тени, готовясь нанести новый удар. Но не бойтесь — богиня Лайма будет охранять вас."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "I'm not certain of your role here, traveler. Your arrival is shrouded in mystery, even to us angels."
+msgstr "Я не совсем понимаю, какую роль ты здесь играешь, путешественник. Твоё появление окутано тайной даже для нас, ангелов."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "However, if you seek guidance, I suggest you seek out Goddess Laima herself. You can find her at the highest point of this sanctuary."
+msgstr "Однако, если вам нужен совет, я предлагаю обратиться к самой богине Лайме. Вы найдёте её на самой высокой точке этого святилища."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "She may have insights into your purpose and how you can aid our world. Be prepared for a journey of self-discovery and great responsibility."
+msgstr "Возможно, она сможет пролить свет на ваше предназначение и на то, как вы можете помочь нашему миру. Будьте готовы к пути самопознания и к большой ответственности."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Take your time to understand your place in this new world. Remember, even in darkness, hope shines eternal."
+msgstr "Не торопитесь — постарайтесь понять своё место в этом новом мире. Помните: даже во тьме надежда сияет вечно."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Welcome to our sanctuary, traveler. I am Celeste, guardian of lost souls. Your presence here is most intriguing."
+msgstr "Добро пожаловать в наше святилище, путешественник. Я — Селеста, хранительница заблудших душ. Твое появление здесь весьма интригует меня."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "In the time since this sanctuary's creation, we've guided a few hundred souls. Each one is unique, with its own story and purpose."
+msgstr "С момента создания этого убежища мы помогли нескольким сотням душ. Каждая из них уникальна, у каждой своя история и своя цель."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "It's a small number compared to the vastness of existence, but each soul we help finds its way is a victory against the darkness."
+msgstr "Это небольшое число по сравнению с безграничностью бытия, но каждая душа, которой мы помогаем найти свой путь, — это победа над тьмой."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "After the great war, Raphaella, Seraphina, and I were lost, much like the souls we now guide. The sanctuary's power drew us here, just as it draws others."
+msgstr "После Великой войны Рафаэлла, Серафина и я были потеряны, подобно тем душам, которым мы теперь служим проводниками. Сила святилища привела нас сюда, так же как она привлекает и других."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "We found Goddess Laima at the heart of this place. She offered us purpose and hope in the aftermath of the conflict. Now, we serve her by assisting lost souls to find their place in this world or beyond."
+msgstr "В самом сердце этого места мы обрели богиню Лайму. Она даровала нам цель и надежду после окончания конфликта. Теперь мы служим ей, помогая заблудшим душам обрести своё место в этом мире или за его пределами."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "The ultimate fate of each soul is chosen by Goddess Laima herself. She sees paths and possibilities that even we angels cannot comprehend."
+msgstr "Окончательную судьбу каждой души выбирает сама богиня Лайма. Она видит пути и возможности, которые даже мы, ангелы, не в силах понять."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Many souls are guided back to the world, finding places where they can be happy and at peace. Some might become adventurers like yourself, while others may live quieter lives."
+msgstr "Многие души возвращаются в мир, находя места, где они могут быть счастливы и обрести покой. Некоторые из них могут стать такими же искателями приключений, как и ты, а другие — вести более спокойную жизнь."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Regardless of their path, each soul leaves this sanctuary with a renewed sense of purpose and hope."
+msgstr "Независимо от выбранного пути, каждая душа покидает это святилище с новым чувством целеустремленности и надежды."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "May you find your own path, traveler, whether it leads you back to the world or onwards to new adventures. The sanctuary's light will always welcome you, should you need guidance."
+msgstr "Пусть ты найдёшь свой путь, путешественник, будь то путь обратно в мир или вперед, к новым приключениям. Свет святилища всегда будет приветствовать тебя, если тебе понадобится руководство."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Yes, I have."
+msgstr "Да"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Not yet."
+msgstr "Пока нет."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Return to the material world"
+msgstr "Возвращение в материальный мир"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Stay in the sanctuary"
+msgstr "Остаться в святилище"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Klaipeda"
+msgstr "Клайпеда"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Orsha"
+msgstr "Орша"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Fedimian"
+msgstr "Федимиан"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Tell me about this sanctuary."
+msgstr "Расскажи мне об этом месте."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "What happened to the goddesses?"
+msgstr "Что случилось с богинями?"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Why am I here?"
+msgstr "Почему я здесь?"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "That's all for now."
+msgstr "С меня достаточно."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Tell me about the world's state."
+msgstr "Расскажи мне о том, что происходит в мире."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "What are demon lords?"
+msgstr "Кто такие повелители демонов?"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "How can I help?"
+msgstr "Чем я могу помочь?"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "I need time to process this."
+msgstr "Мне нужно время, чтобы это осмыслить."
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "How many souls have you guided?"
+msgstr "Сколько душ вы провели?"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "How did you find Goddess Laima?"
+msgstr "Как вы узнали о богине Лайме?"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "What happens to the guided souls?"
+msgstr "Что происходит с душами попавшими сюда?"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "I've heard enough for now."
+msgstr "Я услышал достаточно."
+
+
+# NPC Names and missing strings for id_maple_01.cs
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "[Goddess] Laima"
+msgstr "[Богиня] Лайма"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "[Angel] Raphaella"
+msgstr "[Ангел] Рафаэлла"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "[Angel] Celeste"
+msgstr "[Ангел] Селеста"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Laima"
+msgstr "Лайма"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Raphaella"
+msgstr "Рафаэлла"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Celeste"
+msgstr "Селеста"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Have you spoken with the angels in this sanctuary?"
+msgstr "Вы разговаривали с ангелами в этом святилище?"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "What path do you wish to take?"
+msgstr "Какой путь вы хотите выбрать?"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "Choose your starting point:"
+msgstr "Выберите отправную точку:"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "What would you like to know?"
+msgstr "Что бы вы хотели узнать?"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "What wisdom do you seek?"
+msgstr "Какой мудрости вы ищете?"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "What would you like to discuss?"
+msgstr "О чём бы вы хотели поговорить?"
+
+#: packages/laima/scripts/zone/content/laima/npc/instances/id_maple_01.cs
+msgid "I'm sorry, I can't take you there right now."
+msgstr "Извини, я сейчас не могу тебя туда отвезти."
+
