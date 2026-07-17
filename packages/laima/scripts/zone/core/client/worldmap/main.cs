@@ -109,6 +109,8 @@ public class WorldMapClientScript : ClientScript
 		this.SendIconBatches(character, icons);
 	}
 
+	private const int MaxIconScriptBytes = 2000;
+
 	private void SendIconBatches(Character character, List<LuaTable> icons)
 	{
 		var isFirstBatch = true;
@@ -141,6 +143,9 @@ public class WorldMapClientScript : ClientScript
 
 			var serializedLength = funcName.Length + 2 + trial.SerializedSize;
 			if (serializedLength > ScriptMaxLength)
+			var script = funcName + "(" + trial.Serialize() + ")";
+			var scriptByteLength = Encoding.UTF8.GetByteCount(script) + 1;
+			if (scriptByteLength > MaxIconScriptBytes)
 			{
 				if (pending.Count == 1)
 				{
