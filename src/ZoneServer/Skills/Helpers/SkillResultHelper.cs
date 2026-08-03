@@ -175,9 +175,6 @@ namespace Melia.Zone.Skills.Helpers
 					var key = GetSkillSyncKey(caster, ret);
 					StartSyncPacket(caster, key);
 
-					if (buffId == BuffId.BlandirCadena_Debuff)
-						arg2 = ret.Damage;
-
 					var buff = target.StartBuff(buffId, level, arg2, TimeSpan.FromMilliseconds(finalDuration), caster, skill.Id);
 					if (buff != null)
 					{

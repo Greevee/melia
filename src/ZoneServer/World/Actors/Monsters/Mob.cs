@@ -1313,14 +1313,14 @@ namespace Melia.Zone.World.Actors.Monsters
 			var worldConf = ZoneServer.Instance.Conf.World;
 
 			var silverChance = worldConf.SilverJackpotSpawnChance * jackpotRate / 100f;
-			if (rnd.NextDouble() * 100 < silverChance)
+			if (this.Level >= worldConf.SilverJackpotMinLevel && rnd.NextDouble() * 100 < silverChance)
 			{
 				this.StartBuff(BuffId.SuperDrop, 100, 0, TimeSpan.Zero, this);
 				return;
 			}
 
 			var goldChance = worldConf.GoldJackpotSpawnChance * jackpotRate / 100f;
-			if (rnd.NextDouble() * 100 < goldChance)
+			if (this.Level >= worldConf.GoldJackpotMinLevel && rnd.NextDouble() * 100 < goldChance)
 			{
 				this.StartBuff(BuffId.SuperDrop, 1000, 1, TimeSpan.Zero, this);
 				return;
@@ -1329,14 +1329,14 @@ namespace Melia.Zone.World.Actors.Monsters
 			// The default chance for SuperExp is 1:12000, based on the
 			// monster property "SuperExpRegenRatio".
 			var blueChance = worldConf.BlueJackpotSpawnChance * jackpotRate / 100f;
-			if (rnd.NextDouble() * 100 < blueChance)
+			if (this.Level >= worldConf.BlueJackpotMinLevel && rnd.NextDouble() * 100 < blueChance)
 			{
 				this.StartBuff(BuffId.SuperExp, 1, 0, TimeSpan.Zero, this);
 				return;
 			}
 
 			var redChance = worldConf.RedJackpotSpawnChance * jackpotRate / 100f;
-			if ((rnd.NextDouble() * 100) < redChance)
+			if (this.Level >= worldConf.RedJackpotMinLevel && (rnd.NextDouble() * 100) < redChance)
 			{
 				this.StartBuff(BuffId.SuperMonGen, 1, 0, TimeSpan.Zero, this);
 				this.Died += this.SuperMonGenMob_Died;

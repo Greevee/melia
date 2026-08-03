@@ -194,6 +194,45 @@ namespace Melia.Zone
 		}
 
 		/// <summary>
+		/// Loads data, scripts and handlers without binding sockets or
+		/// connecting to the coordinator. Used by the balance harness to
+		/// evaluate skills without a client.
+		/// </summary>
+		/// <param name="groupId"></param>
+		/// <param name="serverId"></param>
+		public void RunHeadless(int groupId = 1001, int serverId = 1)
+		{
+			Log.Init($"ZoneServer_headless_{DateTime.Now:yyyy-MM-dd_HH-mm-ss-fff}");
+
+			this.NavigateToRoot();
+
+			this.LoadConf();
+			this.LoadPackages();
+			this.LoadVersionInfo();
+			if (this.Data.OpDb != null)
+				this.PacketHandler.LoadMethods();
+			this.LoadLocalization(this.Conf);
+			this.LoadData(this.Type);
+
+			// Map.AddCharacter calls UpdateServerInfo, which reads ServerInfo.
+			this.LoadServerList(this.Data.ServerDb, this.Type, groupId, serverId);
+
+			// InitWorld reaches the database through GlobalVariables and
+			// Houses, so a connection is required. Init directly rather than
+			// via InitDatabase, which exits the process on failure.
+			var conf = this.Conf.Database;
+			this.Database.Init(conf.Host, conf.Port, conf.User, conf.Pass, conf.Db);
+
+			this.InitSkills();
+			this.InitWorld();
+			this.LoadDialogFunctions();
+			this.LoadTriggerFunctions();
+			this.LoadScripts("zone");
+			this.LoadIesMods();
+			this.PrepareWorld();
+		}
+
+		/// <summary>
 		/// Starts accepting connections.
 		/// </summary>
 		private void StartAcceptor()

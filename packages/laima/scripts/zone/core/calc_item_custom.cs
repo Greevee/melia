@@ -59,7 +59,7 @@ public class ItemCalculationsScript : GeneralScript
 		var gradeRatio = 0f;
 		if (ZoneServer.Instance.Data.ItemGradeDb.TryFindByGrade((int)grade, out var itemGradeData))
 			gradeRatio = itemGradeData.BasicRatio / 100f;
-		var itemATK = (100 + lv * 1.5f) * gradeRatio;
+		var itemATK = (8 + lv * 2.5f) * gradeRatio;
 		if (lv == 0)
 			itemATK = 0;
 
@@ -117,7 +117,7 @@ public class ItemCalculationsScript : GeneralScript
 		var gradeRatio = 0f;
 		if (ZoneServer.Instance.Data.ItemGradeDb.TryFindByGrade((int)grade, out var itemGradeData))
 			gradeRatio = itemGradeData.BasicRatio / 100f;
-		var itemATK = (100 + lv * 1.5f) * gradeRatio;
+		var itemATK = (8 + lv * 2.5f) * gradeRatio;
 		if (lv == 0)
 			itemATK = 0;
 
@@ -173,7 +173,7 @@ public class ItemCalculationsScript : GeneralScript
 		var gradeRatio = 0f;
 		if (ZoneServer.Instance.Data.ItemGradeDb.TryFindByGrade((int)grade, out var itemGradeData))
 			gradeRatio = itemGradeData.BasicRatio / 100f;
-		var itemATK = (100 + lv * 1.5f) * gradeRatio;
+		var itemATK = (8 + lv * 2.5f) * gradeRatio;
 		if (lv == 0)
 			itemATK = 0;
 
@@ -248,7 +248,7 @@ public class ItemCalculationsScript : GeneralScript
 		if (armorClass == 0)
 			return 0;
 
-		var basicDef = ((100f + lv * 1.5f) * armorClass) * gradeRatio;
+		var basicDef = ((8f + lv * 2.5f) * armorClass) * gradeRatio;
 
 		if (lv >= 440)
 		{
@@ -314,7 +314,7 @@ public class ItemCalculationsScript : GeneralScript
 		if (armorClass == 0)
 			return 0;
 
-		var basicMDef = ((100f + lv * 1.5f) * armorClass) * gradeRatio;
+		var basicMDef = ((8f + lv * 2.5f) * armorClass) * gradeRatio;
 
 		var upper440BonusRatio = ZoneServer.Instance.Data.ItemGradeDb.FindValue("Upper440LevelClassTypeRatioIncrease", classType);
 		if (upper440BonusRatio != 0 && lv >= 440)
@@ -448,22 +448,14 @@ public class ItemCalculationsScript : GeneralScript
 		var lv = item.Level;
 		if (lv <= 0) return 0;
 
-		if (!item.Properties.TryGetFloat(PropertyName.ItemGrade, out var grade))
-			return 0;
 		if (!item.Properties.TryGetFloat(PropertyName.Reinforce_2, out var reinforceValue))
 			return 0;
 
 		var reinforceRatio = item.Properties.GetFloat(PropertyName.ReinforceRatio, 100);
 
-		//(lv, grade, reinforceValue, reinforceRatio) = ScrPvpItemLvGradeReinforceSet(item, lv, grade, reinforceValue, reinforceRatio);
-		//var gradeRatio = ScrGetItemGradeRatio(grade, "ReinforceRatio");
-		var gradeRatio = 0f;
-		if (ZoneServer.Instance.Data.ItemGradeDb.TryFindByGrade((int)grade, out var itemGradeData))
-			gradeRatio = itemGradeData.ReinforceRatio;
-
 		//reinforceValue += reinfBonusValue;
-		var value = (float)Math.Floor(reinforceValue + (lv * (reinforceValue * (0.08f + (float)Math.Floor((Math.Min(21, reinforceValue) - 1) / 5) * 0.015f))));
-		value *= (reinforceRatio / 100) * (gradeRatio / 100);
+		var value = (float)Math.Floor(reinforceValue * (2f + (lv * 0.06f)));
+		value *= (reinforceRatio / 100);
 
 		var classType = item.Data.EquipType1;
 		if (classType == EquipType.Trinket) value *= 0.5f;

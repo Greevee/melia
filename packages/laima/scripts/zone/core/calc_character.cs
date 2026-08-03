@@ -909,26 +909,20 @@ public class CharacterCalculationsScript : GeneralScript
 
 		var properties = character.Properties;
 
-		var level = properties.GetFloat(PropertyName.Lv, 1);
 		var stat = properties.GetFloat(PropertyName.STR, 1);
 
-		var baseValue = 20;
-		var byLevel = level;
+		var baseValue = 5;
 
 		var byItem = 0f;
 		byItem += character.Inventory.GetEquipProperties(PropertyName.MINATK);
 		byItem += character.Inventory.GetEquipProperties(PropertyName.PATK);
 		byItem += character.Inventory.GetEquipProperties(PropertyName.ADD_MINATK);
 
-		var value = (baseValue + byLevel + byItem);
+		// Weapon carries flat attack, the stat both adds to it and scales it
+		var byWeapon = byItem * (1f + (stat / 200f));
+		var byStat = stat + ((float)Math.Floor(stat / 10f) * (float)Math.Floor(stat / 10f) * 1.5f);
 
-		var byStat = 0f;
-		if (Feature.IsEnabled("NewSTRFormula"))
-			byStat = (stat * 2f) + ((float)Math.Floor(stat / 10f) * (byLevel * 0.05f));
-		else
-			byStat = (stat * 0.5f) + ((float)Math.Floor(stat / 10f) * 20f);
-
-		value += byStat;
+		var value = baseValue + byWeapon + byStat;
 
 		// Card percentage bonuses (EQUIP_PATK stores percentage points, e.g., 5 = 5%)
 		var byCards = 0f;
@@ -965,26 +959,20 @@ public class CharacterCalculationsScript : GeneralScript
 	{
 		var properties = character.Properties;
 
-		var level = properties.GetFloat(PropertyName.Lv, 1);
 		var stat = properties.GetFloat(PropertyName.STR, 1);
 
-		var baseValue = 20;
-		var byLevel = level;
+		var baseValue = 5;
 
 		var byItem = 0f;
 		byItem += character.Inventory.GetEquipProperties(PropertyName.MAXATK);
 		byItem += character.Inventory.GetEquipProperties(PropertyName.PATK);
 		byItem += character.Inventory.GetEquipProperties(PropertyName.ADD_MAXATK);
 
-		var value = (baseValue + byLevel + byItem);
+		// Weapon carries flat attack, the stat both adds to it and scales it
+		var byWeapon = byItem * (1f + (stat / 200f));
+		var byStat = stat + ((float)Math.Floor(stat / 10f) * (float)Math.Floor(stat / 10f) * 1.5f);
 
-		var byStat = 0f;
-		if (Feature.IsEnabled("NewSTRFormula"))
-			byStat = (stat * 2f) + ((float)Math.Floor(stat / 10f) * (byLevel * 0.05f));
-		else
-			byStat = (stat * 0.5f) + ((float)Math.Floor(stat / 10f) * 20f);
-
-		value += byStat;
+		var value = baseValue + byWeapon + byStat;
 
 		// Card percentage bonuses (EQUIP_PATK stores percentage points, e.g., 5 = 5%)
 		var byCards = 0f;
@@ -1120,26 +1108,20 @@ public class CharacterCalculationsScript : GeneralScript
 
 		var properties = character.Properties;
 
-		var level = properties.GetFloat(PropertyName.Lv, 1);
 		var stat = properties.GetFloat(PropertyName.INT, 1);
 
-		var baseValue = 20;
-		var byLevel = level;
+		var baseValue = 5;
 
 		var byItem = 0f;
 		byItem += character.Inventory.GetEquipProperties(PropertyName.MATK);
 		byItem += character.Inventory.GetEquipProperties(PropertyName.ADD_MATK);
 		byItem += character.Inventory.GetEquipProperties(PropertyName.ADD_MINATK);
 
-		var value = (baseValue + byLevel + byItem);
+		// Weapon carries flat attack, the stat both adds to it and scales it
+		var byWeapon = byItem * (1f + (stat / 200f));
+		var byStat = stat + ((float)Math.Floor(stat / 10f) * (float)Math.Floor(stat / 10f) * 1.5f);
 
-		var byStat = 0f;
-		if (Feature.IsEnabled("NewINTFormula"))
-			byStat = (stat * 2f) + ((float)Math.Floor(stat / 10f) * (byLevel * 0.05f));
-		else
-			byStat = (stat * 0.5f) + ((float)Math.Floor(stat / 10f) * 20f);
-
-		value += byStat;
+		var value = baseValue + byWeapon + byStat;
 
 		// Card percentage bonuses (EQUIP_MATK stores percentage points, e.g., 5 = 5%)
 		var byCards = 0f;
@@ -1171,26 +1153,20 @@ public class CharacterCalculationsScript : GeneralScript
 	{
 		var properties = character.Properties;
 
-		var level = properties.GetFloat(PropertyName.Lv, 1);
 		var stat = properties.GetFloat(PropertyName.INT, 1);
 
-		var baseValue = 20;
-		var byLevel = level;
+		var baseValue = 5;
 
 		var byItem = 0f;
 		byItem += character.Inventory.GetEquipProperties(PropertyName.MATK);
 		byItem += character.Inventory.GetEquipProperties(PropertyName.ADD_MATK);
 		byItem += character.Inventory.GetEquipProperties(PropertyName.ADD_MAXATK);
 
-		var value = (baseValue + byLevel + byItem);
+		// Weapon carries flat attack, the stat both adds to it and scales it
+		var byWeapon = byItem * (1f + (stat / 200f));
+		var byStat = stat + ((float)Math.Floor(stat / 10f) * (float)Math.Floor(stat / 10f) * 1.5f);
 
-		var byStat = 0f;
-		if (Feature.IsEnabled("NewINTFormula"))
-			byStat = (stat * 2f) + ((float)Math.Floor(stat / 10f) * (byLevel * 0.05f));
-		else
-			byStat = (stat * 0.5f) + ((float)Math.Floor(stat / 10f) * 20f);
-
-		value += byStat;
+		var value = baseValue + byWeapon + byStat;
 
 		// Card percentage bonuses (EQUIP_MATK stores percentage points, e.g., 5 = 5%)
 		var byCards = 0f;
@@ -1221,15 +1197,8 @@ public class CharacterCalculationsScript : GeneralScript
 	{
 		var properties = character.Properties;
 
-		var baseValue = 20;
-		var level = properties.GetFloat(PropertyName.Lv);
+		var baseValue = 5;
 		var stat = properties.GetFloat(PropertyName.CON, 1);
-
-		var byLevel = level;
-
-		var byStat = 0d;
-		if (Feature.IsEnabled("NewCONFormula"))
-			byStat = (stat * 2f) + (Math.Floor(stat / 10f) * (byLevel * 0.05f));
 
 		var byItem = 0f;
 		var byBonus = properties.GetFloat(PropertyName.MAXDEF_Bonus);
@@ -1237,7 +1206,11 @@ public class CharacterCalculationsScript : GeneralScript
 		byItem += character.Inventory.GetEquipProperties(PropertyName.DEF);
 		byItem += character.Inventory.GetEquipProperties(PropertyName.ADD_DEF);
 
-		var value = baseValue + byLevel + byStat + byItem + byBonus;
+		// Armor carries flat defense, CON both adds to it and scales it
+		var byArmor = byItem * (1f + (stat / 200f));
+		var byStat = stat;
+
+		var value = baseValue + byArmor + byStat + byBonus;
 
 		var byBuffs = properties.GetFloat(PropertyName.DEF_BM);
 
@@ -1267,25 +1240,18 @@ public class CharacterCalculationsScript : GeneralScript
 		var con = properties.GetFloat(PropertyName.CON, 1);
 		var spr = properties.GetFloat(PropertyName.MNA, 1);
 
-		var baseValue = 20;
-		var level = properties.GetFloat(PropertyName.Lv);
-		var byLevel = level;
+		var baseValue = 5;
 
 		var byItem = 0f;
 
 		byItem += character.Inventory.GetEquipProperties(PropertyName.MDEF);
 		byItem += character.Inventory.GetEquipProperties(PropertyName.ADD_MDEF);
 
-		var value = baseValue + byLevel + byItem;
+		// Armor carries flat magic defense, SPR both adds to it and scales it
+		var byArmor = byItem * (1f + (spr / 200f));
+		var byStat = spr + (con * 0.5f);
 
-		var byCon = 0f;
-		var bySpr = 0f;
-		if (Feature.IsEnabled("NewCONFormula"))
-			byCon = (con * 2f) + (MathF.Floor(con / 10f) * (byLevel * 0.05f));
-		else if (!Feature.IsEnabled("NewSPRFormula"))
-			bySpr = (spr * 1f) + ((float)Math.Floor(spr / 10f) * 40f);
-
-		value += byCon + bySpr;
+		var value = baseValue + byArmor + byStat;
 
 		var byBuffs = properties.GetFloat(PropertyName.MDEF_BM);
 
@@ -1355,9 +1321,10 @@ public class CharacterCalculationsScript : GeneralScript
 		var byItem = 0f;
 		var byStat = 0f;
 
+		// Linear in DEX, so a committed crit build actually outruns the target's CRTDR
 		if (!Feature.IsEnabled("NewDEXFormula"))
 		{
-			byStat = ((float)Math.Floor(stat / 10f) * 1f);
+			byStat = stat * 0.6f;
 		}
 
 		byItem += character.Inventory.GetEquipProperties(PropertyName.CRTHR);
@@ -1391,9 +1358,10 @@ public class CharacterCalculationsScript : GeneralScript
 		var byItem = 0f;
 		var byStat = 0f;
 
+		// Mirrors CRTHR, so an equal CON investment cancels an attacker's DEX
 		if (!Feature.IsEnabled("NewCONFormula"))
 		{
-			byStat = ((float)Math.Floor(stat / 10f) * 2f);
+			byStat = stat * 0.6f;
 		}
 
 		byItem += character.Inventory.GetEquipProperties(PropertyName.CRTDR);
@@ -1423,11 +1391,13 @@ public class CharacterCalculationsScript : GeneralScript
 		var level = properties.GetFloat(PropertyName.Lv);
 		var stat = properties.GetFloat(PropertyName.DEX);
 
-		var byLevel = (level + 3f) / 4f;
+		// Below the monster level term, so an average monster is missed a little
+		var byLevel = level * 0.85f;
 		var byStat = 0f;
 
+		// Linear in DEX, so a full investment covers the most evasive monsters
 		if (!Feature.IsEnabled("NewDEXFormula"))
-			byStat = (stat * 0.14f) + ((float)Math.Floor(stat / 10f) * 5.6f);
+			byStat = stat * 0.15f;
 
 		var byItem = 0f;
 
@@ -1466,11 +1436,13 @@ public class CharacterCalculationsScript : GeneralScript
 		var level = properties.GetFloat(PropertyName.Lv);
 		var stat = properties.GetFloat(PropertyName.DEX);
 
-		var byLevel = (level + 3f) / 4f;
+		var byLevel = level * 0.85f;
 
 		var byStat = 0d;
+
+		// Mirrors HR, so an equal DEX investment on both sides cancels out
 		if (!Feature.IsEnabled("NewDEXFormula"))
-			byStat = (stat * 0.14f) + ((float)Math.Floor(stat / 10f) * 5.6f);
+			byStat = stat * 0.15f;
 
 		var byItem = 0f;
 
@@ -1517,11 +1489,12 @@ public class CharacterCalculationsScript : GeneralScript
 		var level = properties.GetFloat(PropertyName.Lv);
 		var stat = properties.GetFloat(PropertyName.CON);
 
-		var byLevel = (level + 3f) / 4f;
+		var byLevel = level;
 
+		// Linear in CON, and mirrored by BLK_BREAK's STR term so the two cancel
 		var byStat = 0d;
 		if (!Feature.IsEnabled("NewCONFormula"))
-			byStat = (stat * 0.14f) + ((float)Math.Floor(stat / 10f) * 5.6f);
+			byStat = stat * 0.8f;
 		var byItem = 0f;
 
 		byItem += character.Inventory.GetEquipProperties(PropertyName.BLK);
@@ -1573,11 +1546,12 @@ public class CharacterCalculationsScript : GeneralScript
 		var level = properties.GetFloat(PropertyName.Lv);
 		var stat = properties.GetFloat(PropertyName.STR);
 
-		var byLevel = (level + 3f) / 4f;
+		var byLevel = level;
 
+		// Deliberately below BLK, so shielded monsters stay relevant at level
 		var byStat = 0d;
 		if (!Feature.IsEnabled("NewSTRFormula"))
-			byStat = (stat * 0.14f) + ((float)Math.Floor(stat / 10f) * 5.6f);
+			byStat = stat * 0.4f;
 
 		var byItem = 0f;
 

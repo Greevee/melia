@@ -36,6 +36,8 @@ namespace Melia.Shared.Data.Database
 
 			if (entry.ContainsKey("basicSp"))
 				data.BasicSp = entry.ReadFloat("basicSp");
+			if (entry.ContainsKey("lvUpSpendSp"))
+				data.LvUpSpendSp = entry.ReadFloat("lvUpSpendSp");
 			if (entry.ContainsKey("basicCast"))
 				data.BasicCast = entry.ReadFloat("basicCast");
 			if (entry.ContainsKey("shootTime"))

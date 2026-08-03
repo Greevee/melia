@@ -26,6 +26,7 @@ namespace Melia.Shared.Data.Database
 		public SkillCastingType CastingType { get; set; } = SkillCastingType.Normal;
 
 		public float BasicSp { get; set; }
+		public float LvUpSpendSp { get; set; }
 		public float BasicCast { get; set; }
 		public float BasicStamina { get; set; }
 		public string SpendSpScript { get; set; }
@@ -307,6 +308,7 @@ namespace Melia.Shared.Data.Database
 			data.TargetType = entry.ReadEnum<SkillTargetType>("target");
 
 			data.BasicSp = entry.ReadFloat("basicSp", 0);
+			data.LvUpSpendSp = entry.ReadFloat("lvUpSpendSp", 0);
 			data.BasicCast = entry.ReadFloat("basicCast", 0);
 			data.BasicStamina = entry.ReadFloat("basicStamina", 0);
 			data.SpendSpScript = entry.ReadString("spendSpScript", "SCR_Get_SpendSP");

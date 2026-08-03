@@ -120,7 +120,9 @@ namespace Melia.Shared.Configuration.Files
 		// rare_monsters.conf
 		public float BlueJackpotSpawnChance { get; protected set; }
 		public float BlueJackpotExpRate { get; protected set; }
+		public int BlueJackpotMinLevel { get; protected set; }
 		public float RedJackpotSpawnChance { get; protected set; }
+		public int RedJackpotMinLevel { get; protected set; }
 		public int RedJackpotWaveMin { get; protected set; }
 		public int RedJackpotWaveMax { get; protected set; }
 		public int RedJackpotWaveMonsterCount { get; protected set; }
@@ -129,9 +131,11 @@ namespace Melia.Shared.Configuration.Files
 		public float SilverJackpotSpawnChance { get; protected set; }
 		public int SilverJackpotRolls { get; protected set; }
 		public float SilverJackpotGuaranteedItemThreshold { get; protected set; }
+		public int SilverJackpotMinLevel { get; protected set; }
 		public float GoldJackpotSpawnChance { get; protected set; }
 		public int GoldJackpotRolls { get; protected set; }
 		public float GoldJackpotGuaranteedItemThreshold { get; protected set; }
+		public int GoldJackpotMinLevel { get; protected set; }
 		public float EliteSpawnChance { get; protected set; }
 		public float EliteHPSPRate { get; protected set; }
 		public float EliteStatRate { get; protected set; }
@@ -348,7 +352,9 @@ namespace Melia.Shared.Configuration.Files
 
 			this.BlueJackpotSpawnChance = this.GetFloat("blue_jackpot_spawn_chance", 0.05f);
 			this.BlueJackpotExpRate = this.GetFloat("blue_jackpot_exp_rate", 10000);
+			this.BlueJackpotMinLevel = this.GetInt("blue_jackpot_min_level", 0);
 			this.RedJackpotSpawnChance = this.GetFloat("red_jackpot_spawn_chance", 0.05f);
+			this.RedJackpotMinLevel = this.GetInt("red_jackpot_min_level", 0);
 			this.RedJackpotWaveMin = this.GetInt("red_wave_min", 4);
 			this.RedJackpotWaveMax = this.GetInt("red_wave_max", 10);
 			this.RedJackpotWaveMonsterCount = this.GetInt("red_wave_monster_count", 15);
@@ -357,9 +363,11 @@ namespace Melia.Shared.Configuration.Files
 			this.SilverJackpotSpawnChance = this.GetFloat("silver_jackpot_spawn_chance", 0.05f);
 			this.SilverJackpotRolls = this.GetInt("silver_jackpot_rolls", 100);
 			this.SilverJackpotGuaranteedItemThreshold = this.GetFloat("silver_guaranteed_item_threshold", 0.5f);
+			this.SilverJackpotMinLevel = this.GetInt("silver_jackpot_min_level", 0);
 			this.GoldJackpotSpawnChance = this.GetFloat("gold_jackpot_spawn_chance", 0.01f);
 			this.GoldJackpotRolls = this.GetInt("gold_jackpot_rolls", 1000);
 			this.GoldJackpotGuaranteedItemThreshold = this.GetFloat("gold_guaranteed_item_threshold", 0.5f);
+			this.GoldJackpotMinLevel = this.GetInt("gold_jackpot_min_level", 0);
 			this.EliteSpawnChance = this.GetFloat("elite_spawn_chance", 2);
 			this.EliteHPSPRate = this.GetFloat("elite_hpsp_rate", 150);
 			this.EliteStatRate = this.GetFloat("elite_stat_rate", 150);

@@ -233,9 +233,13 @@ public class CombatCalculationsScript : GeneralScript
 		{
 			defense -= Math2.Clamp(0, defense, defense * modifier.DefensePenetrationRate);
 
-			var logFactor = (float)Math.Min(1, Math.Log10(Math.Pow(attack / (defense + 1), 0.8) + 1));
+			// Gentle exponent: the level-gap wall lives in accuracy, not here, so this
+			// curve only has to price gear. A steeper one makes every flat attack gain
+			// and every point of defense penetration compound explosively near parity.
+			var ratio = attack / Math.Max(1, defense);
+			var scaled = (float)Math.Pow(ratio, 1.2);
 
-			skillHitResult.Damage = attack * logFactor;
+			skillHitResult.Damage = Math.Max(1, attack * (scaled / (scaled + 1)));
 		}
 		else
 		{
@@ -379,7 +383,10 @@ public class CombatCalculationsScript : GeneralScript
 				skillHitResult.Damage = 1;
 		}
 
-		var minCap = 0;
+		// A landed hit must deal at least 1, the client can't display 0 damage
+		var isNullified = skillHitResult.Result == HitResultType.None || skillHitResult.Result == HitResultType.Dodge || skillHitResult.Result == HitResultType.Miss;
+
+		var minCap = isNullified ? 0 : 1;
 		var maxCap = ZoneServer.Instance.Conf.World.MaxDamageCap;
 
 		skillHitResult.Damage = Math2.Clamp(minCap, maxCap, skillHitResult.Damage);
@@ -1109,14 +1116,12 @@ public class CombatCalculationsScript : GeneralScript
 		var hr = attacker.Properties.GetFloat(PropertyName.HR);
 		hr *= modifier.HitRateMultiplier;
 
-		var diff = dr - hr;
-		if (diff <= 0)
-			return 0f;
+		// The level gap is the wall; HR/DR only tunes accuracy within a level band
+		var levelGap = target.Properties.GetFloat(PropertyName.Lv) - attacker.Properties.GetFloat(PropertyName.Lv);
 
-		var k = 40f;
-		var dodgeChance = 80f * diff / (diff + hr + k);
+		var dodgeChance = (Math.Max(0f, levelGap) * 0.9f) + ((dr - hr) * 1.1f);
 
-		return dodgeChance;
+		return Math2.Clamp(0f, 80f, dodgeChance);
 	}
 
 	/// <summary>
@@ -1151,14 +1156,10 @@ public class CombatCalculationsScript : GeneralScript
 		if (Feature.IsEnabled("IncreasedBlockRate"))
 			maxChance = 90f;
 
-		var diff = block - blockBreak;
-		if (diff <= 0)
-			return 0f;
+		// Linear in the CON/STR gap; an equal investment on both sides blocks nothing
+		var blockChance = (block - blockBreak) * 1.6f;
 
-		var k = 35f;
-		var blockChance = maxChance * diff / (diff + blockBreak + k);
-
-		return blockChance;
+		return Math2.Clamp(0f, maxChance, blockChance);
 	}
 
 	/// <summary>
@@ -1187,13 +1188,11 @@ public class CombatCalculationsScript : GeneralScript
 		if (critDodgeRate <= 0)
 			return 100f;
 
-		var diff = critHitRate - critDodgeRate;
-		if (diff <= 0)
-			return modifier.MinCritChance;
-
-		var k = 45f;
-		var critChance = 100f * diff / (diff + critDodgeRate + k);
+		// Linear in the CRTHR/CRTDR gap, so a full DEX build reaches the cap
+		var critChance = (critHitRate - critDodgeRate) * 1.0f;
 		critChance *= modifier.CritRateMultiplier;
+
+		critChance = Math2.Clamp(0f, 100f, critChance);
 
 		return Math.Max(modifier.MinCritChance, critChance);
 	}

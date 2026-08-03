@@ -650,6 +650,12 @@ namespace Melia.Shared
 				this.ScriptLoader.References.Add(typeof(HttpClient).Assembly.Location);
 				this.ScriptLoader.References.Add(typeof(Uri).Assembly.Location);
 
+				// ScriptLoader otherwise picks these up only via the entry
+				// assembly, which is the test host when a server is booted
+				// from a test project rather than its own executable.
+				this.ScriptLoader.References.Add(this.GetType().Assembly.Location);
+				this.ScriptLoader.References.Add(typeof(Server).Assembly.Location);
+
 				// Write package script entries into scripts_packages.txt,
 				// which is already required by the system scripts.txt.
 				this.WritePackageScriptsList(scriptFolderName);
@@ -941,6 +947,11 @@ namespace Melia.Shared
 		/// </summary>
 		public virtual void UpdateServerInfo(ServerStatus status, int playerCount = 0, ServerRates rates = null)
 		{
+			// Null when the server was booted without a coordinator
+			// connection, as the balance harness does.
+			if (this.Communicator == null)
+				return;
+
 			var serverId = this.ServerInfo.Id;
 
 			var message = new ServerUpdateMessage(this.Type, serverId, playerCount, status, rates);

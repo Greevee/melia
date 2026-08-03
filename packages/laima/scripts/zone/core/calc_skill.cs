@@ -196,9 +196,13 @@ public class SkillCalculationsScript : GeneralScript
 		if (value == 0)
 			return 0;
 
+		// Mirrors the client's SCR_GET_SpendSP, so the tooltip matches what is
+		// spent; floored because the level term is the only fractional source
+		// and the client floors its own result before displaying it.
+		value = (float)Math.Floor(value + ((skill.Level - 1) * skill.Data.LvUpSpendSp));
+
 		// TODO: Abilities multiplier
 		// var abilAddSP = this.GetAbilityAddSpendValue(pc, skill.Data.ClassName, "SP");
-		// var value = basicSp + (level - 1) * lvUpSpendSp + abilAddSP;
 
 		var owner = skill.Owner;
 
