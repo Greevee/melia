@@ -24,6 +24,7 @@ using Melia.Shared.Network.Inter.Messages;
 using Melia.Shared.Packages;
 using Melia.Shared.Versioning;
 using Melia.Shared.Versioning.MEnums;
+using Microsoft.Extensions.ObjectPool;
 using Yggdrasil.Data;
 using Yggdrasil.Extensions;
 using Yggdrasil.Logging;
@@ -646,9 +647,13 @@ namespace Melia.Shared
 
 				this.ScriptLoader = new ScriptLoader(cachePath);
 
+				// Required for HTTP and other stuff that might be used in
+				// scripts. To make this more flexible, we could potentially
+				// add a way for scripts to specify their own references.
 				this.ScriptLoader.References.Add(typeof(JsonSerializer).Assembly.Location);
 				this.ScriptLoader.References.Add(typeof(HttpClient).Assembly.Location);
 				this.ScriptLoader.References.Add(typeof(Uri).Assembly.Location);
+				this.ScriptLoader.References.Add(typeof(DefaultObjectPool<>).Assembly.Location);
 
 				// ScriptLoader otherwise picks these up only via the entry
 				// assembly, which is the test host when a server is booted

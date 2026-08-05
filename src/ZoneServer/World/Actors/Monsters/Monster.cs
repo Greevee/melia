@@ -8,7 +8,11 @@ using Melia.Zone.Scripting;
 
 namespace Melia.Zone.World.Actors.Monsters
 {
-	public interface IMonster : ISubActor, IMonsterAppearance, IMonsterAppearanceBase, ISpawn
+	/// <summary>
+	/// Represents a "monster" in the world, or in other words, an entity
+	/// that is not a player, but can exist on a map.
+	/// </summary>
+	public interface IMonster : ISubActor, IMonsterAppearance, IMonsterAppearanceBase, ISpawn, IEffectTarget
 	{
 		/// <summary>
 		/// Gets or sets what kind of "monster" the mob is.

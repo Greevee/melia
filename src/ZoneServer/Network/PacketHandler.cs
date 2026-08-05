@@ -4999,7 +4999,6 @@ namespace Melia.Zone.Network
 		{
 			var size = packet.GetShort();
 			var shopName = packet.GetString(64);
-			var itemCount = packet.GetInt();
 			var group = packet.GetInt();
 
 			var character = conn.SelectedCharacter;

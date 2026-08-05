@@ -81,6 +81,11 @@ namespace Melia.Zone.World.Actors.Monsters
 		public TendencyType Tendency { get; set; } = TendencyType.Peaceful;
 
 		/// <summary>
+		/// Returns a list of effects that are attached to the actor.
+		/// </summary>
+		public ConcurrentBag<AttachableEffect> AttachableEffects { get; } = new();
+
+		/// <summary>
 		/// Monster ID in database.
 		/// </summary>
 		public int Id { get; set; }

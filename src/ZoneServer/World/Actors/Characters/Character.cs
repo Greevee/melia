@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -42,7 +43,7 @@ namespace Melia.Zone.World.Actors.Characters
 	/// <summary>
 	/// Represents a player character.
 	/// </summary>
-	public partial class Character : Actor, ICombatEntity, ICommander, IPropertyObject, IUpdateable
+	public partial class Character : Actor, ICombatEntity, ICommander, IPropertyObject, IUpdateable, IEffectTarget
 	{
 		#region Private Fields
 		private const int MaxMonsterAppearPerTick = 8;
@@ -298,6 +299,11 @@ namespace Melia.Zone.World.Actors.Characters
 		/// Returns the character's game permission level, based on the account's authority.
 		/// </summary>
 		public PermissionLevel PermissionLevel => this.Connection?.Account?.PermissionLevel ?? PermissionLevel.User;
+
+		/// <summary>
+		/// Returns a list of effects that are attached to the actor.
+		/// </summary>
+		public ConcurrentBag<AttachableEffect> AttachableEffects { get; } = new();
 
 		/// <summary>
 		/// Returns the character's party id.

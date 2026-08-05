@@ -86,7 +86,6 @@ namespace Melia.Zone.Buffs
 		{
 			_buffHandlers[buffId] = handler;
 
-			this.LoadCombatEvents(buffId, handler);
 			ScriptableFunctions.Load(handler);
 		}
 

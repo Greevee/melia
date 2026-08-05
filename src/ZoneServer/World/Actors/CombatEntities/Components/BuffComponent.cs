@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
@@ -375,7 +376,7 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 		}
 
 		/// <summary>
-		/// Returns a list with all buffs.
+		/// Returns a list of all buffs.
 		/// </summary>
 		/// <returns></returns>
 		public List<Buff> GetList()
@@ -397,6 +398,32 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 					if (predicate(buff))
 						return true;
 				return false;
+			}
+		}
+
+		/// <summary>
+		/// Adds the selected element of all buffs that match the
+		/// predicate to the given list.
+		/// </summary>
+		/// <remarks>
+		/// Use static lamda expressions to avoid unnecessary allocations.
+		/// </remarks>
+		/// <typeparam name="TResult"></typeparam>
+		/// <param name="list"></param>
+		/// <param name="predicate"></param>
+		/// <param name="selector"></param>
+		public void GetList<TResult>(ICollection<TResult> list, Func<Buff, bool> predicate, Func<Buff, TResult> selector)
+		{
+			lock (_buffs)
+			{
+				foreach (var buff in _buffs.Values)
+				{
+					if (predicate(buff))
+					{
+						var item = selector(buff);
+						list.Add(item);
+					}
+				}
 			}
 		}
 

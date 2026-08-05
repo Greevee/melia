@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using Melia.Shared.Game.Const;
 using Melia.Shared.ObjectProperties;
 using Melia.Shared.World;
@@ -121,6 +122,11 @@ namespace Melia.Zone.World.Actors.Monsters
 		public Position SpawnPosition { get; set; } = Position.Zero;
 
 		public NpcState State { get; set; } = NpcState.Normal;
+
+		/// <summary>
+		/// Returns a list of effects that are attached to the actor.
+		/// </summary>
+		public ConcurrentBag<AttachableEffect> AttachableEffects { get; } = new();
 
 		/// <summary>
 		/// Initializes the monster's properties.

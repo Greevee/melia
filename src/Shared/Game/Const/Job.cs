@@ -87,6 +87,8 @@ namespace Melia.Shared.Game.Const
 		BonemancerA = 3109,
 		BlitzHunterA = 3110,
 		HermitA = 3111,
+		GrimmarkA = 3112,
+		CommodoreA = 3113,
 
 		// Cleric
 		Cleric = 4001,
@@ -140,6 +142,7 @@ namespace Melia.Shared.Game.Const
 		AetherBladerT = 5022,
 		GrimmarkT = 5023,
 		KnellerT = 5024,
+		CommodoreT = 5025,
 
 		// GM
 		GM = 9001,

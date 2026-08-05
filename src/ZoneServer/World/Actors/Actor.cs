@@ -16,7 +16,7 @@ using Yggdrasil.Composition;
 namespace Melia.Zone.World.Actors
 {
 	/// <summary>
-	/// An object that can be placed on a map.
+	/// An actor that can exist on a map and be identified by a handle.
 	/// </summary>
 	public interface IActor
 	{
@@ -114,7 +114,7 @@ namespace Melia.Zone.World.Actors
 	}
 
 	/// <summary>
-	/// An object that can be placed on a map.
+	/// An actor that can exist on a map and be identified by a handle.
 	/// </summary>
 	public abstract class Actor : ISubActor
 	{

@@ -122,6 +122,51 @@ namespace Melia.Zone.Network
 			}
 
 			/// <summary>
+			/// Attaches effect to actor on clients in range.
+			/// </summary>
+			/// <param name="actor"></param>
+			/// <param name="effect"></param>
+			public static void AttachEffect(IActor actor, AttachableEffect effect)
+			{
+				using var packet = Packet.Rent(Op.ZC_NORMAL);
+				packet.PutInt(NormalOp.Zone.AttachEffect);
+
+				packet.PutInt(actor.Handle);
+				packet.AddStringId(effect.PacketString);
+				packet.PutFloat(effect.Scale);
+				packet.PutInt((int)effect.Location);
+				packet.PutFloat(effect.Offset.X);
+				packet.PutFloat(effect.Offset.Y);
+				packet.PutFloat(effect.Offset.Z);
+				packet.PutFloat(0);
+
+				actor.Map.Broadcast(packet, actor);
+			}
+
+			/// <summary>
+			/// Attaches effect to actor on client.
+			/// </summary>
+			/// <param name="conn"></param>
+			/// <param name="actor"></param>
+			/// <param name="effect"></param>
+			public static void AttachEffect(IZoneConnection conn, IActor actor, AttachableEffect effect)
+			{
+				using var packet = Packet.Rent(Op.ZC_NORMAL);
+				packet.PutInt(NormalOp.Zone.AttachEffect);
+
+				packet.PutInt(actor.Handle);
+				packet.AddStringId(effect.PacketString);
+				packet.PutFloat(effect.Scale);
+				packet.PutInt((int)effect.Location);
+				packet.PutFloat(effect.Offset.X);
+				packet.PutFloat(effect.Offset.Y);
+				packet.PutFloat(effect.Offset.Z);
+				packet.PutFloat(0);
+
+				conn.Send(packet);
+			}
+
+			/// <summary>
 			/// Creates a wind effect area that pushes actors.
 			/// </summary>
 			/// <param name="actor">The actor creating the wind area.</param>

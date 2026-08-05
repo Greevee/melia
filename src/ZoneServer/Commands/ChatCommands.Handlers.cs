@@ -17,6 +17,7 @@ using Melia.Shared.Util;
 using Melia.Shared.World;
 using Melia.Zone;
 using Melia.Zone.Network;
+using Melia.Zone.Network.Helpers;
 using Melia.Zone.Scripting;
 using Melia.Zone.Scripting.Dialogues;
 using Melia.Zone.Scripting.Extensions.Keywords;
@@ -4748,6 +4749,7 @@ namespace Melia.Zone.Commands
 			packet.PutString(title, 64);
 			packet.PutInt(items.Count);
 			packet.PutInt(personalShopPacketStringId); // PersonalShop
+			packet.PutInt(0); // skillId
 
 			var j = 0;
 			foreach (var item in items)

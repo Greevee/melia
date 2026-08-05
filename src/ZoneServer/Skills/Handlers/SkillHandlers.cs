@@ -87,7 +87,6 @@ namespace Melia.Zone.Skills.Handlers
 		{
 			_handlers[skillId] = handler;
 
-			this.LoadCombatEvents(skillId, handler);
 			ScriptableFunctions.Load(handler);
 		}
 
