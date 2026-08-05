@@ -131,16 +131,6 @@ namespace Melia.Zone.Skills.Handlers.Monsters.Boss
 			hits = new List<SkillHitInfo>();
 			await EffectAndHit(skill, caster, position, config, hits);
 			SkillResultKnockTarget(caster, skill, KnockType.KnockDown, KnockDirection.TowardsTarget, 180, 30, 10, 1, 5, hits);
-			position = GetRelativePosition(PosType.TargetRandom, caster, target, rand: 10, height: 2);
-			position = position.GetNearestPositionWithinDistance(target.Position, skill.Properties[PropertyName.MaxR]);
-			hits = new List<SkillHitInfo>();
-			await EffectAndHit(skill, caster, position, config, hits);
-			SkillResultKnockTarget(caster, skill, KnockType.KnockDown, KnockDirection.TowardsTarget, 180, 30, 10, 1, 5, hits);
-			position = GetRelativePosition(PosType.TargetRandom, caster, target, rand: 10, height: 2);
-			position = position.GetNearestPositionWithinDistance(target.Position, skill.Properties[PropertyName.MaxR]);
-			hits = new List<SkillHitInfo>();
-			await EffectAndHit(skill, caster, position, config, hits);
-			SkillResultKnockTarget(caster, skill, KnockType.KnockDown, KnockDirection.TowardsTarget, 180, 30, 10, 1, 5, hits);
 		}
 	}
 
@@ -272,7 +262,6 @@ namespace Melia.Zone.Skills.Handlers.Monsters.Boss
 				position = position.GetNearestPositionWithinDistance(target.Position, skill.Properties[PropertyName.MaxR]);
 				await EffectAndHit(skill, caster, position, config, hits);
 				SkillResultTargetBuff(caster, skill, BuffId.UC_debrave, 1, 0f, 6000f, 1, 10, -1, hits);
-				SkillResultKnockTarget(caster, skill, KnockType.KnockDown, KnockDirection.TowardsTarget, 180, 30, 10, 1, 5, hits);
 				hits.Clear();
 			}
 		}

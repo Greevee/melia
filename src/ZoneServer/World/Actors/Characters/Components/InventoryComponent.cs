@@ -575,6 +575,61 @@ namespace Melia.Zone.World.Actors.Characters.Components
 		}
 
 		/// <summary>
+		/// Adds item to inventory, updating weight and raising events as
+		/// normal, but without sending the client packets for this
+		/// individual add. Use with <see cref="NotifyItemsAdded"/> to
+		/// sync the client once after batching several quiet adds.
+		/// </summary>
+		/// <param name="item"></param>
+		/// <param name="addType"></param>
+		public bool AddQuiet(Item item, InventoryAddType addType = InventoryAddType.PickUp,
+			InventoryType inventoryType = InventoryType.Inventory, string reason = null)
+		{
+			if (_items.Count > 2000 && inventoryType == InventoryType.PersonalStorage)
+				return false;
+
+			var amountToAdd = item.Amount;
+
+			var left = this.FillStacks(item, addType, true, inventoryType, 0f, reason);
+			if (left > 0)
+			{
+				item.Amount = left;
+				this.AddStack(item, addType, true, inventoryType);
+			}
+
+			if (inventoryType == InventoryType.Inventory)
+				this.UpdateWeight();
+
+			ZoneServer.Instance.ServerEvents.PlayerAddedItem.Raise(new PlayerItemEventArgs(this.Character, item.Id, amountToAdd));
+
+			return true;
+		}
+
+		/// <summary>
+		/// Syncs the client with the current state of the given item id
+		/// and shows a pickup notification for the given amount. Used to
+		/// send a single notification for a batch of <see cref="AddQuiet"/>
+		/// calls for the same item.
+		/// </summary>
+		/// <param name="itemId"></param>
+		/// <param name="amount"></param>
+		/// <param name="addType"></param>
+		public void NotifyItemsAdded(int itemId, int amount, InventoryAddType addType = InventoryAddType.PickUp)
+		{
+			var match = this.GetItems(a => a.Id == itemId).LastOrDefault();
+			if (match.Value == null)
+				return;
+
+			Send.ZC_ITEM_ADD(this.Character, match.Value, match.Key, amount, addType, InventoryType.Inventory);
+
+			if (Versions.Client > KnownVersions.ClosedBeta1)
+			{
+				Send.ZC_ITEM_INVENTORY_INDEX_LIST(this.Character, match.Value.Data.Category);
+				Send.ZC_EQUIP_GEM_INFO(this.Character);
+			}
+		}
+
+		/// <summary>
 		/// Adds new items with given item id to inventory.
 		/// </summary>
 		/// <param name="itemId"></param>

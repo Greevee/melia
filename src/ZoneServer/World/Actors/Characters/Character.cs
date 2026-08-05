@@ -611,6 +611,7 @@ namespace Melia.Zone.World.Actors.Characters
 			this.Components.Update(elapsed);
 			this.UpdateResurrection(elapsed);
 			this.Properties.FlushCompanionPropertyUpdates();
+			this.FlushDueStackPickups();
 		}
 
 		/// <summary>

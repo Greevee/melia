@@ -52,6 +52,7 @@ namespace Melia.Zone.World.Maps
 		private const int MaxMonsterAddsPerTick = 5;
 		private static readonly TimeSpan EntityUpdateGracePeriod = TimeSpan.FromMinutes(5);
 		private static readonly TimeSpan WakeUpGracePeriod = TimeSpan.FromSeconds(30);
+		private static readonly TimeSpan ItemMergeDelay = TimeSpan.FromSeconds(30);
 		#endregion
 
 		#region Collections
@@ -65,6 +66,7 @@ namespace Melia.Zone.World.Maps
 		protected readonly object _obstaclesLock = new();
 
 		private readonly ConcurrentQueue<IMonster> _addMonsters = new();
+		private readonly ConcurrentQueue<(ItemMonster Item, DateTime DueTime)> _pendingItemMerges = new();
 		private int _characterCount;
 		private DateTime _lastPlayerLeftTime = DateTime.MinValue;
 		private DateTime _createdTime = DateTime.Now;
@@ -233,19 +235,27 @@ namespace Melia.Zone.World.Maps
 					monstersAdded++;
 			}
 
-			// Batch-merge items after all additions for this tick,
-			// so drops that exceed the threshold are merged all at
-			// once rather than progressively across multiple ticks.
+			// Queue newly dropped items for merging after a delay, so
+			// items don't instantly vanish into a stack the moment
+			// they hit the ground.
 			if (newItemMonsters != null)
 			{
 				foreach (var itemMonster in newItemMonsters)
-				{
-					bool exists;
-					lock (_monsters)
-						exists = _monsters.ContainsKey(itemMonster.Handle);
-					if (exists)
-						this.TryMergeNearbyItems(itemMonster);
-				}
+					_pendingItemMerges.Enqueue((itemMonster, DateTime.Now + ItemMergeDelay));
+			}
+
+			// Process due item merges, batching all items that became
+			// due this tick so they're merged together at once.
+			while (_pendingItemMerges.TryPeek(out var pending) && pending.DueTime <= DateTime.Now)
+			{
+				if (!_pendingItemMerges.TryDequeue(out pending))
+					break;
+
+				bool exists;
+				lock (_monsters)
+					exists = _monsters.ContainsKey(pending.Item.Handle);
+				if (exists && !pending.Item.PickedUp)
+					this.TryMergeNearbyItems(pending.Item);
 			}
 
 			lock (_updateEntities)
@@ -586,6 +596,10 @@ namespace Melia.Zone.World.Maps
 		/// </summary>
 		public void RemoveCharacter(Character character)
 		{
+			// Flush any pickups still waiting on their merge delay so
+			// they aren't lost when the character leaves the map.
+			character.FlushAllStackPickups();
+
 			// Only adjust the count if the character was actually on the
 			// map. An unconditional decrement lets any double-removal
 			// desync the count and unload the map under live players.
@@ -757,10 +771,11 @@ namespace Melia.Zone.World.Maps
 		}
 
 		/// <summary>
-		/// Attempts to merge a newly dropped item with nearby items of the
-		/// same type on the ground. If 5+ of the same stackable item exist
-		/// within 30 units on the same layer/owner, they are consolidated
-		/// into a single stack at the average position, capped at MaxStack.
+		/// Attempts to merge an item with nearby items of the same type on
+		/// the ground, called once ItemMergeDelay has passed since the item
+		/// dropped. If 5+ of the same stackable item exist within 30 units
+		/// on the same layer/owner, they are consolidated into a single
+		/// stack at the average position, capped at MaxStack.
 		/// </summary>
 		private void TryMergeNearbyItems(ItemMonster newItem)
 		{
