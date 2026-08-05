@@ -251,6 +251,14 @@ namespace Melia.Zone.Scripting
 			=> this.Data.Id = new QuestId(questNamespace, id);
 
 		/// <summary>
+		/// Sets the quest's id, without placing it in a namespace.
+		/// </summary>
+		/// <param name="id"></param>
+		[Obsolete("Use SetId(string, int) instead.")]
+		protected void SetId(long id)
+			=> this.SetId(null, id);
+
+		/// <summary>
 		/// Sets the quest's name.
 		/// </summary>
 		/// <param name="name"></param>

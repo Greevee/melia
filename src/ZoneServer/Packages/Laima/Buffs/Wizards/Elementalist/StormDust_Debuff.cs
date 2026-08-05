@@ -20,7 +20,7 @@ namespace Melia.Zone.Buffs.Handlers.Wizards.Elementalist
 		private const string ModPropertyName = PropertyName.MSPD_BM;
 		private const int DamageTickInterval = 500;
 
-		public override void OnStart(Buff buff)
+		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
 			var target = buff.Target;
 

@@ -16,7 +16,7 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Wizards.Psychokino
 	[BuffHandler(BuffId.Raise_Debuff)]
 	public class Raise_DebuffOverride : BuffHandler
 	{
-		public override void OnStart(Buff buff)
+		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
 			var target = buff.Target;
 

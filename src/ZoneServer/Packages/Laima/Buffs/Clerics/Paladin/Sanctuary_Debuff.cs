@@ -11,7 +11,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Paladin
 	[BuffHandler(BuffId.Sanctuary_Debuff)]
 	public class Sanctuary_DebuffOverride : BuffHandler
 	{
-		public override void OnStart(Buff buff)
+		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
 		}
 

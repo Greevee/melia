@@ -2190,7 +2190,7 @@ namespace Melia.Zone.Scripting.AI
 			if (this.Entity.IsLocked(LockType.Attack) || this.Entity.IsCasting())
 				return false;
 
-			if (target.IsLocked(LockType.GetHit))
+			if (target.IsLocked(LockType.GetDamaged))
 				return false;
 
 			if (this.Entity.IsDead || target.IsDead || skill.IsOnCooldown || this.Entity.IsGuarding() || this.Entity.IsKnockedDown() || this.Entity.IsKnockedBack())
