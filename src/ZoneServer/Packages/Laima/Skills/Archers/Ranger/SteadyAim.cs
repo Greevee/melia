@@ -41,7 +41,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Ranger
 			var SCR_Get_AbilityReinforceRate = ScriptableFunctions.Skill.Get("SCR_Get_AbilityReinforceRate");
 			criticalRateMultiplier *= 1f + SCR_Get_AbilityReinforceRate(skill);
 
-			caster.StartBuff(BuffId.SteadyAim_Buff, skill.Level, criticalRateMultiplier, TimeSpan.FromMilliseconds(1800000f), caster);
+			caster.StartBuff(BuffId.SteadyAim_Buff, skill.Level, criticalRateMultiplier, TimeSpan.FromMinutes(5), caster, skill.Id);
 		}
 	}
 }

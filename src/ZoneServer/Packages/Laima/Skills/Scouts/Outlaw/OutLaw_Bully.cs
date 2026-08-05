@@ -51,7 +51,7 @@ namespace Melia.Zone.Skills.Handlers.Scouts.OutLaw
 			}
 			else
 			{
-				caster.StartBuff(BuffId.Bully_Buff, skill.Level, 0, TimeSpan.FromSeconds(60), caster);
+				caster.StartBuff(BuffId.Bully_Buff, skill.Level, 0, TimeSpan.FromMinutes(5), caster);
 			}
 
 			Send.ZC_SKILL_MELEE_TARGET(caster, skill, caster);

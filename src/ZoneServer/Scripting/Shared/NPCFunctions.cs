@@ -317,7 +317,7 @@ namespace Melia.Zone.Scripting.Shared
 						character.ModifyProperty(PropertyName.StatByBonus, 1);
 						character.SetProperty(sessionObject, sessionObjectPropertyName, 300);
 						var afterValue = character.Properties[PropertyName.StatByBonus];
-						character.AddonMessage("NOTICE_Dm_Clear", "STATUE_STAT_01", 3);
+						character.AddonMessage("NOTICE_Dm_Clear", ScpArgMsg("STATUE_STAT_01"), 3);
 						dialog.DetachEffect(npc, "F_light024_orange");
 						character.RemoveSessionObject(result1.Id);
 					}

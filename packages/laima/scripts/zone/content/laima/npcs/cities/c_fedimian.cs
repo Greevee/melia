@@ -244,7 +244,8 @@ public class CFedimianNpcScript : GeneralScript
 			shop.AddItem(111005, amount: 1, price: 19311);
 
 			// Trinkets
-			shop.AddItem(692003, amount: 1, price: 7280);
+			shop.AddItem(692001, amount: 1, price: 7280);
+			shop.AddItem(692002, amount: 1, price: 19311);
 		});
 	}
 

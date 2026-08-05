@@ -40,60 +40,33 @@ public class ItemCalculationsScript : GeneralScript
 		//return value;
 	}
 
-	[ScriptableFunction]
-	public float SCR_Get_Item_MAXATK(Item item)
+	/// <summary>
+	/// Returns an item's base stat value
+	/// </summary>
+	/// <param name="item"></param>
+	/// <param name="dataValue"></param>
+	/// <returns></returns>
+	private float GetBasicValue(Item item, float dataValue)
 	{
-		var lv = item.UseLevel;
-		if (lv == 0)
+		if (string.IsNullOrEmpty(item.Data.EquipSlot))
 			return 0;
-
-		var hiddenLv = item.HiddenLevel;
-		if (hiddenLv > 0)
-			lv = hiddenLv;
-
-		if (!item.TryGetProp(PropertyName.ItemGrade, out float grade))
-			return 0;
-
-		//lv = SCR_PVP_ITEM_LV_GRADE_REINFORCE_SET(item, lv, grade);
-
-		var gradeRatio = 0f;
-		if (ZoneServer.Instance.Data.ItemGradeDb.TryFindByGrade((int)grade, out var itemGradeData))
-			gradeRatio = itemGradeData.BasicRatio / 100f;
-		var itemATK = (8 + lv * 2.5f) * gradeRatio;
-		if (lv == 0)
-			itemATK = 0;
-
-		var slot = item.Data.EquipSlot;
-		if (string.IsNullOrEmpty(slot))
-			return 0;
-
-		var classType = item.Data.EquipType1;
-
-		if (classType == EquipType.Pistol || classType == EquipType.Dagger)
-			itemATK = itemATK * 0.5f;
-
-		var weaponClass = ZoneServer.Instance.Data.ItemGradeDb.FindValue("WeaponClassTypeRatio", classType);
-		if (weaponClass == 0)
-			return 0;
-
-		var damageRange = ZoneServer.Instance.Data.ItemGradeDb.FindValue("WeaponDamageRange", classType);
-		if (damageRange == 0)
-			return 0;
-
-		if (itemGradeData != null && weaponClass > 0)
-			itemATK *= weaponClass;
-
-		var upper440BonusRatio = ZoneServer.Instance.Data.ItemGradeDb.FindValue("Upper440LevelClassTypeRatioIncrease", classType);
-		if (upper440BonusRatio != 0 && lv >= 440)
-			itemATK *= upper440BonusRatio;
 
 		var changeBasicProp = item.Properties.GetFloat(PropertyName.ChangeBasicPropValue);
 		if (changeBasicProp > 0)
-			itemATK = changeBasicProp;
+			return changeBasicProp;
 
-		var maxAtk = itemATK * damageRange;
+		return dataValue;
+	}
+
+	[ScriptableFunction]
+	public float SCR_Get_Item_MAXATK(Item item)
+	{
+		var maxAtk = this.GetBasicValue(item, item.Data.MaxAtk);
+		if (maxAtk <= 0)
+			return 0;
+
 		//Log.Debug("Calculated Max ATK: {0}", maxAtk);
-		return MathF.Round(maxAtk + GetReinforceAddValueAtk(item, PropertyName.ATK), MidpointRounding.AwayFromZero);
+		return MathF.Round(maxAtk + GetReinforceAddValue(item, PropertyName.ATK, maxAtk), MidpointRounding.AwayFromZero);
 	}
 
 
@@ -101,109 +74,23 @@ public class ItemCalculationsScript : GeneralScript
 	[ScriptableFunction]
 	public float SCR_Get_Item_MINATK(Item item)
 	{
-		var lv = item.UseLevel;
-		if (lv == 0)
+		var minAtk = this.GetBasicValue(item, item.Data.MinAtk);
+		if (minAtk <= 0)
 			return 0;
 
-		var hiddenLv = item.HiddenLevel;
-		if (hiddenLv > 0)
-			lv = hiddenLv;
-
-		if (!item.TryGetProp(PropertyName.ItemGrade, out float grade))
-			return 0;
-
-		//lv = SCR_PVP_ITEM_LV_GRADE_REINFORCE_SET(item, lv, grade);
-
-		var gradeRatio = 0f;
-		if (ZoneServer.Instance.Data.ItemGradeDb.TryFindByGrade((int)grade, out var itemGradeData))
-			gradeRatio = itemGradeData.BasicRatio / 100f;
-		var itemATK = (8 + lv * 2.5f) * gradeRatio;
-		if (lv == 0)
-			itemATK = 0;
-
-		var slot = item.Data.EquipSlot;
-		if (string.IsNullOrEmpty(slot))
-			return 0;
-
-		var classType = item.Data.EquipType1;
-
-		if (classType == EquipType.Pistol || classType == EquipType.Dagger)
-			itemATK = itemATK * 0.5f;
-
-		var weaponClass = ZoneServer.Instance.Data.ItemGradeDb.FindValue("WeaponClassTypeRatio", classType);
-		if (weaponClass == 0)
-			return 0;
-
-		var damageRange = ZoneServer.Instance.Data.ItemGradeDb.FindValue("WeaponDamageRange", classType);
-		if (damageRange == 0)
-			return 0;
-
-		if (itemGradeData != null && weaponClass > 0)
-			itemATK *= weaponClass;
-
-		var upper440BonusRatio = ZoneServer.Instance.Data.ItemGradeDb.FindValue("Upper440LevelClassTypeRatioIncrease", classType);
-		if (upper440BonusRatio != 0 && lv >= 440)
-			itemATK *= upper440BonusRatio;
-
-		var changeBasicProp = item.Properties.GetFloat(PropertyName.ChangeBasicPropValue);
-		if (changeBasicProp > 0)
-			itemATK = changeBasicProp;
-
-		var minAtk = itemATK * (2 - damageRange);
-		//Log.Debug("Calculated Min ATK: {0} + {1}", minAtk, GetReinforceAddValueAtk(item, PropertyName.ATK));
-		return MathF.Round(minAtk + GetReinforceAddValueAtk(item, PropertyName.ATK), MidpointRounding.AwayFromZero);
+		//Log.Debug("Calculated Min ATK: {0} + {1}", minAtk, GetReinforceAddValue(item, PropertyName.ATK, minAtk));
+		return MathF.Round(minAtk + GetReinforceAddValue(item, PropertyName.ATK, minAtk), MidpointRounding.AwayFromZero);
 	}
 
 	[ScriptableFunction]
 	public float SCR_Get_Item_MATK(Item item)
 	{
-		var lv = item.UseLevel;
-		if (lv == 0)
+		var itemATK = this.GetBasicValue(item, item.Data.MAtk);
+		if (itemATK <= 0)
 			return 0;
-
-		var hiddenLv = item.HiddenLevel;
-		if (hiddenLv > 0)
-			lv = hiddenLv;
-
-		if (!item.TryGetProp(PropertyName.ItemGrade, out float grade))
-			return 0;
-
-		//lv = SCR_PVP_ITEM_LV_GRADE_REINFORCE_SET(item, lv, grade);
-
-		var gradeRatio = 0f;
-		if (ZoneServer.Instance.Data.ItemGradeDb.TryFindByGrade((int)grade, out var itemGradeData))
-			gradeRatio = itemGradeData.BasicRatio / 100f;
-		var itemATK = (8 + lv * 2.5f) * gradeRatio;
-		if (lv == 0)
-			itemATK = 0;
-
-		var slot = item.Data.EquipSlot;
-		if (string.IsNullOrEmpty(slot))
-			return 0;
-
-		var classType = item.Data.EquipType1;
-
-		var weaponClass = ZoneServer.Instance.Data.ItemGradeDb.FindValue("WeaponClassTypeRatio", classType);
-		if (weaponClass == 0)
-			return 0;
-
-		var damageRange = ZoneServer.Instance.Data.ItemGradeDb.FindValue("WeaponDamageRange", classType);
-		if (damageRange == 0)
-			return 0;
-
-		if (itemGradeData != null && weaponClass > 0)
-			itemATK *= weaponClass;
-
-		var upper440BonusRatio = ZoneServer.Instance.Data.ItemGradeDb.FindValue("Upper440LevelClassTypeRatioIncrease", classType);
-		if (upper440BonusRatio != 0 && lv >= 440)
-			itemATK *= upper440BonusRatio;
-
-		var changeBasicProp = item.Properties.GetFloat(PropertyName.ChangeBasicPropValue);
-		if (changeBasicProp > 0)
-			itemATK = changeBasicProp;
 
 		//Log.Debug("Calculated MATK: {0}", itemATK);
-		return MathF.Round(itemATK + GetReinforceAddValueAtk(item, PropertyName.MATK), MidpointRounding.AwayFromZero);
+		return MathF.Round(itemATK + GetReinforceAddValue(item, PropertyName.MATK, itemATK), MidpointRounding.AwayFromZero);
 	}
 
 	/// <summary>
@@ -214,62 +101,13 @@ public class ItemCalculationsScript : GeneralScript
 	[ScriptableFunction]
 	public float SCR_Get_Item_DEF(Item item)
 	{
-		var lv = item.UseLevel;
-		if (lv == 0)
+		var basicDef = this.GetBasicValue(item, item.Data.Def);
+		if (basicDef <= 0)
 			return 0;
-
-		var hiddenLv = item.HiddenLevel;
-		if (hiddenLv > 0)
-			lv = hiddenLv;
-
-		if (!item.TryGetProp(PropertyName.ItemGrade, out float grade))
-			return 0;
-
-		//lv = SCR_PVP_ITEM_LV_GRADE_REINFORCE_SET(item, lv, grade);
-
-		var gradeRatio = 0f;
-		if (ZoneServer.Instance.Data.ItemGradeDb.TryFindByGrade((int)grade, out var itemGradeData))
-			gradeRatio = itemGradeData.BasicRatio / 100f;
-
-		var equipMaterial = item.Data.Material;
-		var classType = item.Data.EquipType1;
-
-		if (classType == EquipType.BELT || classType == EquipType.SHOULDER)
-			equipMaterial = ArmorMaterialType.Leather;
-
-		if (equipMaterial == ArmorMaterialType.None)
-			return 0;
-
-		var slot = item.Data.EquipSlot;
-		if (string.IsNullOrEmpty(slot))
-			return 0;
-
-		var armorClass = ZoneServer.Instance.Data.ItemGradeDb.FindValue("ArmorClassTypeRatio", classType);
-		if (armorClass == 0)
-			return 0;
-
-		var basicDef = ((8f + lv * 2.5f) * armorClass) * gradeRatio;
-
-		if (lv >= 440)
-		{
-			var upper440BonusRatio = ZoneServer.Instance.Data.ItemGradeDb.FindValue("Upper440LevelClassTypeRatioIncrease", classType);
-			if (upper440BonusRatio != 0)
-				basicDef *= upper440BonusRatio;
-		}
-
-		var changeBasicProp = item.Properties.GetFloat(PropertyName.ChangeBasicPropValue);
-		if (changeBasicProp > 0)
-			basicDef = changeBasicProp;
-
-		var armorMaterialRatio = ZoneServer.Instance.Data.ItemGradeDb.FindValue("armorMaterial_DEF", equipMaterial);
-		if (armorMaterialRatio == 0)
-			return 0;
-
-		basicDef *= armorMaterialRatio;
 
 		basicDef = MathF.Floor(basicDef);
 		//Log.Debug("Calculated DEF: {0}", basicDef);
-		return MathF.Floor(basicDef + GetReinforceAddValueAtk(item, PropertyName.DEF));
+		return MathF.Floor(basicDef + GetReinforceAddValue(item, PropertyName.DEF, basicDef));
 	}
 
 	/// <summary>
@@ -280,59 +118,13 @@ public class ItemCalculationsScript : GeneralScript
 	[ScriptableFunction]
 	public float SCR_Get_Item_MDEF(Item item)
 	{
-		var lv = item.UseLevel;
-		if (lv == 0)
+		var basicMDef = this.GetBasicValue(item, item.Data.MDef);
+		if (basicMDef <= 0)
 			return 0;
-
-		var hiddenLv = item.HiddenLevel;
-		if (hiddenLv > 0)
-			lv = hiddenLv;
-
-		if (!item.TryGetProp(PropertyName.ItemGrade, out float grade))
-			return 0;
-
-		//lv = SCR_PVP_ITEM_LV_GRADE_REINFORCE_SET(item, lv, grade);
-
-		var gradeRatio = 0f;
-		if (ZoneServer.Instance.Data.ItemGradeDb.TryFindByGrade((int)grade, out var itemGradeData))
-			gradeRatio = itemGradeData.BasicRatio / 100f;
-
-		var slot = item.Data.EquipSlot;
-		if (string.IsNullOrEmpty(slot))
-			return 0;
-
-		var equipMaterial = item.Data.Material;
-		var classType = item.Data.EquipType1;
-
-		if (classType == EquipType.BELT || classType == EquipType.SHOULDER)
-			equipMaterial = ArmorMaterialType.Leather;
-
-		if (equipMaterial == ArmorMaterialType.None)
-			return 0;
-
-		var armorClass = ZoneServer.Instance.Data.ItemGradeDb.FindValue("ArmorClassTypeRatio", classType);
-		if (armorClass == 0)
-			return 0;
-
-		var basicMDef = ((8f + lv * 2.5f) * armorClass) * gradeRatio;
-
-		var upper440BonusRatio = ZoneServer.Instance.Data.ItemGradeDb.FindValue("Upper440LevelClassTypeRatioIncrease", classType);
-		if (upper440BonusRatio != 0 && lv >= 440)
-			basicMDef *= upper440BonusRatio;
-
-		var changeBasicProp = item.Properties.GetFloat(PropertyName.ChangeBasicPropValue);
-		if (changeBasicProp > 0)
-			basicMDef = changeBasicProp;
-
-		var armorMaterialRatio = ZoneServer.Instance.Data.ItemGradeDb.FindValue("armorMaterial_MDEF", equipMaterial);
-		if (armorMaterialRatio == 0)
-			return 0;
-
-		basicMDef *= armorMaterialRatio;
 
 		basicMDef = MathF.Floor(basicMDef);
 		//Log.Debug("Calculated MDEF: {0}", basicMDef);
-		return MathF.Floor(basicMDef + GetReinforceAddValueAtk(item, PropertyName.MDEF));
+		return MathF.Floor(basicMDef + GetReinforceAddValue(item, PropertyName.MDEF, basicMDef));
 	}
 
 	/// <summary>
@@ -438,7 +230,12 @@ public class ItemCalculationsScript : GeneralScript
 		return 0;
 	}
 
-	public float GetReinforceAddValueAtk(Item item, string prop)
+	/// <summary>
+	/// Gain per reinforce level, as a ratio of the item's own base value.
+	/// </summary>
+	private const float ReinforceGainPerLevel = 0.035f;
+
+	public float GetReinforceAddValue(Item item, string prop, float basicValue)
 	{
 		var basicTooltipProp = item.Data.MainProperties;
 
@@ -448,20 +245,18 @@ public class ItemCalculationsScript : GeneralScript
 		var lv = item.Level;
 		if (lv <= 0) return 0;
 
+		if (basicValue <= 0)
+			return 0;
+
 		if (!item.Properties.TryGetFloat(PropertyName.Reinforce_2, out var reinforceValue))
 			return 0;
 
 		var reinforceRatio = item.Properties.GetFloat(PropertyName.ReinforceRatio, 100);
 
-		//reinforceValue += reinfBonusValue;
-		var value = (float)Math.Floor(reinforceValue * (2f + (lv * 0.06f)));
+		var value = basicValue * reinforceValue * ReinforceGainPerLevel;
 		value *= (reinforceRatio / 100);
 
-		var classType = item.Data.EquipType1;
-		if (classType == EquipType.Trinket) value *= 0.5f;
-		if (classType == EquipType.Neck || classType == EquipType.Ring) value *= 0.25f;
-
-		return (int)Math.Round(value, MidpointRounding.AwayFromZero);
+		return (float)Math.Floor(value);
 	}
 
 

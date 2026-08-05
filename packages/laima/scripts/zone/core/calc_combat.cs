@@ -1116,12 +1116,9 @@ public class CombatCalculationsScript : GeneralScript
 		var hr = attacker.Properties.GetFloat(PropertyName.HR);
 		hr *= modifier.HitRateMultiplier;
 
-		// The level gap is the wall; HR/DR only tunes accuracy within a level band
-		var levelGap = target.Properties.GetFloat(PropertyName.Lv) - attacker.Properties.GetFloat(PropertyName.Lv);
+		var dodgeChance = (dr - hr) * 0.4f;
 
-		var dodgeChance = (Math.Max(0f, levelGap) * 0.9f) + ((dr - hr) * 1.1f);
-
-		return Math2.Clamp(0f, 80f, dodgeChance);
+		return Math2.Clamp(0f, 90f, dodgeChance);
 	}
 
 	/// <summary>
@@ -1156,8 +1153,7 @@ public class CombatCalculationsScript : GeneralScript
 		if (Feature.IsEnabled("IncreasedBlockRate"))
 			maxChance = 90f;
 
-		// Linear in the CON/STR gap; an equal investment on both sides blocks nothing
-		var blockChance = (block - blockBreak) * 1.6f;
+		var blockChance = (block - blockBreak) * 0.5f;
 
 		return Math2.Clamp(0f, maxChance, blockChance);
 	}
@@ -1189,7 +1185,7 @@ public class CombatCalculationsScript : GeneralScript
 			return 100f;
 
 		// Linear in the CRTHR/CRTDR gap, so a full DEX build reaches the cap
-		var critChance = (critHitRate - critDodgeRate) * 1.0f;
+		var critChance = (critHitRate - critDodgeRate) * 0.5f;
 		critChance *= modifier.CritRateMultiplier;
 
 		critChance = Math2.Clamp(0f, 100f, critChance);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Melia.Shared.Packages;
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
@@ -23,8 +24,12 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Wizard
 	[SkillHandler(SkillId.Wizard_MagicMissile)]
 	public class Wizard_MagicMissileOverride : IGroundSkillHandler, IDynamicCasted
 	{
-		private const int BulletsPerUse = 3;
+		private const int MaxTargets = 5;
+		private const int RicochetTargets = 3;
 		private const float SubSplashAreaSize = 200;
+		private const float RicochetSpeed = 150;
+		private const int MinTravelTimeMs = 50;
+		private const int MaxTravelTimeMs = 400;
 
 		/// <summary>
 		/// Handles the skill, shooting missiles at enemies.
@@ -48,57 +53,85 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Wizard
 			var splashParam = skill.GetSplashParameters(caster, originPos, farPos, length: 130, width: 60, angle: 0);
 			var splashArea = skill.GetSplashArea(SplashType.Square, splashParam);
 
-			var targets = caster.Map.GetAttackableEnemiesIn(caster, splashArea);
+			var targets = caster.Map.GetAttackableEnemiesIn(caster, splashArea).Take(MaxTargets).ToList();
 			var aniTime = TimeSpan.FromMilliseconds(50);
 			var skillHitDelay = skill.Properties.HitDelay;
 
 			var skillHits = new List<SkillHitInfo>();
-			var hits = new List<HitInfo>();
 
-			if (targets.Any())
+			foreach (var missileTarget in targets)
 			{
-				for (var i = 0; i < BulletsPerUse; ++i)
-				{
-					var missileTarget = targets.Random();
+				var skillHitResult = SCR_SkillHit(caster, missileTarget, skill);
+				missileTarget.TakeDamage(skillHitResult.Damage, caster);
 
-					var skillHitResult = SCR_SkillHit(caster, missileTarget, skill);
-					missileTarget.TakeDamage(skillHitResult.Damage, caster);
-
-					var skillHit = new SkillHitInfo(caster, missileTarget, skill, skillHitResult, aniTime, skillHitDelay);
-					skillHits.Add(skillHit);
-				}
+				var skillHit = new SkillHitInfo(caster, missileTarget, skill, skillHitResult, aniTime, skillHitDelay);
+				skillHits.Add(skillHit);
 			}
+
+			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos, skillHits);
+
+			skill.Run(this.Ricochet(skill, caster, skillHits));
+		}
+
+		/// <summary>
+		/// Shoots the ricochet bullets, dealing their damage once they arrive.
+		/// </summary>
+		/// <param name="skill"></param>
+		/// <param name="caster"></param>
+		/// <param name="skillHits"></param>
+		private async Task Ricochet(Skill skill, ICombatEntity caster, List<SkillHitInfo> skillHits)
+		{
+			var bullets = new List<(ICombatEntity Target, SkillHitResult Result, int ForceId, TimeSpan Delay)>();
 
 			foreach (var skillHit in skillHits)
 			{
 				var sourceTarget = skillHit.Target;
 
 				var subSplashArea = Square.Centered(sourceTarget.Position, caster.Direction, SubSplashAreaSize, SubSplashAreaSize / 2);
-				var subTargets = caster.Map.GetAttackableEnemiesIn(caster, subSplashArea).Where(a => a != sourceTarget);
+				var subTargets = caster.Map.GetAttackableEnemiesIn(caster, subSplashArea).Where(a => a != sourceTarget).Take(RicochetTargets);
 
-				if (!subTargets.Any())
-					continue;
-
-				var richochetBulletsPerHit = targets.Count - 1;
-
-				for (var i = 0; i < richochetBulletsPerHit; ++i)
+				foreach (var subTarget in subTargets)
 				{
-					var subTarget = subTargets.Random();
+					var skillHitResult = SCR_SkillHit(caster, subTarget, skill);
+					var forceId = ForceId.GetNew();
+					var travelTime = GetTravelTime(sourceTarget.Position.Get2DDistance(subTarget.Position));
 
-					var skillHitResult = SCR_SkillHit(caster, sourceTarget, skill);
-					subTarget.TakeDamage(skillHitResult.Damage, caster);
+					bullets.Add((subTarget, skillHitResult, forceId, travelTime));
 
-					var hit = new HitInfo(caster, subTarget, skill, skillHitResult.Damage, skillHitResult.Result);
-					hits.Add(hit);
-
-					Send.ZC_NORMAL.PlayForceEffect(hit.ForceId, caster, sourceTarget, subTarget, "I_force001_yellow", 1, "arrow_cast", "I_explosion004_yellow", 1, "arrow_blow", "SLOW", 150);
+					Send.ZC_NORMAL.PlayForceEffect(forceId, caster, sourceTarget, subTarget, "I_force001_yellow", 1, "arrow_cast", "I_explosion004_yellow", 1, "arrow_blow", "SLOW", RicochetSpeed);
 				}
 			}
 
-			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos, skillHits);
+			var elapsed = TimeSpan.Zero;
 
-			foreach (var hit in hits)
-				Send.ZC_HIT_INFO(hit.Attacker, hit.Target, hit);
+			foreach (var (target, result, forceId, delay) in bullets.OrderBy(a => a.Delay))
+			{
+				if (delay > elapsed)
+				{
+					await skill.Wait(delay - elapsed);
+					elapsed = delay;
+				}
+
+				target.TakeDamage(result.Damage, caster);
+
+				var hit = new HitInfo(caster, target, skill, result.Damage, result.Result);
+				hit.ForceId = forceId;
+
+				Send.ZC_HIT_INFO(caster, target, hit);
+			}
+		}
+
+		/// <summary>
+		/// Returns how long a ricochet bullet takes to reach a target
+		/// the given distance away.
+		/// </summary>
+		/// <param name="distance"></param>
+		private static TimeSpan GetTravelTime(double distance)
+		{
+			var progress = Math.Clamp(distance / SubSplashAreaSize, 0, 1);
+			var travelTime = MinTravelTimeMs + progress * (MaxTravelTimeMs - MinTravelTimeMs);
+
+			return TimeSpan.FromMilliseconds(travelTime);
 		}
 
 		// A shot into a bunch of monsters. The character hit 3 different

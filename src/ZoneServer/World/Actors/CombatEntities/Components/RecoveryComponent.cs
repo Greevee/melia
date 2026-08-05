@@ -19,6 +19,9 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 		private TimeSpan _staminaTime;
 		private TimeSpan _shieldTime;
 
+		private float _rhpTimeBase;
+		private float _rspTimeBase;
+
 		/// <summary>
 		/// Creates new component.
 		/// </summary>
@@ -59,7 +62,9 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 			if (_rhpTime <= TimeSpan.Zero)
 			{
 				this.RecoverHp();
-				_rhpTime = TimeSpan.FromMilliseconds(this.Entity.Properties.GetFloat(PropertyName.RHPTIME));
+
+				_rhpTimeBase = this.Entity.Properties.GetFloat(PropertyName.RHPTIME);
+				_rhpTime = TimeSpan.FromMilliseconds(_rhpTimeBase);
 			}
 		}
 
@@ -74,7 +79,9 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 			if (_rspTime <= TimeSpan.Zero)
 			{
 				this.RecoverSp();
-				_rspTime = TimeSpan.FromMilliseconds(this.Entity.Properties.GetFloat(PropertyName.RSPTIME));
+
+				_rspTimeBase = this.Entity.Properties.GetFloat(PropertyName.RSPTIME);
+				_rspTime = TimeSpan.FromMilliseconds(_rspTimeBase);
 			}
 		}
 
@@ -190,7 +197,39 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 
 		internal void ResetSpRecoveryTime()
 		{
-			_rspTime = TimeSpan.FromMilliseconds(this.Entity.Properties.GetFloat(PropertyName.RSPTIME));
+			_rspTimeBase = this.Entity.Properties.GetFloat(PropertyName.RSPTIME);
+			_rspTime = TimeSpan.FromMilliseconds(_rspTimeBase);
+		}
+
+		/// <summary>
+		/// Scales the time remaining until the next HP and SP tick to match
+		/// the entity's current recovery intervals, preserving progress.
+		/// </summary>
+		internal void ScaleRecoveryTimes()
+		{
+			var rhpTime = this.Entity.Properties.GetFloat(PropertyName.RHPTIME);
+			var rspTime = this.Entity.Properties.GetFloat(PropertyName.RSPTIME);
+
+			_rhpTime = ScaleRemaining(_rhpTime, _rhpTimeBase, rhpTime);
+			_rspTime = ScaleRemaining(_rspTime, _rspTimeBase, rspTime);
+
+			_rhpTimeBase = rhpTime;
+			_rspTimeBase = rspTime;
+		}
+
+		/// <summary>
+		/// Returns the remaining time rescaled from the previous interval
+		/// to the new one.
+		/// </summary>
+		/// <param name="remaining"></param>
+		/// <param name="prevTime"></param>
+		/// <param name="newTime"></param>
+		private static TimeSpan ScaleRemaining(TimeSpan remaining, float prevTime, float newTime)
+		{
+			if (prevTime <= 0 || newTime <= 0 || remaining <= TimeSpan.Zero)
+				return remaining;
+
+			return TimeSpan.FromTicks((long)(remaining.Ticks * (newTime / prevTime)));
 		}
 	}
 }

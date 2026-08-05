@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Numerics;
-using System.Text;
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game;
 using Melia.Shared.Game.Const;
@@ -638,8 +637,6 @@ namespace Melia.Zone.Network
 			}
 
 			character.Connection.Send(packet);
-
-			ZC_EXEC_CLIENT_SCP_SpendSp(character);
 		}
 
 		/// <summary>
@@ -662,8 +659,6 @@ namespace Melia.Zone.Network
 			packet.AddSkill(skill);
 
 			character.Connection.Send(packet);
-
-			ZC_EXEC_CLIENT_SCP_SpendSp(character);
 		}
 
 		/// <summary>
@@ -5818,42 +5813,6 @@ namespace Melia.Zone.Network
 			packet.PutInt(0);
 
 			character.Connection.Send(packet);
-		}
-
-		/// <summary>
-		/// Overwrites the client's displayed SP costs with the server's
-		/// level-scaled values.
-		/// </summary>
-		/// <remarks>
-		/// The skill tooltip is native code that reads the IES BasicSP column.
-		/// It ignores the LvUpSpendSp column and the SpendSP property that is
-		/// sent with the skill, so a level-scaled cost would always display as
-		/// the level 1 value while the server charged the real one. Writing the
-		/// computed cost into the row the tooltip does read keeps the two in
-		/// agreement. The rows are per-client, so this is safe to vary by
-		/// character.
-		/// </remarks>
-		/// <param name="character"></param>
-		public static void ZC_EXEC_CLIENT_SCP_SpendSp(Character character)
-		{
-			var sb = new StringBuilder();
-
-			foreach (var skill in character.Skills.GetList())
-			{
-				if (skill.Data.LvUpSpendSp <= 0 || skill.Level <= 1)
-					continue;
-
-				var spendSp = (int)skill.Properties.GetFloat(PropertyName.SpendSP);
-				if (spendSp <= 0)
-					continue;
-
-				sb.AppendFormat("local c=GetClass('Skill','{0}') if c~=nil then c.BasicSP={1} end ", skill.Data.ClassName, spendSp);
-			}
-
-			if (sb.Length == 0)
-				return;
-
-			ZC_EXEC_CLIENT_SCP(character.Connection, sb.ToString());
 		}
 
 		/// <summary>

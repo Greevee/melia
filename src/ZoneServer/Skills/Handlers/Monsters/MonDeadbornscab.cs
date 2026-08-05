@@ -296,7 +296,7 @@ namespace Melia.Zone.Skills.Handlers.Mon
 				HitCount = 1,
 				HitDuration = 1000f,
 			}, hits);
-			SkillResultTargetBuff(caster, skill, BuffId.UC_silence, 1, 0f, 6000f, 1, 100, hits: hits);
+			SkillResultTargetBuff(caster, skill, BuffId.UC_silence, 1, 0f, 6000f, 1, 30, hits: hits);
 		}
 	}
 

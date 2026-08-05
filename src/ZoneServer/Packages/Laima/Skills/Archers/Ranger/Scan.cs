@@ -7,6 +7,7 @@ using Melia.Shared.L10N;
 using Melia.Shared.World;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Handlers.Base;
+using Melia.Zone.Skills.SplashAreas;
 using Melia.Zone.Scripting;
 using Melia.Zone.World.Actors;
 
@@ -25,6 +26,9 @@ namespace Melia.Zone.Skills.Handlers.Archers.Ranger
 		// per skill level.
 		// At skill level 10, reduces crit resist by 50% of caster's accuracy.
 		private const float CritResistMultiplierPerLevel = 0.05f;
+
+		private const float SpreadRadius = 50f;
+		private const int MaxTargets = 5;
 
 		/// <summary>
 		/// Handles skill, applying a debuff to the target
@@ -59,7 +63,17 @@ namespace Melia.Zone.Skills.Handlers.Archers.Ranger
 			var SCR_Get_AbilityReinforceRate = ScriptableFunctions.Skill.Get("SCR_Get_AbilityReinforceRate");
 			critResistReduce *= 1f + SCR_Get_AbilityReinforceRate(skill);
 
-			target.StartBuff(BuffId.Ranger_Scan_Debuff, skill.Level, critResistReduce, duration, caster);
+			var splashArea = new Circle(target.Position, SpreadRadius);
+
+			var targets = caster.Map.GetAttackableEnemiesIn(caster, splashArea)
+				.Where(a => a != target)
+				.OrderBy(a => a.IsBuffActive(BuffId.Ranger_Scan_Debuff))
+				.ThenBy(a => a.Position.Get2DDistance(target.Position))
+				.Take(MaxTargets - 1)
+				.Prepend(target);
+
+			foreach (var scanTarget in targets)
+				scanTarget.StartBuff(BuffId.Ranger_Scan_Debuff, skill.Level, critResistReduce, duration, caster, skill.Id);
 
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, originPos, null);
 		}

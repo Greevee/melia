@@ -10,6 +10,7 @@ using Melia.Zone.World.Items;
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Properties;
 using Melia.Zone.World.Actors.Characters.Components;
+using Melia.Zone.World.Actors.CombatEntities.Components;
 using Melia.Zone.World.Actors.Monsters;
 using Yggdrasil.Util;
 
@@ -510,13 +511,16 @@ namespace Melia.Zone.World.Actors.Characters
 		}
 
 		/// <summary>
-		/// Recalculates and updates HP and SP recovery time properties.
+		/// Recalculates and updates HP and SP recovery amount and time properties.
 		/// </summary>
 		/// <param name="character"></param>
 		private void SitStatusChanged(Character character)
 		{
-			this.Invalidate(PropertyName.RHPTIME, PropertyName.RSPTIME);
-			Send.ZC_OBJECT_PROPERTY(this.Character, PropertyName.RHPTIME, PropertyName.RSPTIME);
+			this.Invalidate(PropertyName.RHP, PropertyName.RHPTIME, PropertyName.RSP, PropertyName.RSPTIME);
+			Send.ZC_OBJECT_PROPERTY(this.Character, PropertyName.RHP, PropertyName.RHPTIME, PropertyName.RSP, PropertyName.RSPTIME);
+
+			if (character.Components.TryGet<RecoveryComponent>(out var recoveryComponent))
+				recoveryComponent.ScaleRecoveryTimes();
 
 			if (character.IsSitting)
 			{

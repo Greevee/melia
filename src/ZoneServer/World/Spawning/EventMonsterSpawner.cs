@@ -171,13 +171,22 @@ namespace Melia.Zone.World.Spawning
 		/// </summary>
 		/// <param name="amount"></param>
 		public void Spawn(int amount)
+			=> this.SpawnMonsters(amount);
+
+		/// <summary>
+		/// Spawns the given number of monsters and returns how many of
+		/// them were actually accepted by the map.
+		/// </summary>
+		/// <param name="amount"></param>
+		/// <returns></returns>
+		private int SpawnMonsters(int amount)
 		{
 			var spawned = 0;
 
 			for (var i = 0; i < amount; ++i)
 			{
 				if (!ZoneServer.Instance.World.Maps.TryGet(this.MapId, out var map))
-					throw new InvalidOperationException($"Map '{0}' not found.");
+					throw new InvalidOperationException($"Map '{this.MapId}' not found.");
 
 				if (map.IsDormant)
 					continue;
@@ -241,7 +250,15 @@ namespace Melia.Zone.World.Spawning
 
 				this.Spawning?.Invoke(this, new SpawnEventArgs(this, monster));
 
-				map.AddMonster(monster);
+				// A rejected monster must not be counted, or the spawner
+				// stays permanently above its flex amount and never
+				// spawns again.
+				if (!map.AddMonster(monster))
+				{
+					monster.Died -= this.OnMonsterDied;
+					continue;
+				}
+
 				monster.SpawnPosition = monster.Position;
 				monster.PossiblyBecomeRare();
 				this.ApplySpawnBuffs(monster, map);
@@ -251,6 +268,8 @@ namespace Melia.Zone.World.Spawning
 			}
 
 			this.Amount += spawned;
+
+			return spawned;
 		}
 
 		/// <summary>
@@ -331,6 +350,9 @@ namespace Melia.Zone.World.Spawning
 		public void NotifyDormancy(int removedCount)
 		{
 			this.Amount = Math.Max(0, this.Amount - removedCount);
+
+			_initialSpawnDone = false;
+			_flexSpawnDelay = this.InitialDelay;
 		}
 
 		/// <summary>
@@ -378,7 +400,18 @@ namespace Melia.Zone.World.Spawning
 			if (spawnAmount <= 0)
 				return;
 
-			this.Spawn(spawnAmount);
+			// Requeue the delays whose spawn didn't land, so a dormant
+			// map can't silently consume them and leave the spawner
+			// short once it wakes back up.
+			var failedCount = spawnAmount - this.SpawnMonsters(spawnAmount);
+			if (failedCount <= 0)
+				return;
+
+			lock (_respawnDelays)
+			{
+				for (var i = 0; i < failedCount; ++i)
+					_respawnDelays.Add(FlexSpawnInterval);
+			}
 		}
 
 		/// <summary>
@@ -405,12 +438,13 @@ namespace Melia.Zone.World.Spawning
 				// Spawn the full amount on the first flex spawn to get up
 				// to the flex amount without delay.
 				if (!_initialSpawnDone)
-				{
 					spawnAmount = potentialSpawnAmount;
-					_initialSpawnDone = true;
-				}
 
-				this.Spawn(spawnAmount);
+				// Only consider the initial spawn done once the full
+				// amount landed, so a partial burst retries in bulk
+				// instead of trickling in one per interval.
+				if (this.SpawnMonsters(spawnAmount) >= spawnAmount)
+					_initialSpawnDone = true;
 			}
 		}
 

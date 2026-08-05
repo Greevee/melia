@@ -53,6 +53,9 @@ namespace Melia.Test.Balance
 				case EquipType.Pistol:
 					return SkillId.Pistol_Attack;
 
+				case EquipType.Gun:
+					return SkillId.DoubleGun_Attack;
+
 				case EquipType.THSword:
 				case EquipType.THSpear:
 					return SkillId.Normal_Attack_TH;

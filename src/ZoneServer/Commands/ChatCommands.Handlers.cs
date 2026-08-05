@@ -6379,6 +6379,29 @@ namespace Melia.Zone.Commands
 				target.Inventory.Add(new Item(640003, 100), InventoryAddType.PickUp);
 				target.Inventory.Add(new Item(640006, 100), InventoryAddType.PickUp);
 				target.Inventory.Add(new Item(640009, 100), InventoryAddType.PickUp);
+
+				for (var trinketId = 694005; trinketId <= 695003; trinketId++)
+				{
+					var trinketData = itemDb.Find(trinketId);
+					if (trinketData == null)
+						continue;
+
+					var trinket = new Item(trinketData.Id, 1);
+
+					trinket.Properties.SetFloat(PropertyName.ItemGrade, (int)grade);
+
+					trinket.Properties.SetFloat(PropertyName.NeedRandomOption, 1);
+					trinket.GenerateGradeBasedRandomOptions();
+					trinket.Appraisal();
+
+					if (trinket.IsRefinable && refine > 0)
+						trinket.Properties.SetFloat(PropertyName.Reinforce_2, refine);
+
+					for (var i = 0; i < trinket.MaxSockets; i++)
+						trinket.CreateSocket(i);
+
+					target.Inventory.Add(trinket, InventoryAddType.PickUp);
+				}
 			}
 			else
 			{
@@ -6427,6 +6450,9 @@ namespace Melia.Zone.Commands
 
 					if (item.IsRefinable && refine > 0)
 						item.Properties.SetFloat(PropertyName.Reinforce_2, refine);
+
+					for (var i = 0; i < item.MaxSockets; i++)
+						item.CreateSocket(i);
 
 					target.Inventory.Add(item, InventoryAddType.PickUp);
 					itemCount++;

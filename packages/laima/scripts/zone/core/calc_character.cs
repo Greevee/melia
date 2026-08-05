@@ -494,7 +494,7 @@ public class CharacterCalculationsScript : GeneralScript
 		if (Feature.IsEnabled("NewCONFormula"))
 			byStat = Math.Floor(((stat * 0.003f) + (Math.Floor(stat / 10.0f) * 0.010f)) * byLevel);
 		else
-			byStat = Math.Floor(((stat * 0.005f) + (Math.Floor(stat / 10.0f) * 0.015f)) * byLevel);
+			byStat = Math.Floor((stat * 0.0065f) * byLevel);
 
 		byStat *= 4.5f; // Custom to Laima
 
@@ -532,7 +532,7 @@ public class CharacterCalculationsScript : GeneralScript
 
 		var byStat = 0d;
 		if (!Feature.IsEnabled("NewSPRFormula"))
-			byStat = Math.Floor(((stat * 0.005f) + (Math.Floor(stat / 10.0f) * 0.015f)) * byLevel);
+			byStat = Math.Floor((stat * 0.0065f) * byLevel);
 
 		byStat *= 2.5f; // Custom to Laima
 
@@ -550,7 +550,7 @@ public class CharacterCalculationsScript : GeneralScript
 		var byAbility = 1.0f;
 		if (character.Abilities.TryGet(AbilityId.Cloth, out var ability))
 		{
-			byAbility += character.Inventory.CountEquipMaterial(ArmorMaterialType.Cloth) >= 4 ? 1.0f : 0f;
+			byAbility += character.Inventory.CountEquipMaterial(ArmorMaterialType.Cloth) >= 4 ? 0.4f : 0f;
 		}
 		value *= byAbility;
 
@@ -572,7 +572,7 @@ public class CharacterCalculationsScript : GeneralScript
 
 		var byStat = 0d;
 		if (!Feature.IsEnabled("NewCONFormula"))
-			byStat = Math.Floor(stat / 10f) * 0.5f;
+			byStat = stat * 0.05f;
 
 		var byItem = character.Inventory.GetEquipProperties(PropertyName.MSTA);
 		var byBonus = properties.GetFloat(PropertyName.MAXSTA_Bonus, 0);
@@ -728,7 +728,7 @@ public class CharacterCalculationsScript : GeneralScript
 
 		var byStat = 0d;
 		if (!Feature.IsEnabled("NewCONFormula"))
-			byStat = Math.Floor((stat * 0.5f) + (Math.Floor(stat / 10.0f) * 21f));
+			byStat = Math.Floor(stat * 2.6f);
 
 		var byDefault = Math.Floor(mhp / 100f * jobHpRate);
 		var byItems = character.Inventory.GetEquipProperties(PropertyName.RHP);
@@ -784,18 +784,21 @@ public class CharacterCalculationsScript : GeneralScript
 		var properties = character.Properties;
 		var stat = properties.GetFloat(PropertyName.MNA, 1);
 
-		var mhp = properties.GetFloat(PropertyName.MSP, 1);
+		var msp = properties.GetFloat(PropertyName.MSP, 1);
 		var jobSpRate = character.Job?.Data.RSpRate ?? 1;
 
 		var byStat = 0d;
 		if (!Feature.IsEnabled("NewSPRFormula"))
-			byStat = Math.Floor((stat * 0.5f) + (Math.Floor(stat / 10.0f) * 21f));
+			byStat = Math.Floor(stat * 2.6f);
 
-		var byDefault = Math.Floor(mhp * 0.03f * jobSpRate);
+		var byDefault = Math.Floor(msp * 0.03f * jobSpRate);
 		var byItems = character.Inventory.GetEquipProperties(PropertyName.RSP);
 		var byBuffs = properties.GetFloat(PropertyName.RSP_BM);
 
 		var value = (byStat + byDefault + byItems + byBuffs);
+
+		if (character.Buffs.Has(BuffId.Rest) || character.Buffs.Has(BuffId.SitRest))
+			value *= 2;
 
 		return (float)Math.Max(0, value);
 	}
@@ -819,14 +822,6 @@ public class CharacterCalculationsScript : GeneralScript
 
 		if (character.Buffs.Has(BuffId.Rest) || character.Buffs.Has(BuffId.SitRest))
 			value /= 2;
-
-		// Cloth Mastery
-		var byAbility = 1.0f;
-		if (character.Abilities.TryGet(AbilityId.Cloth, out var ability))
-		{
-			byAbility += character.Inventory.CountEquipMaterial(ArmorMaterialType.Cloth) >= 4 ? 1.0f : 0f;
-		}
-		value /= byAbility;
 
 		return (int)Math.Max(1000, value);
 	}
@@ -918,9 +913,9 @@ public class CharacterCalculationsScript : GeneralScript
 		byItem += character.Inventory.GetEquipProperties(PropertyName.PATK);
 		byItem += character.Inventory.GetEquipProperties(PropertyName.ADD_MINATK);
 
-		// Weapon carries flat attack, the stat both adds to it and scales it
-		var byWeapon = byItem * (1f + (stat / 200f));
-		var byStat = stat + ((float)Math.Floor(stat / 10f) * (float)Math.Floor(stat / 10f) * 1.5f);
+		// Weapon carries flat attack, the stat adds a matching flat amount
+		var byWeapon = byItem;
+		var byStat = stat * 1.55f;
 
 		var value = baseValue + byWeapon + byStat;
 
@@ -968,9 +963,9 @@ public class CharacterCalculationsScript : GeneralScript
 		byItem += character.Inventory.GetEquipProperties(PropertyName.PATK);
 		byItem += character.Inventory.GetEquipProperties(PropertyName.ADD_MAXATK);
 
-		// Weapon carries flat attack, the stat both adds to it and scales it
-		var byWeapon = byItem * (1f + (stat / 200f));
-		var byStat = stat + ((float)Math.Floor(stat / 10f) * (float)Math.Floor(stat / 10f) * 1.5f);
+		// Weapon carries flat attack, the stat adds a matching flat amount
+		var byWeapon = byItem;
+		var byStat = stat * 1.55f;
 
 		var value = baseValue + byWeapon + byStat;
 
@@ -1019,7 +1014,7 @@ public class CharacterCalculationsScript : GeneralScript
 		if (Feature.IsEnabled("NewSTRFormula"))
 			byStat = (stat * 2f) + ((float)Math.Floor(stat / 10f) * (byLevel * 0.05f));
 		else
-			byStat = (stat * 0.25f) + ((float)Math.Floor(stat / 10f) * 10f);
+			byStat = stat * 1.25f;
 
 		// We don't want item bonuses affecting subweapons because they will
 		// be added both to main weapon and subweapon if they do.
@@ -1069,7 +1064,7 @@ public class CharacterCalculationsScript : GeneralScript
 		if (Feature.IsEnabled("NewSTRFormula"))
 			byStat = (stat * 2f) + ((float)Math.Floor(stat / 10f) * (byLevel * 0.05f));
 		else
-			byStat = (stat * 0.25f) + ((float)Math.Floor(stat / 10f) * 10f);
+			byStat = stat * 1.25f;
 
 		// We don't want item bonuses affecting subweapons because they will
 		// be added both to main weapon and subweapon if they do.
@@ -1117,9 +1112,9 @@ public class CharacterCalculationsScript : GeneralScript
 		byItem += character.Inventory.GetEquipProperties(PropertyName.ADD_MATK);
 		byItem += character.Inventory.GetEquipProperties(PropertyName.ADD_MINATK);
 
-		// Weapon carries flat attack, the stat both adds to it and scales it
-		var byWeapon = byItem * (1f + (stat / 200f));
-		var byStat = stat + ((float)Math.Floor(stat / 10f) * (float)Math.Floor(stat / 10f) * 1.5f);
+		// Weapon carries flat attack, the stat adds a matching flat amount
+		var byWeapon = byItem;
+		var byStat = stat * 1.55f;
 
 		var value = baseValue + byWeapon + byStat;
 
@@ -1162,9 +1157,9 @@ public class CharacterCalculationsScript : GeneralScript
 		byItem += character.Inventory.GetEquipProperties(PropertyName.ADD_MATK);
 		byItem += character.Inventory.GetEquipProperties(PropertyName.ADD_MAXATK);
 
-		// Weapon carries flat attack, the stat both adds to it and scales it
-		var byWeapon = byItem * (1f + (stat / 200f));
-		var byStat = stat + ((float)Math.Floor(stat / 10f) * (float)Math.Floor(stat / 10f) * 1.5f);
+		// Weapon carries flat attack, the stat adds a matching flat amount
+		var byWeapon = byItem;
+		var byStat = stat * 1.55f;
 
 		var value = baseValue + byWeapon + byStat;
 
@@ -1206,9 +1201,9 @@ public class CharacterCalculationsScript : GeneralScript
 		byItem += character.Inventory.GetEquipProperties(PropertyName.DEF);
 		byItem += character.Inventory.GetEquipProperties(PropertyName.ADD_DEF);
 
-		// Armor carries flat defense, CON both adds to it and scales it
-		var byArmor = byItem * (1f + (stat / 200f));
-		var byStat = stat;
+		// Armor carries flat defense, CON adds a matching flat amount
+		var byArmor = byItem;
+		var byStat = stat * 1.55f;
 
 		var value = baseValue + byArmor + byStat + byBonus;
 
@@ -1247,9 +1242,9 @@ public class CharacterCalculationsScript : GeneralScript
 		byItem += character.Inventory.GetEquipProperties(PropertyName.MDEF);
 		byItem += character.Inventory.GetEquipProperties(PropertyName.ADD_MDEF);
 
-		// Armor carries flat magic defense, SPR both adds to it and scales it
-		var byArmor = byItem * (1f + (spr / 200f));
-		var byStat = spr + (con * 0.5f);
+		// Armor carries flat magic defense, SPR adds a matching flat amount
+		var byArmor = byItem;
+		var byStat = spr * 1.55f;
 
 		var value = baseValue + byArmor + byStat;
 
@@ -1282,7 +1277,7 @@ public class CharacterCalculationsScript : GeneralScript
 
 		if (!Feature.IsEnabled("NewDEXFormula"))
 		{
-			byStat = (stat * 0.5f) + ((float)Math.Floor(stat / 10f) * 20f);
+			byStat = stat * 2.5f;
 		}
 		else
 		{
@@ -1588,10 +1583,10 @@ public class CharacterCalculationsScript : GeneralScript
 
 		var byStat = 0d;
 		if (!Feature.IsEnabled("NewINTFormula"))
-			byStat += (statINT * 0.26f) + ((float)Math.Floor(statINT / 10f) * 10.4f);
+			byStat += statINT * 1.3f;
 
 		if (!Feature.IsEnabled("NewSPRFormula"))
-			byStat += (statSPR * 0.65f) + ((float)Math.Floor(statSPR / 10f) * 26f);
+			byStat += statSPR * 3.25f;
 		else
 			byStat += (statSPR) + (Math.Floor(statSPR / 10f) * (byLevel * 0.03f));
 
@@ -1711,11 +1706,11 @@ public class CharacterCalculationsScript : GeneralScript
 
 		// 30% Fixed, 70% Variable cast time
 		var fixedPortion = baseStat * 0.3f;
-		var variablePortion = baseStat * 0.7f * (1 - byStat / 250);
+		var variablePortion = baseStat * 0.7f * (1 - byStat / 300);
 		var result = (fixedPortion + variablePortion) * (1 - byBuff / 100f);
 
 		// 100% Variable cast time
-		// var result = baseStat * (1 - byStat / 250) - byBuff;
+		// var result = baseStat * (1 - byStat / 300) - byBuff;
 
 		result = (float)Math.Floor(Math2.Clamp(0, 200, result));
 

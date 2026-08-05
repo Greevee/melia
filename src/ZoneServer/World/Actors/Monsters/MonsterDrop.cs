@@ -88,7 +88,6 @@ namespace Melia.Zone.World.Actors.Monsters
 		private void ApplyItemGrade(Item item, ItemGrade grade)
 		{
 			//Log.Debug("ApplyItemGrade: Applying {0} to item {1}", grade, item.Id);
-			item.Properties.Modify(PropertyName.UseLv, (int)grade);
 			item.Properties.SetFloat(PropertyName.ItemGrade, (int)grade); // Set the item grade property
 			switch (grade)
 			{
