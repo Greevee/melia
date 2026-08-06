@@ -285,12 +285,16 @@ namespace Melia.Zone.World.Actors.Characters
 			{
 				// Limit EXP to the total max, otherwise the client will
 				// display level 1 with 0%.
-				job.TotalExp = Math.Min(job.TotalMaxExp, (job.TotalExp + jobExp));
+				var totalMaxExp = job.TotalMaxExp;
+
+				var prevTotalExp = job.TotalExp;
+				job.TotalExp = Math.Min(totalMaxExp, (job.TotalExp + jobExp));
+				var actualJobExp = job.TotalExp - prevTotalExp;
 
 				var newJobLevel = this.JobLevel;
 				var jobLevelsGained = (newJobLevel - jobLevel);
 
-				Send.ZC_JOB_EXP_UP(this, jobExp);
+				Send.ZC_JOB_EXP_UP(this, actualJobExp);
 
 				if (jobLevelsGained > 0)
 					this.FinishJobLevelChange(jobLevelsGained);

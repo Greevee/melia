@@ -3627,21 +3627,40 @@ namespace Melia.Zone.Commands
 				jobId = jobData.Id;
 			}
 
-			var circle = JobCircle.First;
+			var job = target.Jobs.Get(jobId);
+			JobCircle circle;
 
 			if (args.Count >= 2)
 			{
-				if (!int.TryParse(args.Get(1), out var iCircle) || iCircle < (int)JobCircle.First || !Enum.IsDefined(typeof(JobCircle), iCircle))
+				if (!int.TryParse(args.Get(1), out var iCircle) || iCircle < (int)JobCircle.First || !Enum.IsDefined(typeof(JobCircle), (short)iCircle))
 					return CommandResult.InvalidArgument;
 
 				circle = (JobCircle)iCircle;
-			}
 
-			var job = target.Jobs.Get(jobId);
-			if (job != null && job.Circle >= circle)
+				if (job != null && job.Circle >= circle)
+				{
+					sender.ServerMessage(Localization.Get("The job exists already, at an equal or higher circle."));
+					return CommandResult.Okay;
+				}
+			}
+			else
 			{
-				sender.ServerMessage(Localization.Get("The job exists already, at an equal or higher circle."));
-				return CommandResult.Okay;
+				// No circle given: advance to the job's next circle, or
+				// grant it fresh at circle 1 if the character doesn't
+				// have it yet.
+				if (job == null)
+				{
+					circle = JobCircle.First;
+				}
+				else if (job.Circle >= JobCircle.Third)
+				{
+					sender.ServerMessage(Localization.Get("The job is already at its maximum circle."));
+					return CommandResult.Okay;
+				}
+				else
+				{
+					circle = (JobCircle)(job.Circle + 1);
+				}
 			}
 
 			if (job == null)
@@ -4454,7 +4473,7 @@ namespace Melia.Zone.Commands
 				var percent = 100f / maxExp * exp;
 
 				sb.AppendLine(" {0}", job.Id);
-				sb.AppendLine("   Rank: {0}, Level: {0}, SkillPoints: {0}", job.Rank, job.Level, job.SkillPoints);
+				sb.AppendLine("   Rank: {0}, Level: {1}, MaxLevel: {2}, Circle: {3}, SkillPoints: {4}", job.Rank, job.Level, job.MaxLevel, job.Circle, job.SkillPoints);
 				sb.AppendLine("   Exp: {0} / {1} ({2:0.0}%)", exp, maxExp, percent);
 			}
 
@@ -6522,7 +6541,7 @@ namespace Melia.Zone.Commands
 
 			foreach (var job in jobs)
 			{
-				var skills = skillTreeDb.FindSkills(job.Id, job.Level);
+				var skills = skillTreeDb.FindSkills(job.Id, job.EffectiveLevel);
 
 				foreach (var skillData in skills)
 				{

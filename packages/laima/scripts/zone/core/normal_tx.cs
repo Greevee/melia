@@ -172,7 +172,7 @@ public class NormalTxFunctionsScript : GeneralScript
 		// for getting all available skills.
 		SkillTreeData[] skillTreeData;
 		if (Versions.Protocol > 500)
-			skillTreeData = ZoneServer.Instance.Data.SkillTreeDb.FindSkills(job.Id, job.MaxLevel);
+			skillTreeData = ZoneServer.Instance.Data.SkillTreeDb.FindSkills(job.Id, job.EffectiveMaxLevel);
 		else
 			skillTreeData = ZoneServer.Instance.Data.SkillTreeDb.FindSkills(job.Id, job.Circle);
 		if (amounts.Length != skillTreeData.Length)
@@ -207,7 +207,7 @@ public class NormalTxFunctionsScript : GeneralScript
 			var newLevel = (currentLevel + addLevels);
 
 			// Safety check.
-			if (job.Level < data.UnlockLevel)
+			if (job.EffectiveLevel < data.UnlockLevel)
 				continue;
 
 			if (newLevel > maxLevel)

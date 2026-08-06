@@ -541,7 +541,9 @@ namespace Melia.Zone
 			this.IesMods.Add("SharedConst", 103, "Value", this.Conf.World.MaxCompanionLevel);
 			this.IesMods.Add("SharedConst", 104, "Value", this.Conf.World.MaxBaseJobLevel);
 			this.IesMods.Add("SharedConst", 105, "Value", this.Conf.World.MaxAdvanceJobLevel);
-			this.IesMods.Add("SharedConst", 100050, "Value", this.Conf.World.JobMaxRank); // JOB_CHANGE_MAX_RANK
+			this.IesMods.Add("SharedConst", 100050, "Value", JobCircleHelper.GetMaxRank(this.Conf.World.JobMaxRank)); // JOB_CHANGE_MAX_RANK
+
+			this.IesMods.Add("SharedConst", 90001, "Value", Feature.IsEnabled("ClassCircleSystem") ? 1 : 0); // CLASS_CIRCLE_SYSTEM_ENABLED
 
 			// Magical Amulets are invisible by default, this makes them visible.
 			if (Feature.IsEnabled("MagicalAmulet"))

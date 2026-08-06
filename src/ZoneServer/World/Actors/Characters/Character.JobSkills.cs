@@ -66,6 +66,9 @@ namespace Melia.Zone.World.Actors.Characters
 			this.AddonMessage("NOTICE_Dm_levelup_skill", "!@#$Auto_KeulLeSeu_LeBeli_SangSeungHayeossSeupNiDa#@!", 3);
 			this.PlayEffect("F_pc_joblevel_up", 3);
 			Send.ZC_SKILL_LIST(this);
+
+			if (Feature.IsEnabled("ClassCircleSystem") && this.Job.Circle < JobCircle.Third && this.Job.Level >= this.Job.MaxLevel && this.Jobs.GetJobRank(this.JobId) > 1)
+				this.AddonMessage(Melia.Shared.Game.Const.AddonMessage.START_JOB_CHANGE);
 		}
 
 		/// <summary>
@@ -144,9 +147,12 @@ namespace Melia.Zone.World.Actors.Characters
 				}
 			}
 
+			// The effective level is exactly how many points the job has
+			// earned, since every circle grants one on entry plus one per
+			// level up.
 			foreach (var job in this.Jobs.GetList())
 			{
-				job.SetSkillPoints(job.Level);
+				job.SetSkillPoints(job.EffectiveLevel);
 			}
 
 			if (commonSkillChanged)
@@ -191,7 +197,7 @@ namespace Melia.Zone.World.Actors.Characters
 				}
 			}
 
-			job.SetSkillPoints(job.Level);
+			job.SetSkillPoints(job.EffectiveLevel);
 
 			if (commonSkillChanged)
 			{

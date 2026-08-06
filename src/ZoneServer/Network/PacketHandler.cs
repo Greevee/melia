@@ -3691,7 +3691,7 @@ namespace Melia.Zone.Network
 			// Remove the skills associated with the old job. This could
 			// be easier and safer if we were to save the job a skill was
 			// learned for with the skill data.
-			var oldJobTreeData = ZoneServer.Instance.Data.SkillTreeDb.FindSkills(oldJob.Id, oldJob.Level);
+			var oldJobTreeData = ZoneServer.Instance.Data.SkillTreeDb.FindSkills(oldJob.Id, oldJob.EffectiveLevel);
 
 			foreach (var treeData in oldJobTreeData)
 			{
@@ -3704,7 +3704,7 @@ namespace Melia.Zone.Network
 			// Remove old job and grant new one
 			var newJob = new Job(character, newJobId, oldJob.Circle);
 			newJob.TotalExp = oldJob.TotalExp;
-			newJob.SkillPoints = oldJob.Level;
+			newJob.SkillPoints = oldJob.EffectiveLevel;
 
 			character.Jobs.Remove(oldJobId);
 			character.Jobs.Add(newJob);

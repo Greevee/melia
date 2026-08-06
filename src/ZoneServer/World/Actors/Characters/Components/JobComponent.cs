@@ -216,7 +216,11 @@ namespace Melia.Zone.World.Actors.Characters.Components
 		/// </summary>
 		/// <param name="jobId"></param>
 		/// <param name="circle"></param>
-		/// <remarks>Job Circles are a legacy feature, now jobs don't have circle levels.</remarks>
+		/// <remarks>
+		/// Each circle is its own rank with its own 1~15 level band, so
+		/// the job's EXP restarts. Skill points earned on earlier circles
+		/// are kept.
+		/// </remarks>
 		public bool ChangeCircle(JobId jobId, JobCircle circle)
 		{
 			var job = this.Get(jobId);
@@ -224,7 +228,22 @@ namespace Melia.Zone.World.Actors.Characters.Components
 				return false;
 
 			job.Circle = circle;
+
+			if (Feature.IsEnabled("ClassCircleSystem"))
+			{
+				job.TotalExp = 0;
+
+				// Level 1 of a circle is reached without EXP, so it grants
+				// no level up. Its point comes with the circle instead, the
+				// same way a freshly picked job is granted one.
+				job.ModifySkillPoints(1);
+			}
+
+			Send.ZC_PC(this.Character, PcUpdateType.Job, (int)job.Id, 0);
 			Send.ZC_NORMAL.UpdateSkillUI(this.Character);
+			Send.ZC_SKILL_LIST(this.Character);
+			this.Character.AddonMessage("NOTICE_Dm_levelup_skill", "!@#$Auto_KeulLeSeu_LeBeli_SangSeungHayeossSeupNiDa#@!", 3);
+			this.Character.PlayEffect("F_pc_joblevel_up", 3);
 
 			return true;
 		}
@@ -319,6 +338,15 @@ namespace Melia.Zone.World.Actors.Characters.Components
 		}
 
 		/// <summary>
+		/// Drops the cached job ranks, so they're rebuilt on next access.
+		/// </summary>
+		public void InvalidateRankCache()
+		{
+			lock (_jobs)
+				_jobRanks = null;
+		}
+
+		/// <summary>
 		/// Returns the rank for a specific job based on its position in
 		/// the character's job progression (ordered by selection date).
 		/// </summary>
@@ -327,6 +355,9 @@ namespace Melia.Zone.World.Actors.Characters.Components
 		/// - Rank 1: Base Job (e.g., Cleric)
 		/// - Rank 2: First Job Advancement (e.g., Priest)
 		/// - Rank 3: Second Job Advancement (e.g., Paladin)
+		/// With the class circle system enabled every circle takes its
+		/// own rank instead, e.g. Cleric = 1, Priest C1/C2/C3 = 2/3/4,
+		/// and the next job starts at 5.
 		/// This ensures each job uses the correct EXP curve regardless
 		/// of other jobs the character has.
 		/// </remarks>
@@ -341,9 +372,24 @@ namespace Melia.Zone.World.Actors.Characters.Components
 				{
 					_jobRanks = new Dictionary<JobId, int>();
 					var orderedJobs = _jobs.Values.OrderBy(j => j.SelectionDate).ThenBy(j => j.Rank).ToList();
+					var circleSystem = Feature.IsEnabled("ClassCircleSystem");
+					var nextRank = 1;
+
 					for (var i = 0; i < orderedJobs.Count; i++)
 					{
-						_jobRanks[orderedJobs[i].Id] = i + 1;
+						if (!circleSystem)
+						{
+							_jobRanks[orderedJobs[i].Id] = i + 1;
+							continue;
+						}
+
+						// Every circle consumes a rank, so a job sits on the
+						// rank of its current circle and the job after it
+						// starts past all of them.
+						var circles = Math.Max(1, (int)orderedJobs[i].Circle);
+
+						_jobRanks[orderedJobs[i].Id] = nextRank + circles - 1;
+						nextRank += circles;
 					}
 				}
 
@@ -374,7 +420,16 @@ namespace Melia.Zone.World.Actors.Characters.Components
 		/// <summary>
 		/// Gets or sets the circle this job is on.
 		/// </summary>
-		public JobCircle Circle { get; set; }
+		public JobCircle Circle
+		{
+			get { return _circle; }
+			set
+			{
+				_circle = value;
+				this.Character?.Jobs?.InvalidateRankCache();
+			}
+		}
+		private JobCircle _circle;
 
 		public DateTime AdvancementDate { get; set; }
 
@@ -500,6 +555,39 @@ namespace Melia.Zone.World.Actors.Characters.Components
 		}
 
 		/// <summary>
+		/// Returns this job's level under the flat job model, folding the
+		/// circle back into the level. Skill tree unlock levels are still
+		/// banded 1/16/31, so they're checked against this instead of the
+		/// raw level, which only ever runs 1~15 per circle.
+		/// </summary>
+		public int EffectiveLevel
+		{
+			get
+			{
+				if (!Feature.IsEnabled("ClassCircleSystem"))
+					return this.Level;
+
+				return JobCircleHelper.GetEffectiveJobLevel(this.Circle, this.Level, this.MaxLevel);
+			}
+		}
+
+		/// <summary>
+		/// Returns the highest effective level currently reachable on this
+		/// job, which is the cap of its current circle. Skills banded above
+		/// it aren't available yet.
+		/// </summary>
+		public int EffectiveMaxLevel
+		{
+			get
+			{
+				if (!Feature.IsEnabled("ClassCircleSystem"))
+					return this.MaxLevel;
+
+				return JobCircleHelper.GetEffectiveJobLevel(this.Circle, this.MaxLevel, this.MaxLevel);
+			}
+		}
+
+		/// <summary>
 		/// Returns the max level for this job.
 		/// </summary>
 		public int MaxLevel
@@ -507,16 +595,18 @@ namespace Melia.Zone.World.Actors.Characters.Components
 			get
 			{
 				// Use job-specific rank (position in job progression) to
-				// determine max level. Base job (rank 1) caps at 15,
-				// advanced jobs (rank 2+) cap at 45.
+				// determine max level. Base job (rank 1) caps at the base
+				// job level, advanced jobs (rank 2+) at the advanced one.
+				// Under the class circle system that advanced cap applies
+				// per circle, since each circle is its own rank.
 				if (Versions.Client <= KnownVersions.PreReBuild)
 					return 15;
 
 				var rank = this.Character.Jobs.GetJobRank(this.Id);
 				if (rank > 1)
 					return ZoneServer.Instance.Conf.World.MaxAdvanceJobLevel;
-				else
-					return ZoneServer.Instance.Conf.World.MaxBaseJobLevel;
+
+				return ZoneServer.Instance.Conf.World.MaxBaseJobLevel;
 			}
 		}
 

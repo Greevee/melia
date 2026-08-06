@@ -162,7 +162,7 @@ public class ItemEquipScript : GeneralScript
 		// Use the highest job level among all jobs the character has
 		// Character must have a job of the same class (e.g., Wizard class for Cryomancer skills)
 		var allJobs = character.Jobs.GetList();
-		var highestJobLevel = allJobs.Max(j => j.Level);
+		var highestJobLevel = allJobs.Max(j => j.EffectiveLevel);
 		var characterJobClasses = allJobs.Select(j => j.Id.ToClass()).Distinct().ToList();
 		var entries = ZoneServer.Instance.Data.SkillTreeDb.FindJobs(skillData.Id, highestJobLevel);
 

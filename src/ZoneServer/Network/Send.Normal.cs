@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Numerics;
 using System.Reflection.Emit;
 using System.Security.Cryptography;
+using System.Text;
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.Game.Const.Web;
@@ -4849,6 +4850,10 @@ namespace Melia.Zone.Network
 
 				var jobs = character.Jobs.GetList();
 
+				// The client keys its job list by job id and has no readable
+				// per-job circle field, so circles are pushed alongside it.
+				SendJobCircles(character, jobs);
+
 				using var packet = Packet.Rent(Op.ZC_NORMAL);
 				packet.PutSubOp(NormalOpType.Zone, NormalOp.Zone.UpdateSkillUI);
 
@@ -4858,7 +4863,7 @@ namespace Melia.Zone.Network
 				{
 					packet.PutShort((short)job.Id);
 					packet.PutShort((short)job.Level);
-					packet.PutInt(0);
+					packet.PutInt(Feature.IsEnabled("ClassCircleSystem") ? (int)job.Circle : 0);
 					packet.PutLong(job.TotalExp);
 					packet.PutByte((byte)job.SkillPoints);
 					packet.PutShort(0);
@@ -4868,6 +4873,32 @@ namespace Melia.Zone.Network
 				}
 
 				character.Connection.Send(packet);
+			}
+
+			/// <summary>
+			/// Sends the character's per-job circles and levels to the
+			/// client as "jobId:circle:level" entries, with the active job's
+			/// id as the numeric argument. The client has no field of its
+			/// own for circles, and its notion of the active job goes stale
+			/// until the next login.
+			/// </summary>
+			/// <param name="character"></param>
+			/// <param name="jobs"></param>
+			private static void SendJobCircles(Character character, Job[] jobs)
+			{
+				if (!Feature.IsEnabled("ClassCircleSystem"))
+					return;
+
+				var sb = new StringBuilder();
+				foreach (var job in jobs)
+				{
+					if (sb.Length > 0)
+						sb.Append(' ');
+
+					sb.Append((int)job.Id).Append(':').Append(Math.Max(1, (int)job.Circle)).Append(':').Append(job.Level);
+				}
+
+				character.AddonMessage("LAIMA_JOB_CIRCLES", sb.ToString(), (int)character.JobId);
 			}
 
 			/// <summary>
