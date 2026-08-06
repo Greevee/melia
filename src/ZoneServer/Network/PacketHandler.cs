@@ -3706,6 +3706,10 @@ namespace Melia.Zone.Network
 			newJob.TotalExp = oldJob.TotalExp;
 			newJob.SkillPoints = oldJob.EffectiveLevel;
 
+			// The swapped job takes the old one's place on the rank ladder,
+			// rather than being appended to the end of it.
+			newJob.Rank = oldJob.Rank;
+
 			character.Jobs.Remove(oldJobId);
 			character.Jobs.Add(newJob);
 			character.JobId = newJob.Id;

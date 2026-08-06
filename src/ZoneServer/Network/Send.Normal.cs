@@ -4863,7 +4863,7 @@ namespace Melia.Zone.Network
 				{
 					packet.PutShort((short)job.Id);
 					packet.PutShort((short)job.Level);
-					packet.PutInt(Feature.IsEnabled("ClassCircleSystem") ? (int)job.Circle : 0);
+					packet.PutInt(0);
 					packet.PutLong(job.TotalExp);
 					packet.PutByte((byte)job.SkillPoints);
 					packet.PutShort(0);
@@ -4874,6 +4874,15 @@ namespace Melia.Zone.Network
 
 				character.Connection.Send(packet);
 			}
+
+			/// <summary>
+			/// Sends the character's per-job circles on their own, for the
+			/// points where the client rebuilds its skill tree before the
+			/// full skill UI update reaches it.
+			/// </summary>
+			/// <param name="character"></param>
+			public static void JobCircles(Character character)
+				=> SendJobCircles(character, character.Jobs.GetList());
 
 			/// <summary>
 			/// Sends the character's per-job circles and levels to the

@@ -180,10 +180,9 @@ namespace Melia.Zone.Database
 
 		private void LoadJobs(Character character)
 		{
-			// Note that the order the jobs are added in is important,
-			// because it determines the jobs' ranks, which are assigned
-			// based on their order. That's why they are queried by their
-			// selection date, which effectively determines their rank.
+			// Jobs carry their own rank, but characters saved before that
+			// column existed have it backfilled from the order they were
+			// added in, so they're still queried by selection date.
 			using (var conn = this.GetConnection())
 			using (var mc = new MySqlCommand("SELECT * FROM `jobs` WHERE `characterId` = @characterId ORDER BY `selectionDate` ASC", conn))
 			{
@@ -215,6 +214,13 @@ namespace Melia.Zone.Database
 						var job = new Job(character, jobId, totalExp, circle, skillPoints);
 						job.SelectionDate = selectionDate;
 						job.AdvancementDate = advDate;
+
+						// A stored rank is kept as is, since it records when
+						// the job's current circle was actually taken. 0 means
+						// the character predates the column, and AddSilent
+						// derives one from the selection order instead.
+						job.Rank = reader.GetInt32("jobRank");
+
 						character.Jobs.AddSilent(job);
 					}
 				}

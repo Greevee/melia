@@ -183,12 +183,26 @@ namespace Melia.Test.Balance
 				{
 					Data = data,
 					Role = Classify(data),
-					MaxLevel = Math.Max(1, tree.MaxLevel),
+					MaxLevel = Math.Max(1, GetTreeMaxLevel(tree)),
 					UnlockLevel = tree.UnlockLevel,
 				});
 			}
 
 			return skills.ToArray();
+		}
+
+		/// <summary>
+		/// Returns a skill's level cap on a fully advanced class, which the
+		/// class circle system derives from the skill's own circle.
+		/// </summary>
+		/// <param name="tree"></param>
+		private static int GetTreeMaxLevel(SkillTreeData tree)
+		{
+			if (!Feature.IsEnabled("ClassCircleSystem"))
+				return tree.MaxLevel;
+
+			var levelsPerCircle = ZoneServer.Instance.Conf.World.MaxAdvanceJobLevel;
+			return JobCircleHelper.GetSkillMaxLevel(JobCircle.Third, tree.UnlockLevel, tree.MaxLevel, levelsPerCircle);
 		}
 
 		/// <summary>

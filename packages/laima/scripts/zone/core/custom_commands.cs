@@ -329,20 +329,44 @@ public class CustomCommandFunctionsScript : GeneralScript
 			return CustomCommandResult.Fail;
 		}
 
-		// Advancing to the next class circle of the job the character
-		// already has, rather than picking a new job. Base jobs have no
-		// circles, so they fall through to the regular advancement path.
-		if (Feature.IsEnabled("ClassCircleSystem") && jobId == character.JobId && character.Jobs.GetJobRank(jobId) > 1)
-		{
-			var currentJob = character.Job;
+		// The rank ladder is the budget, not the number of jobs: every
+		// advancement spends one rank, whether it's a new job or another
+		// circle of one already held.
+		var maxRank = ZoneServer.Instance.Conf.World.JobMaxRank;
 
-			if (currentJob.Circle >= JobCircle.Third)
+		if (Feature.IsEnabled("ClassCircleSystem"))
+			maxRank = JobCircleHelper.GetMaxRank(maxRank);
+
+		if (character.Jobs.GetCurrentRank() >= maxRank)
+		{
+			Log.Warning("CZ_CUSTOM_COMMAND: User '{0}' requested job change to job '{1}' at or above the max rank of {2}.", username, jobId, maxRank);
+			return CustomCommandResult.Fail;
+		}
+
+		// Advancing to the next class circle of a job the character already
+		// has, rather than picking a new job. It doesn't have to be the job
+		// being played. Base jobs have no circles, so they fall through to
+		// the regular advancement path.
+		if (Feature.IsEnabled("ClassCircleSystem") && character.Jobs.TryGet(jobId, out var heldJob) && character.Jobs.GetJobRank(jobId) > 1)
+		{
+			if (heldJob.Circle >= JobCircle.Third)
 			{
 				Log.Warning("CZ_CUSTOM_COMMAND: User '{0}' requested circle advancement past the max circle for '{1}'.", username, jobId);
 				return CustomCommandResult.Fail;
 			}
 
-			var nextCircle = (JobCircle)(currentJob.Circle + 1);
+			// The advanced job becomes the one being played, the same way
+			// picking a new job does.
+			if (character.JobId != jobId)
+			{
+				character.JobId = jobId;
+				character.Properties.SetFloat(PropertyName.Job, (int)jobId);
+				Send.ZC_OBJECT_PROPERTY(character, PropertyName.JobName);
+				character.AddonMessage(AddonMessage.JOB_UPDATE);
+				character.InvalidateProperties();
+			}
+
+			var nextCircle = (JobCircle)(heldJob.Circle + 1);
 			character.Jobs.ChangeCircle(jobId, nextCircle);
 
 			return CustomCommandResult.Okay;
@@ -357,15 +381,6 @@ public class CustomCommandFunctionsScript : GeneralScript
 		if (character.Jobs.Has(jobId))
 		{
 			Log.Warning("CZ_CUSTOM_COMMAND: User '{0}' requested job change to job '{1}' despite already having it.", username, jobId);
-			return CustomCommandResult.Fail;
-		}
-
-		// JobMaxRank caps how many jobs may be held. Under the circle
-		// system ranks outgrow the job count, so the count is checked
-		// directly instead of the current rank.
-		if (character.Jobs.Count >= ZoneServer.Instance.Conf.World.JobMaxRank)
-		{
-			Log.Warning("CZ_CUSTOM_COMMAND: User '{0}' requested job change to job '{1}' at or above the max of {2} jobs.", username, jobId, ZoneServer.Instance.Conf.World.JobMaxRank);
 			return CustomCommandResult.Fail;
 		}
 

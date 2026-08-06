@@ -699,7 +699,7 @@ namespace Melia.Zone.Database
 			// Use BatchInsert with ON DUPLICATE KEY UPDATE to handle both new and existing jobs atomically.
 			using (var batch = new BatchInsertCommand(
 				"jobs",
-				"ON DUPLICATE KEY UPDATE `circle`=VALUES(`circle`), `skillPoints`=VALUES(`skillPoints`), `totalExp`=VALUES(`totalExp`), `selectionDate`=VALUES(`selectionDate`), `advDate`=VALUES(`advDate`)",
+				"ON DUPLICATE KEY UPDATE `circle`=VALUES(`circle`), `jobRank`=VALUES(`jobRank`), `skillPoints`=VALUES(`skillPoints`), `totalExp`=VALUES(`totalExp`), `selectionDate`=VALUES(`selectionDate`), `advDate`=VALUES(`advDate`)",
 				conn,
 				trans))
 			{
@@ -710,6 +710,7 @@ namespace Melia.Zone.Database
 						{ "characterId", character.DbId },
 						{ "jobId", job.Id },
 						{ "circle", job.Circle },
+						{ "jobRank", job.Rank },
 						{ "skillPoints", job.SkillPoints },
 						{ "totalExp", job.TotalExp },
 						{ "selectionDate", job.SelectionDate },

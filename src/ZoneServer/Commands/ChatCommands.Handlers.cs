@@ -6545,22 +6545,23 @@ namespace Melia.Zone.Commands
 
 				foreach (var skillData in skills)
 				{
-					if (skillData.MaxLevel <= 0)
+					var maxLevel = job.GetSkillMaxLevel(skillData);
+					if (maxLevel <= 0)
 						continue;
 
 					if (target.Skills.Has(skillData.SkillId))
 					{
 						var existing = target.Skills.Get(skillData.SkillId);
-						if (existing.LevelByDB < skillData.MaxLevel)
+						if (existing.LevelByDB < maxLevel)
 						{
-							existing.LevelByDB = skillData.MaxLevel;
+							existing.LevelByDB = maxLevel;
 							existing.Properties.InvalidateAll();
 							Send.ZC_OBJECT_PROPERTY(target.Connection, existing);
 						}
 					}
 					else
 					{
-						var skill = new Skill(target, skillData.SkillId, skillData.MaxLevel);
+						var skill = new Skill(target, skillData.SkillId, maxLevel);
 						target.Skills.Add(skill);
 					}
 

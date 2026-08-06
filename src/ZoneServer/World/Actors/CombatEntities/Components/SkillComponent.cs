@@ -142,7 +142,7 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 					var skillTreeDataList = ZoneServer.Instance.Data.SkillTreeDb.FindSkills(job.Id, job.EffectiveLevel).Where(a => a.SkillId == skillId);
 					foreach (var data in skillTreeDataList)
 					{
-						var jobsMaxLevel = data.MaxLevel;
+						var jobsMaxLevel = job.GetSkillMaxLevel(data);
 						if (jobsMaxLevel > maxLevel)
 							maxLevel = jobsMaxLevel;
 					}
