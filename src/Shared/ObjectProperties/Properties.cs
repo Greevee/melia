@@ -486,6 +486,15 @@ namespace Melia.Shared.ObjectProperties
 		}
 
 		/// <summary>
+		/// Raised once after a batch of properties was invalidated via
+		/// <see cref="Invalidate(string[])"/> or <see cref="InvalidateAll"/>,
+		/// with the names of the properties that were actually invalidated.
+		/// Allows listeners to react once per batch instead of once per
+		/// property.
+		/// </summary>
+		public event Action<IReadOnlyList<string>> Invalidated;
+
+		/// <summary>
 		/// Invalidates the given property.
 		/// </summary>
 		/// <param name="propertyName"></param>
@@ -494,10 +503,12 @@ namespace Melia.Shared.ObjectProperties
 			foreach (var propertyName in propertyNames)
 			{
 				if (!this.TryGet<CFloatProperty>(propertyName, out var property))
-					return;
+					continue;
 
 				property.Invalidate();
 			}
+
+			this.Invalidated?.Invoke(propertyNames);
 		}
 
 		/// <summary>
@@ -507,12 +518,18 @@ namespace Melia.Shared.ObjectProperties
 		public void InvalidateAll()
 		{
 			var properties = this.GetAll();
+			var invalidatedNames = new List<string>();
 
 			foreach (var property in properties)
 			{
 				if (property is CFloatProperty calcProperty)
+				{
 					calcProperty.Invalidate();
+					invalidatedNames.Add(calcProperty.Ident);
+				}
 			}
+
+			this.Invalidated?.Invoke(invalidatedNames);
 		}
 	}
 }
