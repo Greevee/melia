@@ -133,8 +133,8 @@ namespace Melia.Test.Balance
 				var offsets = ScenarioMatrix.GetOffsets(spec, spec.MobCount, cycle.CastTimeMs, mobData.RunSpeed,
 					Math.Max(1, characterLevel - 9), characterLevel + 9, out var aimDistance);
 
-				foreach (var offset in offsets)
-					mobs.Add(SyntheticActors.CreateMob(mobData.Id, offset));
+				foreach (var placement in offsets)
+					mobs.Add(SyntheticActors.CreateMob(mobData.Id, placement));
 
 				foreach (var mob in mobs)
 					Fortify(mob);

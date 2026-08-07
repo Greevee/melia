@@ -251,6 +251,8 @@ public class NormalTxFunctionsScript : GeneralScript
 		Send.ZC_ADDON_MSG(character, AddonMessage.RESET_SKL_UP);
 		Send.ZC_JOB_PTS(character, job);
 
+		character.Inventory.RefreshGemSkills();
+
 		if (commonSkillChanged)
 		{
 			Send.ZC_SKILL_LIST(character);

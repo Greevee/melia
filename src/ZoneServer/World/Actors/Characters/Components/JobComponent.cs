@@ -72,7 +72,7 @@ namespace Melia.Zone.World.Actors.Characters.Components
 				{
 					// Every circle the job already carries occupies a rank of
 					// its own, so a job loaded at C3 sits three ranks up.
-					var circles = Feature.IsEnabled("ClassCircleSystem") ? Math.Max(1, (int)job.Circle) : 1;
+					var circles = ZoneServer.Instance.Conf.World.ClassCircleSystem ? Math.Max(1, (int)job.Circle) : 1;
 
 					rank = circles;
 
@@ -245,7 +245,7 @@ namespace Melia.Zone.World.Actors.Characters.Components
 
 			job.Circle = circle;
 
-			if (Feature.IsEnabled("ClassCircleSystem"))
+			if (ZoneServer.Instance.Conf.World.ClassCircleSystem)
 			{
 				// The new circle is the character's latest advancement, so it
 				// takes the next rank. Jobs taken earlier keep theirs, which
@@ -261,6 +261,8 @@ namespace Melia.Zone.World.Actors.Characters.Components
 				// same way a freshly picked job is granted one.
 				job.ModifySkillPoints(1);
 			}
+
+			this.Character.Inventory.RefreshGemSkills();
 
 			// The client rebuilds its skill tree on the job change, so the
 			// circles have to be in place before it hears about one.
@@ -398,7 +400,7 @@ namespace Melia.Zone.World.Actors.Characters.Components
 				{
 					_jobRanks = new Dictionary<JobId, int>();
 					var orderedJobs = _jobs.Values.OrderBy(j => j.SelectionDate).ThenBy(j => j.Rank).ToList();
-					var circleSystem = Feature.IsEnabled("ClassCircleSystem");
+					var circleSystem = ZoneServer.Instance.Conf.World.ClassCircleSystem;
 					var nextRank = 1;
 
 					for (var i = 0; i < orderedJobs.Count; i++)
@@ -596,7 +598,7 @@ namespace Melia.Zone.World.Actors.Characters.Components
 		{
 			get
 			{
-				if (!Feature.IsEnabled("ClassCircleSystem"))
+				if (!ZoneServer.Instance.Conf.World.ClassCircleSystem)
 					return this.Level;
 
 				return JobCircleHelper.GetEffectiveJobLevel(this.Circle, this.Level, this.MaxLevel);
@@ -612,7 +614,7 @@ namespace Melia.Zone.World.Actors.Characters.Components
 		{
 			get
 			{
-				if (!Feature.IsEnabled("ClassCircleSystem"))
+				if (!ZoneServer.Instance.Conf.World.ClassCircleSystem)
 					return this.MaxLevel;
 
 				return JobCircleHelper.GetEffectiveJobLevel(this.Circle, this.MaxLevel, this.MaxLevel);
@@ -628,7 +630,7 @@ namespace Melia.Zone.World.Actors.Characters.Components
 		/// <returns></returns>
 		public int GetSkillMaxLevel(SkillTreeData data)
 		{
-			if (!Feature.IsEnabled("ClassCircleSystem"))
+			if (!ZoneServer.Instance.Conf.World.ClassCircleSystem)
 				return data.MaxLevel;
 
 			return JobCircleHelper.GetSkillMaxLevel(this.Circle, data.UnlockLevel, data.MaxLevel, this.MaxLevel);

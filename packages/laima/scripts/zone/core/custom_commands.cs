@@ -334,7 +334,7 @@ public class CustomCommandFunctionsScript : GeneralScript
 		// circle of one already held.
 		var maxRank = ZoneServer.Instance.Conf.World.JobMaxRank;
 
-		if (Feature.IsEnabled("ClassCircleSystem"))
+		if (ZoneServer.Instance.Conf.World.ClassCircleSystem)
 			maxRank = JobCircleHelper.GetMaxRank(maxRank);
 
 		if (character.Jobs.GetCurrentRank() >= maxRank)
@@ -347,7 +347,7 @@ public class CustomCommandFunctionsScript : GeneralScript
 		// has, rather than picking a new job. It doesn't have to be the job
 		// being played. Base jobs have no circles, so they fall through to
 		// the regular advancement path.
-		if (Feature.IsEnabled("ClassCircleSystem") && character.Jobs.TryGet(jobId, out var heldJob) && character.Jobs.GetJobRank(jobId) > 1)
+		if (ZoneServer.Instance.Conf.World.ClassCircleSystem && character.Jobs.TryGet(jobId, out var heldJob) && character.Jobs.GetJobRank(jobId) > 1)
 		{
 			if (heldJob.Circle >= JobCircle.Third)
 			{

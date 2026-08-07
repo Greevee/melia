@@ -161,6 +161,26 @@ namespace Melia.Test.Balance
 		}
 
 		/// <summary>
+		/// Creates a hostile monster at the place a scenario put it, carrying
+		/// the AoE defence ratio that scenario forces on it.
+		/// </summary>
+		/// <remarks>
+		/// Only the penetration ranks set an SDR; every other placement leaves
+		/// the monster's own, which its size already decides.
+		/// </remarks>
+		/// <param name="monsterId"></param>
+		/// <param name="placement"></param>
+		public static Mob CreateMob(int monsterId, ScenarioMob placement)
+		{
+			var mob = CreateMob(monsterId, placement.Offset);
+
+			if (placement.Sdr > 0)
+				mob.Properties.Modify(PropertyName.SDR_BM, placement.Sdr - mob.Properties.GetFloat(PropertyName.SDR));
+
+			return mob;
+		}
+
+		/// <summary>
 		/// Creates a hostile monster of the given id and places it on the
 		/// arena.
 		/// </summary>

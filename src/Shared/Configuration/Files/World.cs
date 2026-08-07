@@ -62,8 +62,11 @@ namespace Melia.Shared.Configuration.Files
 
 		// items.conf
 		public float ItemCooldownRate { get; protected set; }
+		public bool StackDuplicateSkillGems { get; protected set; }
+		public bool SkillGemsGrantNewSkills { get; protected set; }
 
 		// jobs.conf
+		public bool ClassCircleSystem { get; protected set; }
 		public int JobMaxRank { get; protected set; }
 		public bool NoAdvancement { get; protected set; }
 		public bool NoRankReset { get; protected set; }
@@ -315,7 +318,10 @@ namespace Melia.Shared.Configuration.Files
 			this.EnableDayNightCycle = this.GetBool("enable_day_night_cycle", true);
 
 			this.ItemCooldownRate = this.GetFloat("item_cooldown_rate", 1);
+			this.StackDuplicateSkillGems = this.GetBool("stack_duplicate_skill_gems", false);
+			this.SkillGemsGrantNewSkills = this.GetBool("skill_gems_grant_new_skills", false);
 
+			this.ClassCircleSystem = this.GetBool("class_circle_system", false);
 			this.JobMaxRank = this.GetInt("job_max_rank", 4);
 			this.NoAdvancement = this.GetBool("no_advancement", false);
 			this.NoRankReset = this.GetBool("no_rank_reset", true);

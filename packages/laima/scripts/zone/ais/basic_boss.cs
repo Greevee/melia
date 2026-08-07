@@ -25,9 +25,9 @@ public class BasicBossAi : AiScript
 	protected override void Setup()
 	{
 		// Configure boss-specific parameters
-		this.MaxChaseDistance = 400;
+		this.MaxChaseDistance = 350;
 		this.MaxRoamDistance = 1500;
-		this.SetAggroRange(400f);
+		this.SetAggroRange(350f);
 		this.SetHatePerSecond(30, 5);
 
 		// Set up behavior checks

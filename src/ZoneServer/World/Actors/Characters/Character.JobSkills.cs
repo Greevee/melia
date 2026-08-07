@@ -67,7 +67,7 @@ namespace Melia.Zone.World.Actors.Characters
 			this.PlayEffect("F_pc_joblevel_up", 3);
 			Send.ZC_SKILL_LIST(this);
 
-			if (Feature.IsEnabled("ClassCircleSystem") && this.Job.Circle < JobCircle.Third && this.Job.Level >= this.Job.MaxLevel && this.Jobs.GetJobRank(this.JobId) > 1)
+			if (ZoneServer.Instance.Conf.World.ClassCircleSystem && this.Job.Circle < JobCircle.Third && this.Job.Level >= this.Job.MaxLevel && this.Jobs.GetJobRank(this.JobId) > 1)
 				this.AddonMessage(Melia.Shared.Game.Const.AddonMessage.START_JOB_CHANGE);
 		}
 
@@ -155,6 +155,8 @@ namespace Melia.Zone.World.Actors.Characters
 				job.SetSkillPoints(job.EffectiveLevel);
 			}
 
+			this.Inventory.RefreshGemSkills();
+
 			if (commonSkillChanged)
 			{
 				Send.ZC_SKILL_LIST(this);
@@ -198,6 +200,8 @@ namespace Melia.Zone.World.Actors.Characters
 			}
 
 			job.SetSkillPoints(job.EffectiveLevel);
+
+			this.Inventory.RefreshGemSkills();
 
 			if (commonSkillChanged)
 			{

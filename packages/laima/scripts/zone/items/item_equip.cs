@@ -150,7 +150,6 @@ public class ItemEquipScript : GeneralScript
 			return ItemEquipResult.Okay;
 
 		var skillClassName = item.Data.EquipSkill;
-		var skillLevel = item.Data.Script.NumArg1;
 
 		if (!ZoneServer.Instance.Data.SkillDb.TryFind(skillClassName, out var skillData))
 		{
@@ -158,46 +157,7 @@ public class ItemEquipScript : GeneralScript
 			return ItemEquipResult.Okay;
 		}
 
-		// Checks if character can learn skill
-		// Use the highest job level among all jobs the character has
-		// Character must have a job of the same class (e.g., Wizard class for Cryomancer skills)
-		var allJobs = character.Jobs.GetList();
-		var highestJobLevel = allJobs.Max(j => j.EffectiveLevel);
-		var characterJobClasses = allJobs.Select(j => j.Id.ToClass()).Distinct().ToList();
-		var entries = ZoneServer.Instance.Data.SkillTreeDb.FindJobs(skillData.Id, highestJobLevel);
-
-		var canLearnSkill = false;
-		foreach (var entry in entries)
-		{
-			if (characterJobClasses.Contains(entry.JobId.ToClass()))
-			{
-				canLearnSkill = true;
-				break;
-			}
-		}
-
-		if (!canLearnSkill)
-			return ItemEquipResult.Okay;
-
-		// Checks if character already has skill
-		if (character.TryGetSkill(skillData.Id, out var skill))
-		{
-			skill.Properties.Modify(PropertyName.GemLevel_BM, skillLevel);
-			skill.Properties.InvalidateAll();
-		}
-		else
-		{
-			skill = new Skill(character, skillData.Id, 0, true);
-			skill.Properties.Modify(PropertyName.GemLevel_BM, skillLevel);
-			skill.Properties.InvalidateAll();
-			character.Skills.Add(skill);
-		}
-		Send.ZC_NORMAL.SkillProperties(character.Connection, 0, skill);
-		Send.ZC_COMMON_SKILL_LIST(character);
-		Send.ZC_NORMAL.SetSkillsProperties(character.Connection);
-		Send.ZC_NORMAL.UpdateSkillUI(character);
-
-		skill.RecalculateDependentBuffs();
+		this.UpdateGemSkill(character, skillData, skillClassName);
 
 		return ItemEquipResult.Okay;
 	}
@@ -242,22 +202,41 @@ public class ItemEquipScript : GeneralScript
 			return ItemUnequipResult.Okay;
 
 		var skillClassName = item.Data.EquipSkill;
-		var skillLevel = item.Data.Script.NumArg1;
 
 		if (!ZoneServer.Instance.Data.SkillDb.TryFind(skillClassName, out var skillData))
 		{
 			Log.Warning($"Character '{character.Name}' unequipped Gem Id '{item.Id}' with no available skill in database: '{skillClassName}'");
 			return ItemUnequipResult.Okay;
 		}
+
+		this.UpdateGemSkill(character, skillData, skillClassName);
+
+		return ItemUnequipResult.Okay;
+	}
+
+	/// <summary>
+	/// Sets the skill's gem level bonus to what the character's currently
+	/// equipped skill gems grant, creating or removing the skill as needed.
+	/// </summary>
+	/// <param name="character"></param>
+	/// <param name="skillData"></param>
+	/// <param name="skillClassName"></param>
+	private void UpdateGemSkill(Character character, SkillData skillData, string skillClassName)
+	{
+		var gemLevel = 0;
+		if (this.CanGemAffectSkill(character, skillData))
+			gemLevel = this.GetGemSkillLevel(character, skillClassName);
+
 		if (!character.TryGetSkill(skillData.Id, out var skill))
 		{
-			return ItemUnequipResult.Okay;
+			if (gemLevel <= 0)
+				return;
+
+			skill = new Skill(character, skillData.Id, 0, true);
+			character.Skills.Add(skill);
 		}
 
-		var currentGemBM = (int)skill.Properties.GetFloat(PropertyName.GemLevel_BM, 0);
-		var amountToRemove = Math.Min(skillLevel, currentGemBM);
-		if (amountToRemove > 0)
-			skill.Properties.Modify(PropertyName.GemLevel_BM, -amountToRemove);
+		skill.Properties.SetFloat(PropertyName.GemLevel_BM, gemLevel);
 		skill.Properties.InvalidateAll();
 
 		skill.RecalculateDependentBuffs();
@@ -268,8 +247,82 @@ public class ItemEquipScript : GeneralScript
 		Send.ZC_NORMAL.SkillProperties(character.Connection, 0, skill);
 		Send.ZC_COMMON_SKILL_LIST(character);
 		Send.ZC_NORMAL.SetSkillsProperties(character.Connection);
+		Send.ZC_NORMAL.UpdateSkillUI(character);
+	}
 
-		return ItemUnequipResult.Okay;
+	/// <summary>
+	/// Returns whether skill gems may grant levels for the given skill to
+	/// the character.
+	/// </summary>
+	/// <remarks>
+	/// A skill the character learned with skill points always qualifies.
+	/// Unlearned skills only qualify if gems are configured to grant new
+	/// skills, and then only if a job the character holds has the skill in
+	/// its tree and has reached its unlock level.
+	/// </remarks>
+	/// <param name="character"></param>
+	/// <param name="skillData"></param>
+	/// <returns></returns>
+	private bool CanGemAffectSkill(Character character, SkillData skillData)
+	{
+		if (character.TryGetSkill(skillData.Id, out var skill) && skill.LevelByDB > 0)
+			return true;
+
+		if (!ZoneServer.Instance.Conf.World.SkillGemsGrantNewSkills)
+			return false;
+
+		foreach (var job in character.Jobs.GetList())
+		{
+			var entries = ZoneServer.Instance.Data.SkillTreeDb.FindSkills(job.Id, job.EffectiveLevel);
+			if (entries.Any(a => a.SkillId == skillData.Id))
+				return true;
+		}
+
+		return false;
+	}
+
+	/// <summary>
+	/// Returns the total skill level granted by all skill gems the character
+	/// currently has socketed into equipped items for the given skill.
+	/// </summary>
+	/// <remarks>
+	/// Unless duplicate stacking is enabled, only the highest level gem for
+	/// the skill counts, regardless of which equipment it's socketed into.
+	/// </remarks>
+	/// <param name="character"></param>
+	/// <param name="skillClassName"></param>
+	/// <returns></returns>
+	private int GetGemSkillLevel(Character character, string skillClassName)
+	{
+		var stackDuplicates = ZoneServer.Instance.Conf.World.StackDuplicateSkillGems;
+		var total = 0;
+
+		foreach (var equip in character.Inventory.GetEquip().Values)
+		{
+			if (equip == null || !equip.HasSockets)
+				continue;
+
+			foreach (var gem in equip.GetUsedGemSockets())
+			{
+				if (gem?.Data == null)
+					continue;
+
+				if (gem.Data.Group != ItemGroup.Gem || gem.Data.EquipExpGroup != EquipExpGroup.Gem_Skill)
+					continue;
+
+				if (!string.Equals(gem.Data.EquipSkill, skillClassName, StringComparison.OrdinalIgnoreCase))
+					continue;
+
+				var level = (int)(gem.Data.Script?.NumArg1 ?? 0);
+
+				if (stackDuplicates)
+					total += level;
+				else
+					total = Math.Max(total, level);
+			}
+		}
+
+		return total;
 	}
 
 	//===================================================================

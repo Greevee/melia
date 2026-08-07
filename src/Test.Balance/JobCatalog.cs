@@ -198,7 +198,7 @@ namespace Melia.Test.Balance
 		/// <param name="tree"></param>
 		private static int GetTreeMaxLevel(SkillTreeData tree)
 		{
-			if (!Feature.IsEnabled("ClassCircleSystem"))
+			if (!ZoneServer.Instance.Conf.World.ClassCircleSystem)
 				return tree.MaxLevel;
 
 			var levelsPerCircle = ZoneServer.Instance.Conf.World.MaxAdvanceJobLevel;

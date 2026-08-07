@@ -300,8 +300,8 @@ namespace Melia.Test.Balance
 				var offsets = ScenarioMatrix.GetOffsets(spec, spec.MobCount, cycle.CastTimeMs, primaryData.RunSpeed,
 					Math.Max(1, primaryLevel - 9), primaryLevel + 9, out var aimDistance);
 
-				foreach (var offset in offsets)
-					mobs.Add(SyntheticActors.CreateMob(primaryData.Id, offset));
+				foreach (var placement in offsets)
+					mobs.Add(SyntheticActors.CreateMob(primaryData.Id, placement));
 
 				var aimPos = AimAt(character, aimDistance);
 

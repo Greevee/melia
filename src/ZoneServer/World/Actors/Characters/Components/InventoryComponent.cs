@@ -1026,6 +1026,26 @@ namespace Melia.Zone.World.Actors.Characters.Components
 		}
 
 		/// <summary>
+		/// Reruns the gem scripts for every gem socketed into an equipped item,
+		/// so the skill levels they grant match the character's current state.
+		/// </summary>
+		public void RefreshGemSkills()
+		{
+			if (!ScriptableFunctions.Equip.TryGet("SCR_GEM_EQUIP", out var scriptFunc))
+				return;
+
+			foreach (var equip in this.GetEquip())
+			{
+				var item = equip.Value;
+				if (item == null || !item.HasSockets)
+					continue;
+
+				foreach (var gem in item.GetUsedGemSockets())
+					scriptFunc(this.Character, gem, equip.Key);
+			}
+		}
+
+		/// <summary>
 		/// Processes the script for a single card when equipped.
 		/// </summary>
 		/// <param name="card">The card item to process.</param>

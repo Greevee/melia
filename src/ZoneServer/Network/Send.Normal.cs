@@ -4895,7 +4895,7 @@ namespace Melia.Zone.Network
 			/// <param name="jobs"></param>
 			private static void SendJobCircles(Character character, Job[] jobs)
 			{
-				if (!Feature.IsEnabled("ClassCircleSystem"))
+				if (!ZoneServer.Instance.Conf.World.ClassCircleSystem)
 					return;
 
 				var sb = new StringBuilder();

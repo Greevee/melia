@@ -40,6 +40,38 @@ namespace Melia.Test.Balance
 		/// cannot reach them at all.
 		/// </summary>
 		Ranged,
+
+		/// <summary>
+		/// Spread evenly over the ground around the caster, a few per ring at
+		/// steadily increasing distance. The area case: what a skill covers
+		/// rather than what it catches in one clump.
+		/// </summary>
+		Area,
+
+		/// <summary>
+		/// Ranks of monsters carrying different AoE defence ratios, so a
+		/// skill's splash has to spend its AoE attack ratio getting past the
+		/// tanky ones to reach anything behind them.
+		/// </summary>
+		Penetration,
+	}
+
+	/// <summary>
+	/// One monster's place in a scenario, and the AoE defence ratio it stands
+	/// there with.
+	/// </summary>
+	/// <param name="X">Offset ahead of the caster, who faces +x.</param>
+	/// <param name="Z">Offset to the caster's side.</param>
+	/// <param name="Sdr">
+	/// SDR the scenario forces on this monster, or zero to leave the monster's
+	/// own.
+	/// </param>
+	public readonly record struct ScenarioMob(float X, float Z, float Sdr = 0f)
+	{
+		/// <summary>
+		/// The offset as a world position on the ground plane.
+		/// </summary>
+		public Position Offset => new(this.X, 0, this.Z);
 	}
 
 	/// <summary>
@@ -63,7 +95,7 @@ namespace Melia.Test.Balance
 	}
 
 	/// <summary>
-	/// The S1-S8 matrix every damage skill is measured against, plus the
+	/// The S1-S10 matrix every damage skill is measured against, plus the
 	/// level grid it runs on.
 	/// </summary>
 	public static class ScenarioMatrix
@@ -90,13 +122,12 @@ namespace Melia.Test.Balance
 		/// only skills with genuine reach connect.
 		/// </summary>
 		/// <remarks>
-		/// Measured against the in-scope damage skills, maxRange clusters at
-		/// 100 (76 skills) and at 130-250 (67). Holding at 130 splits them
-		/// roughly evenly, so the scenario has both winners and losers. At the
-		/// original 250 only three skills in the whole game reached, which made
-		/// it a scenario nobody was good at rather than a reach test.
+		/// Deliberately past what most of the roster can touch. Every other
+		/// scenario engages at 30, so without one that does not, the matrix
+		/// prices the whole game as a melee game and a genuinely long-ranged
+		/// skill is never paid for its range.
 		/// </remarks>
-		public const float RangedDistance = 130f;
+		public const float RangedDistance = 200f;
 
 		public static readonly ScenarioSpec[] All =
 		[
@@ -124,24 +155,23 @@ namespace Melia.Test.Balance
 			new ScenarioSpec
 			{
 				Id = "S4",
-				Name = "5 Normals closing on the caster",
+				Name = "5 Normals charging in from 150 at mixed speeds",
 				MobCount = 5,
 				Placement = MobPlacement.Chasing,
 			},
 			new ScenarioSpec
 			{
 				Id = "S5",
-				Name = "5 Normals holding at range",
+				Name = "5 Normals in a column from 200 outwards",
 				MobCount = 5,
 				Placement = MobPlacement.Ranged,
 			},
 			new ScenarioSpec
 			{
 				Id = "S6",
-				Name = "1 Elite, same level",
-				MobCount = 1,
-				Rank = MonsterRank.Elite,
-				Placement = MobPlacement.Single,
+				Name = "9 Normals in 3 ranks of mixed SDR",
+				MobCount = 9,
+				Placement = MobPlacement.Penetration,
 			},
 			new ScenarioSpec
 			{
@@ -158,6 +188,20 @@ namespace Melia.Test.Balance
 				MobCount = 1,
 				LevelOffset = 20,
 				Placement = MobPlacement.Single,
+			},
+			new ScenarioSpec
+			{
+				Id = "S9",
+				Name = "15 Normals spread evenly over the ground",
+				MobCount = 15,
+				Placement = MobPlacement.Area,
+			},
+			new ScenarioSpec
+			{
+				Id = "S10",
+				Name = "25 Normals spread evenly over the ground",
+				MobCount = 25,
+				Placement = MobPlacement.Area,
 			},
 		];
 
@@ -195,14 +239,105 @@ namespace Melia.Test.Balance
 		}
 
 		/// <summary>
-		/// Returns the offsets from the caster that the given placement puts
-		/// its monsters at, together with the point the skill is aimed at.
+		/// Returns where the given placement puts its monsters, together with
+		/// the point the skill is aimed at.
 		/// </summary>
 		/// <remarks>
-		/// Chasing monsters are returned at where they end up, while the aim
-		/// point stays where they started - which is exactly the penalty a
-		/// long cast time should pay.
+		/// The single implementation both the damage sweep and the SFR pricer
+		/// read, so the two cannot drift. Density spacing is passed in rather
+		/// than measured here, because SpawnCensus needs a booted world and the
+		/// pricer runs without one.
 		/// </remarks>
+		/// <param name="spec"></param>
+		/// <param name="count"></param>
+		/// <param name="castTimeMs"></param>
+		/// <param name="mobSpeed"></param>
+		/// <param name="densitySpacing"></param>
+		/// <param name="aimDistance"></param>
+		public static ScenarioMob[] Layout(ScenarioSpec spec, int count, float castTimeMs, float mobSpeed, float densitySpacing, out float aimDistance)
+		{
+			var mobs = new List<ScenarioMob>();
+
+			switch (spec.Placement)
+			{
+				case MobPlacement.Single:
+					aimDistance = MeleeDistance;
+					mobs.Add(new ScenarioMob(MeleeDistance, 0));
+					break;
+
+				case MobPlacement.Stacked:
+					aimDistance = MeleeDistance;
+					for (var i = 0; i < count; ++i)
+						mobs.Add(new ScenarioMob(MeleeDistance, 0));
+					break;
+
+				case MobPlacement.MeasuredDensity:
+					// The first monster stays in melee range: a player is
+					// engaging something, not standing off a cluster.
+					aimDistance = MeleeDistance;
+					mobs.AddRange(Cluster(MeleeDistance, densitySpacing, count));
+					break;
+
+				case MobPlacement.Chasing:
+				{
+					// A pack charging in from range at their own speeds, with
+					// the player holding a beat before committing. Where each
+					// one has got to when the skill lands is the whole test, so
+					// a long cast catches the pack and an instant press does
+					// not - the reverse of what a stationary pull rewards.
+					var elapsed = ChasePreCastSeconds + Math.Max(0f, castTimeMs / 1000f);
+
+					aimDistance = MeleeDistance;
+
+					for (var i = 0; i < count; ++i)
+					{
+						var speed = mobSpeed * ChaseSpeedSpread(i, count);
+						var travelled = speed * elapsed;
+
+						mobs.Add(new ScenarioMob(Math.Max(MeleeDistance, ChaseStartDistance - travelled), 0));
+					}
+
+					break;
+				}
+
+				case MobPlacement.Ranged:
+					// A column receding away from the caster, aimed at its near
+					// end. Nothing short-ranged participates at all, which is
+					// what makes this the reach test.
+					aimDistance = RangedDistance;
+
+					for (var i = 0; i < count; ++i)
+						mobs.Add(new ScenarioMob(RangedDistance + i * RangedSpacing, 0));
+
+					break;
+
+				case MobPlacement.Penetration:
+					// Three ranks of three, each rank holding one monster of
+					// every SDR. LimitBySDR spends the skill's SR on the
+					// highest SDR first, so the tanky ones soak the splash
+					// before it reaches anything behind them.
+					aimDistance = PenetrationDistances[0];
+					mobs.AddRange(PenetrationRanks());
+					break;
+
+				case MobPlacement.Area:
+					// Aimed at the nearest ring, since that is where a player
+					// engages. Reaching the outer rings is the skill's problem.
+					aimDistance = MeleeDistance;
+					mobs.AddRange(Rings(count));
+					break;
+
+				default:
+					throw new ArgumentOutOfRangeException(nameof(spec), $"Unhandled placement '{spec.Placement}'.");
+			}
+
+			return mobs.ToArray();
+		}
+
+		/// <summary>
+		/// Returns the monsters for a scenario, measuring the density spacing
+		/// from the live spawner registry.
+		/// </summary>
 		/// <param name="spec"></param>
 		/// <param name="count"></param>
 		/// <param name="castTimeMs"></param>
@@ -210,58 +345,74 @@ namespace Melia.Test.Balance
 		/// <param name="levelBandMin"></param>
 		/// <param name="levelBandMax"></param>
 		/// <param name="aimDistance"></param>
-		public static Position[] GetOffsets(ScenarioSpec spec, int count, float castTimeMs, float mobSpeed, int levelBandMin, int levelBandMax, out float aimDistance)
+		public static ScenarioMob[] GetOffsets(ScenarioSpec spec, int count, float castTimeMs, float mobSpeed, int levelBandMin, int levelBandMax, out float aimDistance)
 		{
-			var offsets = new List<Position>();
+			var spacing = spec.Placement == MobPlacement.MeasuredDensity
+				? SpawnCensus.RadiusForDensity(count, levelBandMin, levelBandMax) / 2f
+				: 0f;
 
-			switch (spec.Placement)
+			return Layout(spec, count, castTimeMs, mobSpeed, spacing, out aimDistance);
+		}
+
+		/// <summary>
+		/// How long the player holds before committing the skill, in seconds.
+		/// </summary>
+		public const float ChasePreCastSeconds = 1f;
+
+		/// <summary>
+		/// How far out a charging pack starts.
+		/// </summary>
+		public const float ChaseStartDistance = 150f;
+
+		/// <summary>
+		/// Returns the fraction of the reference run speed the given monster
+		/// in a charging pack moves at.
+		/// </summary>
+		/// <remarks>
+		/// Spread so the pack arrives strung out rather than as one wall,
+		/// which is what makes a wide skill and a well-timed one score
+		/// differently here.
+		/// </remarks>
+		/// <param name="index"></param>
+		/// <param name="count"></param>
+		public static float ChaseSpeedSpread(int index, int count)
+			=> count <= 1 ? 1f : 0.6f + 0.8f * (index / (float)(count - 1));
+
+		/// <summary>
+		/// How far apart the monsters in the ranged column stand.
+		/// </summary>
+		public const float RangedSpacing = 30f;
+
+		/// <summary>
+		/// Distances the penetration ranks stand at.
+		/// </summary>
+		public static readonly float[] PenetrationDistances = [30f, 60f, 90f];
+
+		/// <summary>
+		/// SDR carried by the three monsters in each penetration rank.
+		/// </summary>
+		public static readonly float[] PenetrationSdr = [3f, 2f, 1f];
+
+		/// <summary>
+		/// How far apart the monsters within one penetration rank stand.
+		/// </summary>
+		public const float PenetrationSpacing = 30f;
+
+		/// <summary>
+		/// Builds the penetration ranks: one monster of each SDR at every
+		/// distance, so SDR and range vary independently.
+		/// </summary>
+		private static IEnumerable<ScenarioMob> PenetrationRanks()
+		{
+			foreach (var distance in PenetrationDistances)
 			{
-				case MobPlacement.Single:
-					aimDistance = MeleeDistance;
-					offsets.Add(new Position(MeleeDistance, 0, 0));
-					break;
-
-				case MobPlacement.Stacked:
-					aimDistance = MeleeDistance;
-					for (var i = 0; i < count; ++i)
-						offsets.Add(new Position(MeleeDistance, 0, 0));
-					break;
-
-				case MobPlacement.MeasuredDensity:
+				for (var i = 0; i < PenetrationSdr.Length; ++i)
 				{
-					// The radius that really contains this many monsters,
-					// halved, is how far the others stand from the one being
-					// fought. The first stays in melee range: a player is
-					// engaging something, not standing off a cluster.
-					var spacing = SpawnCensus.RadiusForDensity(count, levelBandMin, levelBandMax) / 2f;
+					var offset = (i - (PenetrationSdr.Length - 1) / 2f) * PenetrationSpacing;
 
-					aimDistance = MeleeDistance;
-					offsets.AddRange(Cluster(MeleeDistance, spacing, count));
-					break;
+					yield return new ScenarioMob(distance, offset, PenetrationSdr[i]);
 				}
-
-				case MobPlacement.Chasing:
-				{
-					// They end up in melee range; the aim point is where they
-					// were when the cast started. An instant skill therefore
-					// aims exactly at them and a long cast does not.
-					var travel = Math.Min(RangedDistance, Math.Max(0f, castTimeMs / 1000f) * mobSpeed);
-
-					aimDistance = MeleeDistance + travel;
-					offsets.AddRange(Cluster(MeleeDistance, MeleeDistance, count));
-					break;
-				}
-
-				case MobPlacement.Ranged:
-					aimDistance = RangedDistance;
-					offsets.AddRange(Cluster(RangedDistance, MeleeDistance, count));
-					break;
-
-				default:
-					throw new ArgumentOutOfRangeException(nameof(spec), $"Unhandled placement '{spec.Placement}'.");
 			}
-
-			return offsets.ToArray();
 		}
 
 		/// <summary>
@@ -276,15 +427,71 @@ namespace Melia.Test.Balance
 		/// <param name="distance"></param>
 		/// <param name="spacing"></param>
 		/// <param name="count"></param>
-		private static IEnumerable<Position> Cluster(float distance, float spacing, int count)
+		private static IEnumerable<ScenarioMob> Cluster(float distance, float spacing, int count)
 		{
-			yield return new Position(distance, 0, 0);
+			yield return new ScenarioMob(distance, 0);
 
 			for (var i = 1; i < count; ++i)
 			{
 				var angle = (i - 1) / (float)Math.Max(1, count - 1) * MathF.PI * 2f;
 
-				yield return new Position(distance + MathF.Cos(angle) * spacing, 0, MathF.Sin(angle) * spacing);
+				yield return new ScenarioMob(distance + MathF.Cos(angle) * spacing, MathF.Sin(angle) * spacing);
+			}
+		}
+
+		/// <summary>
+		/// Monsters per ring in the area placement.
+		/// </summary>
+		public const int MobsPerRing = 3;
+
+		/// <summary>
+		/// How much further out each successive ring sits.
+		/// </summary>
+		public const float RingSpacing = 30f;
+
+		/// <summary>
+		/// Seed the area placement's ring rotations are drawn from.
+		/// </summary>
+		/// <remarks>
+		/// Fixed, so a skill's coverage is the same on every run and two
+		/// scenarios at different counts share the rings they have in common.
+		/// A local generator rather than RandomProvider, so nothing else in the
+		/// harness can perturb the layout.
+		/// </remarks>
+		public const int AreaSeed = 20260807;
+
+		/// <summary>
+		/// Spreads monsters evenly over the ground: a few per ring, each ring
+		/// one spacing further out, every ring rotated by its own fixed angle.
+		/// </summary>
+		/// <remarks>
+		/// The rotation is what keeps this from being a straight line of
+		/// targets, which a single narrow cone would sweep end to end and score
+		/// as full coverage. The innermost ring is left unrotated so one
+		/// monster stands directly ahead, at the point the skill is aimed: with
+		/// every ring rotated, nothing sits on the aim point and every
+		/// ground-targeted circle measures zero targets against a full field.
+		/// </remarks>
+		/// <param name="count"></param>
+		public static IEnumerable<ScenarioMob> Rings(int count)
+		{
+			var rnd = new Random(AreaSeed);
+			var placed = 0;
+
+			for (var ring = 1; placed < count; ++ring)
+			{
+				var distance = ring * RingSpacing;
+				var rotation = ring == 1 ? 0f : (float)(rnd.NextDouble() * Math.PI * 2);
+				var here = Math.Min(MobsPerRing, count - placed);
+
+				for (var i = 0; i < here; ++i)
+				{
+					var angle = rotation + i / (float)MobsPerRing * MathF.PI * 2f;
+
+					yield return new ScenarioMob(MathF.Cos(angle) * distance, MathF.Sin(angle) * distance);
+				}
+
+				placed += here;
 			}
 		}
 

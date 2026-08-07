@@ -482,6 +482,10 @@ namespace Melia.Zone.Network
 				Send.ZC_PCBANG_SHOP_RENTAL(conn);
 
 				character.AdventureBook.UpdateClient();
+
+				// The skill UI updates above run before ZC_START_GAME, so the
+				// addons aren't up yet to receive the circles they carry.
+				Send.ZC_NORMAL.JobCircles(character);
 			}
 			else
 			{

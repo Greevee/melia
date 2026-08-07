@@ -198,6 +198,73 @@ To enable the Laima expansion, set `enabled_packages: laima` in
 Afterwards, you should be able to start Melia via the provided scripts or
 directly from the bin directories.
 
+Balance Harness
+-----------------------------------------------------------------------------
+
+`src/Test.Balance` is a test project that measures and prices the skill
+roster. It holds two independent halves.
+
+### Skill factor pricing
+
+Computes a skill's `factor` and `factorByLevel` from first principles: its
+cast time, cooldown, overheat, hit count, the buffs it applies, and the
+splash geometry its handler actually builds. Nothing reads the skill's
+current factor, so the pass never compounds with itself, and it needs
+neither a running server nor a database.
+
+Run it from the project root:
+
+    # dry run - prices the roster, writes nothing
+    dotnet test src/Test.Balance/Test.Balance.csproj --filter SfrPricingTests
+
+    # the same, with the summary on the terminal
+    dotnet test src/Test.Balance/Test.Balance.csproj --filter SfrPricingTests --logger "console;verbosity=detailed"
+
+    # explain a single skill instead of the roster
+    BALANCE_SFR_SKILL=Swordman_Bash dotnet test src/Test.Balance/Test.Balance.csproj --filter SfrPricingTests.PriceRoster --logger "console;verbosity=detailed"
+
+**To write the prices into `packages/laima/db/skills_overrides.txt`**, set
+`BALANCE_SFR_APPLY=1`:
+
+    BALANCE_SFR_APPLY=1 dotnet test src/Test.Balance/Test.Balance.csproj --filter SfrPricingTests
+
+That rewrites the `factor` and `factorByLevel` of every skill the model can
+account for, and leaves every other field and every other line untouched.
+Skills it cannot account for keep their current values and are listed in the
+report. **Take a diff before committing** - it touches around 120 skills.
+
+Every run leaves its summary in `logs/balance/sfr-prices.md` whether or not
+the terminal showed it, so the detailed logger flag is a convenience rather
+than a requirement.
+
+The environment variables above use shell syntax. In PowerShell, set them
+first instead:
+
+    $env:BALANCE_SFR_APPLY = "1"
+    dotnet test src/Test.Balance/Test.Balance.csproj --filter SfrPricingTests
+    Remove-Item Env:\BALANCE_SFR_APPLY
+
+Every dial the model has lives in `src/Test.Balance/Sfr/SfrDials.cs`, with
+the reasoning for each in its doc comment.
+
+### Damage sweeps
+
+The other half boots a real zone server on a synthetic arena and fires real
+skills at real monsters across the scenario matrix, producing the CSVs and
+report in `logs/balance/`. This needs a **MySQL server running** per
+`user/conf/database.conf`, and a full sweep takes minutes, so it is opt-in:
+
+    BALANCE_SWEEP=1 dotnet test src/Test.Balance/Test.Balance.csproj --filter SweepTests.SkillMatrix
+    dotnet test src/Test.Balance/Test.Balance.csproj --filter SweepTests.Report
+
+Without `BALANCE_SWEEP=1` the sweeps skip themselves and report as passed.
+`BALANCE_SWEEP_CLASSES`, `BALANCE_SWEEP_CHAR_LEVELS` and
+`BALANCE_SWEEP_SKILL_LEVELS` narrow a run.
+
+Running the project with no filter runs everything that is not opt-in, which
+includes the server-backed coverage tests - so a plain `dotnet test` on this
+project still needs the database up.
+
 Further Reading
 -----------------------------------------------------------------------------
 
