@@ -241,16 +241,26 @@ public static class ItemEquipEffects
 
 	private static Dictionary<SkillId, JobId> GetSkillToJobMap()
 	{
-		if (_skillToJob != null)
-			return _skillToJob;
+		var map = _skillToJob;
 
-		_skillToJob = new Dictionary<SkillId, JobId>();
+		if (map != null)
+			return map;
+
+		// Published only once fully built: assigning the empty dictionary
+		// first let another thread read and write it mid-build, which
+		// corrupts it. Two threads racing to build simply produce the same
+		// map twice, which is harmless.
+		map = new Dictionary<SkillId, JobId>();
+
 		foreach (var entry in ZoneServer.Instance.Data.SkillTreeDb.Entries)
 		{
-			if (!_skillToJob.ContainsKey(entry.SkillId))
-				_skillToJob[entry.SkillId] = entry.JobId;
+			if (!map.ContainsKey(entry.SkillId))
+				map[entry.SkillId] = entry.JobId;
 		}
-		return _skillToJob;
+
+		_skillToJob = map;
+
+		return map;
 	}
 
 	/// <summary>

@@ -203,6 +203,34 @@ namespace Melia.Test.Balance.Sfr
 		public const float CritAllowance = 1.06f;
 
 		/// <summary>
+		/// Window the peak-damage burst is measured over, in milliseconds.
+		/// </summary>
+		public const int BurstWindowMs = 1000;
+
+		/// <summary>
+		/// Share of the press divisor taken from total damage delivered.
+		/// </summary>
+		/// <remarks>
+		/// The divisor is a blend rather than the raw hit count, because a
+		/// press that spends 24s delivering its damage is not worth what the
+		/// same damage landing at once is. The three views are blended as
+		/// divisors, not as prices - blending prices lets the smallest of
+		/// them dominate, and a slow pad's burst term is near zero.
+		/// </remarks>
+		public const float TotalDamageWeight = 0.25f;
+
+		/// <summary>
+		/// Share taken from damage per second of the press's own occupancy.
+		/// </summary>
+		public const float DpsWeight = 0.50f;
+
+		/// <summary>
+		/// Share taken from the peak burst, so front-loaded damage is priced
+		/// lower per hit than the same damage spread out.
+		/// </summary>
+		public const float BurstWeight = 0.25f;
+
+		/// <summary>
 		/// Fraction of a pad's ticks a target is assumed to stay inside it for.
 		/// </summary>
 		/// <remarks>
@@ -283,5 +311,169 @@ namespace Melia.Test.Balance.Sfr
 			("softcc", @"Slow|Shock|Blind|Weakness|Decrease"),
 			("selfbuff", @"_Buff$"),
 		];
+
+		/// <summary>
+		/// How long a live press is waited out before it counts as a channel or
+		/// a pad rather than this press - the "~10 s" encounter window.
+		/// </summary>
+		/// <remarks>
+		/// This is what turns pad ticks, DoT ticks and buff-driven hits from a
+		/// regex guess at the handler source into a real count: the press is
+		/// simply watched for the whole window instead of ~5 s, so anything a
+		/// skill's own pad or debuff still does by the 10 s mark is captured by
+		/// the recorder rather than inferred from source text.
+		/// </remarks>
+		public const int EncounterWindowMs = 10_000;
+
+		/// <summary>
+		/// How long the caster is left standing still, mobs already hostile,
+		/// before the defensive/CC probe's control half starts counting - long
+		/// enough that aggro has resolved and the first swing has landed.
+		/// </summary>
+		public const int DefenseSettleMs = 500;
+
+		/// <summary>
+		/// Workers each wave of the parallel roster run adds. MeasureRoster
+		/// starts RosterWaveCount waves of this many workers, RosterRampUpMs
+		/// apart, so the pool it actually builds is sized at
+		/// ArenaPoolSize * RosterWaveCount.
+		/// </summary>
+		/// <remarks>
+		/// A press spends nearly all its time in Thread.Sleep waiting out
+		/// real wall-clock ticks, not computing, so this is sized well past
+		/// core count rather than tied to ProcessorCount - the cost of an
+		/// idle arena is cheap relative to a sleeping thread.
+		/// </remarks>
+		public const int ArenaPoolSize = 640;
+
+		/// <summary>
+		/// Skills measured at once. Each one fans its own scenarios, factor
+		/// points and defence trials out across the pool on top of this, so the
+		/// arenas in flight peak near SkillWorkers * ScenarioCount.
+		/// </summary>
+		public const int SkillWorkers = 110;
+
+		/// <summary>
+		/// Arenas the single-skill diagnostic runs on.
+		/// </summary>
+		/// <remarks>
+		/// It measures the named skill and the anchor at once, and each of
+		/// those fans its own windows out: nine scenarios, two factor points
+		/// and, for the named skill, DefenseProbeTrials control/treatment
+		/// pairs. Sized above that peak so no window ever blocks waiting for
+		/// an arena, which is what turns the run's wall time into the longest
+		/// single window rather than their sum.
+		/// </remarks>
+		public const int ExplainPoolSize = 48;
+
+		/// <summary>
+		/// How many waves of SkillWorkers MeasureRoster ramps up to.
+		/// </summary>
+		public const int RosterWaveCount = 2;
+
+		/// <summary>
+		/// How long MeasureRoster waits between starting each wave.
+		/// </summary>
+		/// <remarks>
+		/// Every worker's first arena touch runs GetArenaCenter's clearance
+		/// search, real CPU work rather than the Thread.Sleep the rest of a
+		/// press is - starting a whole wave at once turns that into every one
+		/// of its workers doing the search at the same moment. Staggering
+		/// each wave behind this delay spreads that cost out instead.
+		/// </remarks>
+		public const int RosterRampUpMs = 1_500;
+
+		/// <summary>
+		/// Control/treatment pairs SfrDefenseProbe averages over. A single
+		/// 10 s window holds only a handful of the mob's attacks, so whether
+		/// one lands just inside or outside the window is real scheduling
+		/// jitter large enough to swing the result by a full swing either
+		/// way; averaging several pairs is what makes the number stable
+		/// enough to price against.
+		/// </summary>
+		public const int DefenseProbeTrials = 9;
+
+		/// <summary>
+		/// Swings prevented below which a press is treated as having bought
+		/// no defensive value at all.
+		/// </summary>
+		/// <remarks>
+		/// The measurement is a difference between two windows holding only a
+		/// handful of the mob's attacks, so a press that really prevents
+		/// nothing still reads a fraction of a swing either way. Left ungated,
+		/// the rider flickered between 1.00 and the 0.50 floor across runs and
+		/// the whole pass oscillated 2x per run rather than converging - the
+		/// movers list was mostly skills whose ratio was exactly 2.00 or 0.48.
+		/// </remarks>
+		public const float RiderDeadband = 0.25f;
+
+		/// <summary>
+		/// Control/treatment pairs run before deciding whether a skill has any
+		/// defensive value worth measuring properly.
+		/// </summary>
+		/// <remarks>
+		/// The defence probe is over half the windows in a roster run, and
+		/// almost all of them are spent confirming that a skill with no CC
+		/// still has no CC. Scouting first and only paying for the full
+		/// DefenseProbeTrials on a skill that showed something keeps the
+		/// stability where it matters without paying for it everywhere.
+		/// </remarks>
+		public const int DefenseScoutTrials = 2;
+
+		/// <summary>
+		/// How far below the deadband the scout has to land for a skill to be
+		/// dismissed without the full trials. Above one, so a skill sitting
+		/// near the deadband is measured properly rather than dismissed on a
+		/// noisy pair.
+		/// </summary>
+		public const float DefenseScoutMargin = 1.5f;
+
+		/// <summary>
+		/// How hard a measured defensive/CC value discounts the rider
+		/// multiplier: <c>1 / (1 + DefenseValueScale * swingsPrevented)</c>.
+		/// </summary>
+		public const float DefenseValueScale = 1.0f;
+
+		/// <summary>
+		/// Floor on the measured rider multiplier, so no non-damage payload can
+		/// take more than half of a skill's damage budget.
+		/// </summary>
+		/// <remarks>
+		/// DefenseValueScale is calibrated at a quarter of a swing prevented
+		/// (Peltasta_Langort) and 1/(1+s) is unbounded below, so a press that
+		/// walls a mob off for a whole window - Cryomancer_IceWall - reads at
+		/// ten-plus swings and prices itself to nothing. Nothing measured says
+		/// what the curve does out there, and a class whose budget is CC is
+		/// already paid for it once through its §4 weight.
+		/// </remarks>
+		public const float RiderFloor = 0.5f;
+
+		/// <summary>
+		/// Floor on the window a press's delivery is counted over, in
+		/// milliseconds.
+		/// </summary>
+		/// <remarks>
+		/// Delivery is counted over the skill's own cycle, and an instant
+		/// spam skill's cycle is a fraction of a second - short enough that
+		/// the map has barely ticked. This keeps the count over something the
+		/// probe can actually resolve.
+		/// </remarks>
+		public const int MinCountWindowMs = 1_500;
+
+		/// <summary>
+		/// How long a press that has landed nothing yet is held before it is
+		/// accepted as having landed nothing at all, in milliseconds of the
+		/// press's own tick clock.
+		/// </summary>
+		/// <remarks>
+		/// The plain settle window reads skill.IsRunning, which is false in the
+		/// gap between a handler returning and its own continuation being
+		/// scheduled. On a wide roster run that gap is however long the
+		/// continuation waits behind other threads, so a real press could be
+		/// recorded as damaging nothing purely because the run was busy -
+		/// coverage fell from 105 skills to 78 at 110 workers. A press that has
+		/// already landed damage still exits on the short settle.
+		/// </remarks>
+		public const int EmptyPressSettleMs = 4_000;
 	}
 }

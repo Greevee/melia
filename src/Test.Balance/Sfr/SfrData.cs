@@ -184,6 +184,61 @@ namespace Melia.Test.Balance.Sfr
 		/// </summary>
 		public static string MatrixPath => Path.Combine(Root, "logs", "balance", "skill-matrix.csv");
 
+		private static Dictionary<string, float> _baseFactors;
+
+		/// <summary>
+		/// Each skill's factor as the base data carries it, before any
+		/// override.
+		/// </summary>
+		/// <remarks>
+		/// This is what says whether a skill is a damage skill at all. A factor
+		/// of zero there is the client data's own marker for a buff or a
+		/// utility press - Swordman_GungHo, Swordman_Bear, Priest_Blessing -
+		/// and there is nothing for this model to price on one.
+		///
+		/// Read from skills.txt rather than from skills_overrides.txt, because
+		/// the pass writes the overrides: reading the marker out of its own
+		/// output meant a skill zeroed there could never come back, however
+		/// much damage a live press showed it doing. Priest_TurnUndead carries
+		/// factor 302 in the base data and 0 in the overrides, and was skipped
+		/// for that reason alone. Of the 33 overridden zeroes it is the only
+		/// one the base data disagrees with.
+		/// </remarks>
+		public static IReadOnlyDictionary<string, float> BaseFactors
+		{
+			get
+			{
+				lock (_syncLock)
+				{
+					if (_baseFactors != null)
+						return _baseFactors;
+
+					_baseFactors = new Dictionary<string, float>();
+
+					foreach (var line in File.ReadLines(SkillsPath))
+					{
+						var name = ClassNamePattern.Match(line);
+						if (!name.Success)
+							continue;
+
+						var factor = Regex.Match(line, @"\bfactor: ([0-9.]+)");
+
+						if (factor.Success)
+							_baseFactors[name.Groups[1].Value] = ParseFloat(factor.Groups[1].Value);
+					}
+
+					return _baseFactors;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Returns whether the base data says this skill deals damage at all.
+		/// </summary>
+		/// <param name="skillName"></param>
+		public static bool DealsDamage(string skillName)
+			=> BaseFactors.TryGetValue(skillName, out var factor) && factor > 0;
+
 		/// <summary>
 		/// Every skill entry, with the overrides winning field by field.
 		/// </summary>
@@ -359,6 +414,37 @@ namespace Melia.Test.Balance.Sfr
 		/// <param name="skillName"></param>
 		public static float CirclePremium(string skillName)
 			=> SfrDials.CirclePremium.TryGetValue(SkillCircle(skillName), out var v) ? v : 1f;
+
+		/// <summary>
+		/// Returns the seconds one press occupies the timeline, and the seconds
+		/// between presses, from the skill data alone.
+		/// </summary>
+		/// <remarks>
+		/// The pricer's budget is a whole cycle, so the delivery it divides by
+		/// has to be one cycle's worth too. Both sides read this rather than
+		/// computing the window themselves, so the two cannot drift.
+		/// </remarks>
+		/// <param name="entry"></param>
+		public static (float Occupancy, float RawOccupancy, float Cycle) PressWindow(SkillEntryData entry)
+		{
+			var cast = entry.Num("basicCast") / 1000f;
+			var shoot = entry.Num("shootTime") / 1000f;
+
+			// Cast time replaces the animation rather than adding to it: a skill
+			// that casts is committed for the cast, and its shootTime is the
+			// follow-through.
+			var raw = Math.Max(SfrDials.MinOccupancy, cast > 0 ? cast : shoot);
+			var occupancy = Math.Min(raw, SfrDials.MaxOccupancy);
+
+			return (occupancy, raw, SfrPricer.CycleSeconds(entry, occupancy));
+		}
+
+		/// <summary>
+		/// Returns the cycle for a named skill, or null when it has no data.
+		/// </summary>
+		/// <param name="skillName"></param>
+		public static float? CycleFor(string skillName)
+			=> Skills.TryGetValue(skillName, out var entry) ? PressWindow(entry).Cycle : null;
 
 		/// <summary>
 		/// The classes the pricer is allowed to touch, read from the gem class

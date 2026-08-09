@@ -135,6 +135,56 @@ namespace Melia.Test.Balance
 		}
 
 		/// <summary>
+		/// Returns one reference monster per race available at or near the
+		/// given level and rank, the given mob first.
+		/// </summary>
+		/// <remarks>
+		/// A scenario used to place N copies of one monster, so every pull in
+		/// the matrix was a single race. That makes a race-gated handler -
+		/// Priest_TurnUndead only damages Velnias - measure nothing at all,
+		/// and it hides every race bonus in calc_combat behind whichever
+		/// monster the level happened to pick. Rotating races across the
+		/// placements prices both as a share of a mixed pull, which is what a
+		/// real one is.
+		/// </remarks>
+		/// <param name="first"></param>
+		/// <param name="level"></param>
+		/// <param name="rank"></param>
+		/// <param name="tolerance"></param>
+		public static MonsterData[] FindRaceSpread(MonsterData first, int level, MonsterRank rank, int tolerance)
+		{
+			var byRace = new Dictionary<RaceType, MonsterData> { [first.Race] = first };
+
+			for (var offset = 0; offset <= tolerance; ++offset)
+			{
+				var candidateLevels = offset == 0
+					? new[] { level }
+					: new[] { level - offset, level + offset };
+
+				foreach (var candidateLevel in candidateLevels)
+				{
+					foreach (var group in Find(candidateLevel, rank).GroupBy(m => m.Data.Race))
+					{
+						if (byRace.ContainsKey(group.Key))
+							continue;
+
+						var ordered = group.OrderBy(m => m.Data.Hp).ToArray();
+
+						byRace[group.Key] = ordered[ordered.Length / 2].Data;
+					}
+				}
+			}
+
+			// The reference mob leads, so the single-target scenarios keep
+			// placing the same monster they always did and the reference hit
+			// the hit count is taken against does not move with the rotation.
+			return byRace.Values
+				.OrderBy(m => m.Id == first.Id ? 0 : 1)
+				.ThenBy(m => m.Race)
+				.ToArray();
+		}
+
+		/// <summary>
 		/// Returns the median-HP monster of the given rank at or near the
 		/// given level.
 		/// </summary>

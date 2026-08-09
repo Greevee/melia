@@ -1,16 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
+using Melia.Shared.ObjectProperties;
 using Melia.Shared.World;
 using Melia.Zone;
 using Melia.Zone.Database;
 using Melia.Zone.Network;
 using Melia.Zone.Skills;
+using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.Characters;
 using Melia.Zone.World.Actors.Characters.Components;
 using Melia.Zone.World.Actors.CombatEntities.Components;
+using Melia.Zone.World;
 using Melia.Zone.World.Actors.Monsters;
+using Melia.Zone.World.Actors.Pads;
 using Melia.Zone.World.Maps;
 
 namespace Melia.Test.Balance
@@ -61,7 +66,9 @@ namespace Melia.Test.Balance
 		/// Map every synthetic actor is placed on, chosen because it is a
 		/// plain field with no scripted mechanics of its own.
 		/// </summary>
-		public const string ArenaMapName = "f_siauliai_west";
+		public const string ArenaMapName = "c_highlander";
+
+		private static readonly object _mobCreateLock = new();
 
 		/// <summary>
 		/// Map ticks to allow a queued monster to register. The map adds at
@@ -70,15 +77,41 @@ namespace Melia.Test.Balance
 		private const int MaxSettleTicks = 20;
 
 		private static int _teamNameCounter;
-		private static Position? _arenaCenter;
+		private static readonly System.Collections.Concurrent.ConcurrentDictionary<Map, Position> _arenaCenters = new();
 
 		/// <summary>
-		/// Returns the map synthetic actors fight on.
+		/// Returns the map synthetic actors fight on by default.
 		/// </summary>
+		/// <remarks>
+		/// This is the one map every serial test shares. A parallel run passes
+		/// its own pool arena explicitly to every call below instead, so two
+		/// workers never place actors on the same instance.
+		/// </remarks>
 		public static Map GetArena()
 		{
 			if (!ZoneServer.Instance.World.TryGetMap(ArenaMapName, out var map))
 				throw new InvalidOperationException($"Arena map '{ArenaMapName}' is not loaded.");
+
+			return Uncity(map);
+		}
+
+		/// <summary>
+		/// Clears an arena's city flag and returns it.
+		/// </summary>
+		/// <remarks>
+		/// A handler that refuses to build in town measures as a press that
+		/// damaged nothing, and is then held back unpriced -
+		/// Cryomancer_IceWall, QuarrelShooter_DeployPavise, the Sorcerer
+		/// summons. The arena is a fighting ground that happens to be a city
+		/// map, so the flag is what is wrong, not the skill. Dormancy is not a
+		/// concern: the constructor has already run, so IsDormant stays false,
+		/// and pool arenas are never registered with WorldManager to be ticked
+		/// into it.
+		/// </remarks>
+		/// <param name="map"></param>
+		public static Map Uncity(Map map)
+		{
+			map.IsCity = false;
 
 			return map;
 		}
@@ -91,9 +124,10 @@ namespace Melia.Test.Balance
 		/// <param name="level"></param>
 		/// <param name="stats"></param>
 		/// <param name="position"></param>
-		public static Character CreateCharacter(JobId jobId, int level, StatSpread stats = null, Position position = default)
+		public static Character CreateCharacter(JobId jobId, int level, StatSpread stats = null, Position position = default, Map arena = null)
 		{
 			stats ??= StatSpread.AllIn("STR", level);
+			arena ??= GetArena();
 
 			var teamName = $"Synth{++_teamNameCounter}";
 
@@ -123,8 +157,8 @@ namespace Melia.Test.Balance
 			properties.SetFloat(PropertyName.DEX_STAT, stats.Dex);
 			properties.InvalidateAll();
 
-			character.Position = ResolvePosition(position);
-			GetArena().AddCharacter(character);
+			character.Position = ResolvePosition(arena, position);
+			arena.AddCharacter(character);
 
 			properties.SetFloat(PropertyName.HP, properties.GetFloat(PropertyName.MHP));
 			properties.SetFloat(PropertyName.SP, properties.GetFloat(PropertyName.MSP));
@@ -141,9 +175,43 @@ namespace Melia.Test.Balance
 		public static Skill GiveSkill(Character character, SkillId skillId, int level)
 		{
 			var skill = new Skill(character, skillId, level);
+
+			PrivateSkillData(skill);
 			character.Skills.Add(skill);
 
 			return skill;
+		}
+
+		/// <summary>
+		/// Backing field behind Skill.Data, which is get-only.
+		/// </summary>
+		private static readonly FieldInfo _skillDataField = typeof(Skill)
+			.GetField($"<{nameof(Skill.Data)}>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance);
+
+		private static readonly MethodInfo _memberwiseClone = typeof(object)
+			.GetMethod("MemberwiseClone", BindingFlags.NonPublic | BindingFlags.Instance);
+
+		/// <summary>
+		/// Replaces a synthetic skill's shared SkillData with a copy of its
+		/// own, so pinning its factor cannot be seen by any other measurement.
+		/// </summary>
+		/// <remarks>
+		/// Skill.Data is the single instance SkillDb hands to every Skill of
+		/// that id, so SfrFactorScope's factor override had to hold a lock on
+		/// it for the whole press to stay correct - seconds of sleeping, during
+		/// which no other window of the same skill could run. Giving each
+		/// measured skill a private copy removes the sharing instead of
+		/// guarding it, which is what lets a skill's nine scenarios and two
+		/// factor points run at once. The copy is shallow: only Factor and
+		/// FactorByLevel are ever written, and both are value types.
+		/// </remarks>
+		/// <param name="skill"></param>
+		private static void PrivateSkillData(Skill skill)
+		{
+			if (_skillDataField == null || _memberwiseClone == null)
+				return;
+
+			_skillDataField.SetValue(skill, (SkillData)_memberwiseClone.Invoke(skill.Data, null));
 		}
 
 		/// <summary>
@@ -170,9 +238,9 @@ namespace Melia.Test.Balance
 		/// </remarks>
 		/// <param name="monsterId"></param>
 		/// <param name="placement"></param>
-		public static Mob CreateMob(int monsterId, ScenarioMob placement)
+		public static Mob CreateMob(int monsterId, ScenarioMob placement, Map arena = null)
 		{
-			var mob = CreateMob(monsterId, placement.Offset);
+			var mob = CreateMob(monsterId, placement.Offset, arena);
 
 			if (placement.Sdr > 0)
 				mob.Properties.Modify(PropertyName.SDR_BM, placement.Sdr - mob.Properties.GetFloat(PropertyName.SDR));
@@ -186,17 +254,94 @@ namespace Melia.Test.Balance
 		/// </summary>
 		/// <param name="monsterId"></param>
 		/// <param name="position"></param>
-		public static Mob CreateMob(int monsterId, Position position = default)
+		/// <param name="arena"></param>
+		public static Mob CreateMob(int monsterId, Position position = default, Map arena = null)
 		{
-			var mob = new Mob(monsterId, RelationType.Enemy);
+			arena ??= GetArena();
 
-			mob.Position = ResolvePosition(position);
+			// Constructing a Mob first-touches that monster's shared data, and
+			// a scenario now places several distinct monsters rather than N
+			// copies of one, so a wide run has many threads first-touching
+			// different ids at the same moment. Arenas are per-window and need
+			// no guard; this does. It is microseconds against a 10 s window.
+			Mob mob;
+
+			lock (_mobCreateLock)
+				mob = new Mob(monsterId, RelationType.Enemy);
+
+			mob.Position = ResolvePosition(arena, position);
 			mob.SpawnPosition = mob.Position;
 			mob.Components.Add(new MovementComponent(mob));
 
-			var map = GetArena();
-			map.AddMonster(mob);
-			Settle(map, mob);
+			Normalize(mob);
+
+			arena.AddMonster(mob);
+			Settle(arena, mob);
+
+			return mob;
+		}
+
+		/// <summary>
+		/// Max HP given to every test monster, so no measurement window ends
+		/// in a corpse.
+		/// </summary>
+		private const float SurvivalHp = 100_000_000f;
+
+		/// <summary>
+		/// Strips the traits that would make one monster a different yardstick
+		/// than another.
+		/// </summary>
+		/// <remarks>
+		/// Move type and element are measurement noise here, not the thing
+		/// being measured: handlers that cannot hit a flying target read as
+		/// dealing no damage at all against one, and an elemental matchup
+		/// swings SCR_AttributeMultiplier by up to 1.5x on nothing but which
+		/// monster the census happened to pick.
+		/// </remarks>
+		/// <param name="mob"></param>
+		private static void Normalize(Mob mob)
+		{
+			mob.MoveType = MoveType.Normal;
+
+			// Attribute is a reference property bound to the monster's data,
+			// so it is replaced rather than set.
+			mob.Properties.Create(new RFloatProperty(PropertyName.Attribute, () => (int)AttributeType.Melee));
+
+			// RecoveryComponent heals while HP is below max, and the max below
+			// guarantees it always is, which would undo the damage a window is
+			// measuring.
+			mob.Properties.Create(new RFloatProperty(PropertyName.RHP, () => 0));
+
+			mob.Properties.SetFloat(PropertyName.MHP_BM, SurvivalHp);
+			mob.Properties.Invalidate(PropertyName.MHP);
+			mob.Properties.SetFloat(PropertyName.HP, mob.Properties.GetFloat(PropertyName.MHP));
+		}
+
+		/// <summary>
+		/// Creates a hostile monster that actually fights back: it carries a
+		/// real AI script, is immediately hostile to the given character
+		/// rather than needing to notice it, and is aggressive by tendency so
+		/// it presses the attack instead of waiting to be provoked.
+		/// </summary>
+		/// <remarks>
+		/// Every other mob in this file is a passive dummy on purpose - the
+		/// reach/hit measurements place mobs at fixed offsets and read what a
+		/// press touches, which a mob wandering off to chase would corrupt.
+		/// Only the defensive/CC probe wants a mob that actually swings back.
+		/// </remarks>
+		/// <param name="monsterId"></param>
+		/// <param name="position"></param>
+		/// <param name="hates"></param>
+		/// <param name="arena"></param>
+		public static Mob CreateHostileMob(int monsterId, Position position, ICombatEntity hates, Map arena = null)
+		{
+			var mob = CreateMob(monsterId, position, arena);
+			var aiName = mob.Data?.AiName;
+
+			mob.Components.Add(new Melia.Zone.World.Actors.CombatEntities.Components.AiComponent(mob,
+				!string.IsNullOrEmpty(aiName) && Melia.Zone.Scripting.AI.AiScript.Exists(aiName) ? aiName : "BasicMonster"));
+			mob.Tendency = TendencyType.Aggressive;
+			mob.InsertHate(hates);
 
 			return mob;
 		}
@@ -254,12 +399,14 @@ namespace Melia.Test.Balance
 		/// snapped to the nearest valid ground, which silently moves a
 		/// monster out of the cone the skill was aimed down.
 		/// </remarks>
-		public static Position GetArenaCenter()
+		public static Position GetArenaCenter(Map arena = null)
 		{
-			if (_arenaCenter.HasValue)
-				return _arenaCenter.Value;
+			arena ??= GetArena();
 
-			var ground = GetArena().Ground;
+			if (_arenaCenters.TryGetValue(arena, out var cached))
+				return cached;
+
+			var ground = arena.Ground;
 			var probes = GetClearanceProbes();
 
 			var best = default(Position);
@@ -291,7 +438,7 @@ namespace Melia.Test.Balance
 			if (bestClear < 0)
 				throw new InvalidOperationException($"Could not find walkable ground on '{ArenaMapName}'.");
 
-			_arenaCenter = best;
+			_arenaCenters[arena] = best;
 
 			return best;
 		}
@@ -328,15 +475,16 @@ namespace Melia.Test.Balance
 		/// actors tens of units sideways, which silently pushed them out of
 		/// the cone a scenario had aimed at them.
 		/// </remarks>
+		/// <param name="arena"></param>
 		/// <param name="position"></param>
-		private static Position ResolvePosition(Position position)
+		private static Position ResolvePosition(Map arena, Position position)
 		{
 			if (position == default)
-				return GetArenaCenter();
+				return GetArenaCenter(arena);
 
-			var center = GetArenaCenter();
+			var center = GetArenaCenter(arena);
 			var absolute = new Position(center.X + position.X, center.Y + position.Y, center.Z + position.Z);
-			var ground = GetArena().Ground;
+			var ground = arena.Ground;
 
 			if (ground.IsValidPosition(absolute) && ground.TryGetHeightAt(absolute, out var height))
 				return new Position(absolute.X, height, absolute.Z);
@@ -355,16 +503,123 @@ namespace Melia.Test.Balance
 		/// <param name="mobs"></param>
 		public static void Cleanup(Character character, params Mob[] mobs)
 		{
-			var map = GetArena();
+			// Removed from whichever map each actor actually ended up on,
+			// rather than the shared default - a pool arena's actors are
+			// never on it.
+			var map = character?.Map;
 
 			foreach (var mob in mobs)
 			{
-				if (mob != null)
-					map.RemoveMonster(mob);
+				map ??= mob?.Map;
+				mob?.Map?.RemoveMonster(mob);
 			}
 
-			if (character != null)
-				map.RemoveCharacter(character);
+			// Anything a press leaves behind outlives it and lands on the next
+			// measurement: a pad keeps ticking at the previous factor, a
+			// summon keeps attacking, a drop keeps occupying the arena. The
+			// arena is only ever ours, so it is emptied rather than tracked.
+			if (map != null)
+			{
+				foreach (var pad in map.GetPads(_ => true))
+					map.RemovePad(pad);
+
+				foreach (var monster in map.GetMonsters())
+					map.RemoveMonster(monster);
+			}
+
+			character?.Map?.RemoveCharacter(character);
 		}
+	}
+
+	/// <summary>
+	/// A fixed set of independent arena maps, so several presses can run at
+	/// once without landing their actors on the same instance.
+	/// </summary>
+	/// <remarks>
+	/// Each arena is a separate <see cref="Map"/> built with the *same id* as
+	/// the primary arena, since Map resolves its ground/nav data by looking
+	/// its id up in MapDb; a fresh id from
+	/// <see cref="WorldManager.GenerateDynamicMapId"/> has no MapDb entry and
+	/// loads no ground at all. Sharing the id is safe - MapDb data is
+	/// read-only geometry, and each Map instance still keeps its own
+	/// independent character/monster/pad tables. These are deliberately
+	/// *not* registered through <see cref="WorldManager.AddMap"/>, since two
+	/// maps can't share one id there.
+	/// </remarks>
+	public sealed class ArenaPool : IDisposable
+	{
+		private readonly System.Collections.Concurrent.BlockingCollection<Map> _free;
+
+		/// <summary>
+		/// How many arenas the pool hands out before a caller blocks waiting
+		/// for one back.
+		/// </summary>
+		public int Size { get; }
+
+		/// <summary>
+		/// Builds a pool of independent arenas of the given map class.
+		/// </summary>
+		/// <param name="size"></param>
+		/// <param name="mapClassName"></param>
+		public ArenaPool(int size, string mapClassName = SyntheticActors.ArenaMapName)
+		{
+			this.Size = Math.Max(1, size);
+			_free = new System.Collections.Concurrent.BlockingCollection<Map>(this.Size);
+
+			var realId = SyntheticActors.GetArena().Id;
+			var started = DateTime.UtcNow;
+
+			// Every Map runs Ground.Load, which builds its own cells, spatial
+			// index and pathfinder - real CPU per instance rather than a
+			// shared reference. Built serially this was the single largest
+			// cost of a roster run, and the one part of it that is not a sleep.
+			System.Threading.Tasks.Parallel.For(0, this.Size, _ => _free.Add(SyntheticActors.Uncity(new Map(realId, mapClassName))));
+
+			this.BuildTime = DateTime.UtcNow - started;
+		}
+
+		/// <summary>
+		/// How long the pool's arenas took to build.
+		/// </summary>
+		public TimeSpan BuildTime { get; }
+
+		/// <summary>
+		/// Takes an arena out of the pool, blocking until one is free.
+		/// </summary>
+		public Map Rent()
+			=> _free.Take();
+
+		/// <summary>
+		/// Returns an arena to the pool once its actors have been cleaned up.
+		/// </summary>
+		/// <param name="arena"></param>
+		public void Return(Map arena)
+			=> _free.Add(arena);
+
+		/// <summary>
+		/// Runs one unit of work against a pooled arena, returning it whether
+		/// the work throws or not.
+		/// </summary>
+		/// <param name="work"></param>
+		public T Use<T>(Func<Map, T> work)
+		{
+			var arena = this.Rent();
+
+			try
+			{
+				return work(arena);
+			}
+			finally
+			{
+				this.Return(arena);
+			}
+		}
+
+		/// <summary>
+		/// Releases the pool's queue. The arenas were never registered with
+		/// WorldManager, so there is nothing else to unwind.
+		/// </summary>
+		public void Dispose()
+			=> _free.Dispose();
 	}
 }

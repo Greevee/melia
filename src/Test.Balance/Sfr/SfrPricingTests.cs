@@ -12,10 +12,13 @@ namespace Melia.Test.Balance.Sfr
 	/// The SFR pricing pass, and the guard that keeps its anchor still.
 	/// </summary>
 	/// <remarks>
-	/// These read the data and the handler sources as text, so they need
-	/// neither a booted server nor a database and run in under a second. Only
-	/// the write is opt-in, because it rewrites skills_overrides.txt.
+	/// Nothing here prices without a live measurement any more, so every test
+	/// in this class needs the headless ZoneServer BalanceHost boots.
+	/// PriceRoster is the generation procedure proper, and is a multi-minute
+	/// run rather than a sub-second one. Only the write is opt-in, because it
+	/// rewrites skills_overrides.txt.
 	/// </remarks>
+	[Collection(BalanceCollection.Name)]
 	public class SfrPricingTests
 	{
 		/// <summary>
@@ -40,8 +43,9 @@ namespace Melia.Test.Balance.Sfr
 		/// <summary>
 		/// Creates the fixture.
 		/// </summary>
+		/// <param name="host"></param>
 		/// <param name="output"></param>
-		public SfrPricingTests(ITestOutputHelper output)
+		public SfrPricingTests(BalanceHost host, ITestOutputHelper output)
 			=> _output = output;
 
 		/// <summary>
@@ -86,7 +90,12 @@ namespace Melia.Test.Balance.Sfr
 		[Fact]
 		public void AnchorHoldsItsFactor()
 		{
-			var price = SfrPricer.Price(SfrDials.AnchorSkill);
+			using var pool = new ArenaPool(SfrDials.ExplainPoolSize);
+
+			var press = SkillPressProbe.MeasureAll(SfrDials.AnchorSkill, measureDefense: false, pool: pool);
+			SfrPricer.SetAnchorMeasurement(press);
+
+			var price = SfrPricer.Price(SfrDials.AnchorSkill, null, press);
 
 			Assert.Equal((int)SfrDials.AnchorFactor, price.Factor);
 
@@ -130,9 +139,13 @@ namespace Melia.Test.Balance.Sfr
 			}
 
 			var write = Environment.GetEnvironmentVariable(ApplyVariable) == "1";
+			var started = DateTime.UtcNow;
 			var result = SfrPricer.ApplyAll(write);
 
-			Write($"{result.Changes.Count} skills priced, {result.NotPriceable} not priceable");
+			Write($"{result.Changes.Count} skills priced, {result.NotPriceable} not priceable, " +
+				$"simulated in {(DateTime.UtcNow - started).TotalMinutes:0.0} min " +
+				$"({SfrPricer.LastPoolBuildTime.TotalSeconds:0}s building {SfrDials.ArenaPoolSize} arenas, " +
+				$"{SfrPricer.LastMeasureTime.TotalSeconds:0}s measuring on {SfrDials.SkillWorkers} workers)");
 			Write("");
 			Write($"{"circle",-8}{"count",6}{"cap",8}{"premium",9}  median factor");
 
@@ -166,6 +179,38 @@ namespace Melia.Test.Balance.Sfr
 			foreach (var pair in result.Changes.OrderBy(c => c.Value.Ratio).Take(12))
 				Write($"   {pair.Key,-34} x{pair.Value.Ratio:0.00} -> factor {pair.Value.Factor}, factorByLevel {pair.Value.FactorByLevel:0.0}");
 
+			if (result.NewlyPriced.Count > 0)
+			{
+				Write("");
+				Write($"{result.NewlyPriced.Count} skill(s) came off factor 0 - a live press showed them dealing damage:");
+
+				foreach (var entry in result.NewlyPriced.OrderByDescending(n => n.Factor))
+					Write($"   {entry.Skill,-34} factor {entry.Factor}");
+			}
+
+			if (result.Overrunning.Count > 0)
+			{
+				Write("");
+				Write($"{result.Overrunning.Count} skill(s) still delivering when their own cycle was up - counted over the cycle:");
+
+				foreach (var entry in result.Overrunning.OrderByDescending(o => o.Span - o.Cycle))
+					Write($"   {entry.Skill,-34} span {entry.Span:0.0}s over a {entry.Cycle:0.0}s cycle, {entry.Hits:0.0} hit(s) counted");
+			}
+
+			if (result.Unmeasured.Count > 0)
+			{
+				Write("");
+				Write($"NOT MEASURED - {result.Unmeasured.Count} skill(s) kept their existing factor:");
+
+				foreach (var group in result.Unmeasured.GroupBy(u => u.Reason).OrderByDescending(g => g.Count()))
+				{
+					Write($"   {group.Key}:");
+
+					foreach (var entry in group.OrderBy(u => u.Skill))
+						Write($"      {entry.Skill,-34} factor {entry.OldFactor:0.#}");
+				}
+			}
+
 			Write("");
 			Write(write ? "written to " + SfrData.OverridesPath : "dry run - nothing written");
 
@@ -175,21 +220,102 @@ namespace Melia.Test.Balance.Sfr
 		}
 
 		/// <summary>
-		/// Writes out every term behind one skill's price.
+		/// Environment variable that also runs the defensive/CC probe for the
+		/// explained skill. Off by default: it costs SfrDials.DefenseProbeTrials
+		/// full encounter windows on its own, which defeats the point of this
+		/// being the fast single-skill loop.
 		/// </summary>
+		public const string DefenseVariable = "BALANCE_SFR_DEFENSE";
+
+		/// <summary>
+		/// Writes out every term behind one skill's price, measuring only that
+		/// skill.
+		/// </summary>
+		/// <remarks>
+		/// This is the fast loop the model's iterated against: one skill,
+		/// across the priced scenario matrix, rather than the full roster.
+		/// It calibrates against a freshly measured anchor - the anchor costs
+		/// a second full skill's worth of scenarios, but there is no cheaper
+		/// scale left to fall back to now that nothing here scans a handler.
+		///
+		/// Both measurements run on an arena pool, and against each other, so
+		/// the wall time is the longest single window rather than the sum of
+		/// forty of them. Unpooled, MeasureAll runs its scenarios, factor
+		/// points and defence trials one at a time, and SfrDefenseProbe takes
+		/// its serial path, which pays the full DefenseProbeTrials on every
+		/// skill instead of scouting a no-CC press out in two pairs.
+		/// </remarks>
 		/// <param name="skillName"></param>
 		private void Explain(string skillName)
 		{
-			var r = SfrPricer.Price(skillName);
+			var measureDefense = Environment.GetEnvironmentVariable(DefenseVariable) == "1";
+			var isAnchor = skillName == SfrDials.AnchorSkill;
+
+			using var pool = new ArenaPool(SfrDials.ExplainPoolSize);
+
+			SfrMeasuredPress press = null;
+			SfrMeasuredPress anchorPress = null;
+			Exception failure = null;
+
+			SkillPressProbe.RunAll(
+				() =>
+				{
+					try
+					{
+						press = SkillPressProbe.MeasureAll(skillName, measureDefense: measureDefense, pool: pool);
+					}
+					catch (Exception ex)
+					{
+						failure = ex;
+					}
+				},
+				() =>
+				{
+					if (!isAnchor)
+						anchorPress = SkillPressProbe.MeasureAll(SfrDials.AnchorSkill, measureDefense: false, pool: pool);
+				});
+
+			if (failure != null)
+			{
+				Write($"{skillName} could not be measured live: {failure.Message}");
+				_output.WriteLine("report saved to " + SaveReport());
+				return;
+			}
+
+			SfrPricer.SetAnchorMeasurement(isAnchor ? press : anchorPress);
+
+			Write($"measured: DirectHits {press.DirectHits} (fromDamage {press.HitsFromDamage}), " +
+				$"HitsTruncated {press.HitsTruncated}, Delivered {press.Delivered}");
+
+			if (press.HitsFailure != null)
+				Write($"  hit count failed: {press.HitsFailure}");
+
+			foreach (var scenario in press.Scenarios.OrderBy(s => s.Key))
+			{
+				var s = scenario.Value;
+				Write($"  {s.ScenarioId}: {s}");
+			}
+
+			SfrPrice r;
+
+			try
+			{
+				r = SfrPricer.Price(skillName, null, press);
+			}
+			catch (Exception ex)
+			{
+				Write($"{skillName}: {ex.Message}");
+				_output.WriteLine("report saved to " + SaveReport());
+				return;
+			}
 
 			Write($"{r.Skill}  ({r.Class}, circle {r.Circle}, max level {r.Levels}, circle premium x{r.CirclePremium:0.00})");
 			Write($"  occupancy t   {r.Occupancy:0.00} s      cycle T {r.Cycle:0.00} s      u {r.Utilization:0.00}");
-			Write($"  hits/press   {r.Hits:0.0} (direct {r.DirectHits} + pads {r.PadHits:0.0})      basic swings/s {r.BasicRate:0.00}");
+			Write($"  hits/press   {r.Hits:0.0}      basic swings/s {r.BasicRate:0.00}");
+			Write($"  damage span  {r.DamageSpan:0.0} s   burst {r.BurstFraction:0.00} of total   divisor {r.Divisor:0.0}");
+			Write($"  counted over {r.CountWindow:0.0} s of a {r.FullDamageSpan:0.0} s delivery"
+				+ (r.Overruns ? "   OVERRUNS ITS CYCLE" : ""));
 			Write($"  riders        {(r.RiderKinds.Length > 0 ? string.Join(", ", r.RiderKinds) : "none")} (x{r.RiderMultiplier:0.00})");
-
-			if (r.Dot > 0)
-				Write($"  dot           {r.DotBuff}, {r.Dot:0.0}x the direct hit, {r.DotShare * 100:0}% of a press");
-
 			Write($"  e ceiling     {r.Efficiency:0.00}   ({(r.IsChannel ? "channel" : "cast")} {r.Cast:0.00} s)");
 			Write($"  cast premium  x{r.CastPremium:0.00}  ({(r.CastPremiumKinds.Length > 0 ? string.Join(", ", r.CastPremiumKinds) : "none")})");
 			Write("  targets       " + string.Join("  ", r.Targets.OrderBy(t => t.Key.Length).ThenBy(t => t.Key)
@@ -199,9 +325,6 @@ namespace Melia.Test.Balance.Sfr
 			Write("");
 			Write($"  total SFR at max level   {r.Sfr:0}%");
 			Write($"  factor: {r.Factor}, factorByLevel: {r.FactorByLevel:0.0}");
-
-			foreach (var warning in SfrHandlerAnalysis.DeliveryWarnings(skillName))
-				Write("    - " + warning);
 
 			_output.WriteLine("report saved to " + SaveReport());
 		}
