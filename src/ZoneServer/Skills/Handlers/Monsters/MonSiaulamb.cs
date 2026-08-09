@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
@@ -45,7 +45,7 @@ namespace Melia.Zone.Skills.Handlers.Mon
 			var splashArea = skill.GetSplashArea(SplashType.Square, splashParam);
 			await SkillAttack(caster, skill, splashArea, hitDelay, aniTime);
 
-			if (RandomProvider.Next(3) == 1 && !caster.IsBuffActive(BuffId.ATKUP))
+			if (RandomProvider.Get().Next(3) == 1 && !caster.IsBuffActive(BuffId.ATKUP))
 			{
 				caster.StartBuff(BuffId.ATKUP, 5f, 0f, TimeSpan.FromMilliseconds(10000f), caster);
 				caster.StartBuff(BuffId.Frenzy_Buff, 1f, 0f, TimeSpan.FromMilliseconds(10000f), caster);

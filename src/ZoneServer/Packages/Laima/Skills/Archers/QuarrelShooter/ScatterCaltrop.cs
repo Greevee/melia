@@ -218,7 +218,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.QuarrelShooter
 						continue;
 
 					var chance = 20;
-					if (RandomProvider.Next(1, 101) > chance)
+					if (RandomProvider.Get().Next(1, 101) > chance)
 						continue;
 
 					var buff = hit.Target.StartBuff(BuffId.CriticalWound, 1, hit.HitInfo.Damage, TimeSpan.FromMilliseconds(10000), caster);

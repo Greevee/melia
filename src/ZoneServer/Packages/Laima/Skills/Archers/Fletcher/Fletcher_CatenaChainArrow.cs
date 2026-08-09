@@ -13,6 +13,7 @@ using Melia.Zone.World.Actors.Pads;
 using Melia.Zone.Skills.Handlers.Base;
 using Melia.Zone.Skills.Combat;
 using Yggdrasil.Geometry.Shapes;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Skills.Handlers.Archers.Fletcher
 {
@@ -81,7 +82,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Fletcher
 			pad.Trigger.UpdateInterval = TimeSpan.FromMilliseconds(500);
 
 			var anchor = new Npc(12082, "", new Location(caster.Map.Id, position), caster.Direction);
-			anchor.DisappearTime = DateTime.Now.AddSeconds(PadDuration);
+			anchor.DisappearTime = GameClock.LocalNow.AddSeconds(PadDuration);
 			anchor.OwnerHandle = caster.Handle;
 			anchor.AssociatedHandle = caster.Handle;
 			caster.Map.AddMonster(anchor);

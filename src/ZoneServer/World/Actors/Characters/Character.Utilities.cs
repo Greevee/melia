@@ -1,4 +1,4 @@
-// ===================================================================
+﻿// ===================================================================
 // CharacterUtilities.cs - Miscellaneous helper methods and properties
 // ===================================================================
 using System;
@@ -11,6 +11,7 @@ using Melia.Shared.World;
 using Melia.Zone.Network;
 using Melia.Zone.World.Actors.Monsters;
 using Melia.Zone.World.Items;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.World.Actors.Characters
 {
@@ -348,7 +349,7 @@ namespace Melia.Zone.World.Actors.Characters
 		/// </summary>
 		public void ShowItemBalloon(string style, string systemMsg, string v3, Item item, float duration, float delaySec, string type)
 		{
-			Task.Delay(TimeSpan.FromSeconds(delaySec)).ContinueWith(_ =>
+			GameClock.Delay(TimeSpan.FromSeconds(delaySec)).ContinueWith(_ =>
 			{
 				Send.ZC_NORMAL.ShowItemBalloon(this, item, type, style, systemMsg, duration);
 			});

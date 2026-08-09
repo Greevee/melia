@@ -8,6 +8,7 @@ using Melia.Zone.World.Actors.Pads;
 using Yggdrasil.Geometry;
 using Yggdrasil.Scheduling;
 using Yggdrasil.Util;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.World.Actors.Components
 {
@@ -281,7 +282,7 @@ namespace Melia.Zone.World.Actors.Components
 			// we would want to know. TODO.
 			if (!_elapsedInitalized)
 			{
-				elapsed = Math2.Max(TimeSpan.Zero, DateTime.Now - _creationTime);
+				elapsed = Math2.Max(TimeSpan.Zero, GameClock.LocalNow - _creationTime);
 				_elapsedInitalized = true;
 			}
 
@@ -463,7 +464,7 @@ namespace Melia.Zone.World.Actors.Components
 		internal void OnAddedToMap()
 		{
 			_destroyed = false;
-			_creationTime = DateTime.Now;
+			_creationTime = GameClock.LocalNow;
 
 			this.Created?.Invoke(this, new TriggerArgs(TriggerType.Create, this.Actor));
 		}

@@ -114,7 +114,7 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 			if (!this.Entity.CanMove())
 				return;
 
-			await Task.Delay(delay);
+			await GameClock.Delay(delay);
 
 			lock (_positionSyncLock)
 			{
@@ -561,7 +561,7 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 
 				if (character.Connection.Party != null)
 				{
-					var now = DateTime.UtcNow;
+					var now = GameClock.Now;
 					if ((now - _lastPartyUpdate) >= PartyUpdateInterval)
 					{
 						_lastPartyUpdate = now;
@@ -662,7 +662,7 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 			// Wait 1s to see if the character actually wants to warp
 			// (indicated by him not moving). Official behavior unknown,
 			// as I have never played the game =<
-			Task.Delay(1000).ContinueWith(_ =>
+			GameClock.Delay(1000).ContinueWith(_ =>
 			{
 				// Cancel if character moved in that time
 				if (character.Position != prevPos)
@@ -670,7 +670,7 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 
 				character.Warp(warpNpc.WarpLocation);
 				warpNpc.IncreaseUseCount();
-			});
+			}, TaskContinuationOptions.ExecuteSynchronously);
 		}
 
 		/// <summary>

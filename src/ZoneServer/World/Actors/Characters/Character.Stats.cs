@@ -5,6 +5,7 @@ using Melia.Zone.Network;
 using Melia.Zone.World.Actors.Characters.Components;
 using Melia.Zone.World.Actors.Monsters;
 using Yggdrasil.Logging;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.World.Actors.Characters
 {
@@ -346,7 +347,7 @@ namespace Melia.Zone.World.Actors.Characters
 			var newLevel = this.Properties.Modify(PropertyName.Lv, amount);
 			if (newLevel >= ZoneServer.Instance.Conf.World.MaxLevel && !this.Variables.Perm.Has("Melia.MaxLevel.AchievedTime"))
 			{
-				this.Variables.Perm.Set("Melia.MaxLevel.AchievedTime", DateTime.UtcNow.Ticks.ToString());
+				this.Variables.Perm.Set("Melia.MaxLevel.AchievedTime", GameClock.Now.Ticks.ToString());
 				Log.Info("Max Level Reached: {0} {1} {2} ", this.DbId, this.Name, this.TeamName);
 				Send.ZC_TEXT(NoticeTextType.Gold, $"Congratulations to {this.Name} for reaching max level.");
 			}

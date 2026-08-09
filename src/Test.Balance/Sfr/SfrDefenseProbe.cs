@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +11,7 @@ using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.Characters;
 using Melia.Zone.World.Actors.Monsters;
 using Melia.Zone.World.Maps;
+using Melia.Shared.Util;
 
 namespace Melia.Test.Balance.Sfr
 {
@@ -96,7 +97,7 @@ namespace Melia.Test.Balance.Sfr
 		/// EncounterWindowMs of waiting, so running the trials serially made
 		/// this the largest fixed cost of measuring a skill.
 		/// </param>
-		public static SfrDefenseResult Measure(JobEntry job, SkillId skillId, int skillLevel, int characterLevel, int windowMs = SfrDials.EncounterWindowMs, Map arena = null, ArenaPool pool = null)
+		public static SfrDefenseResult Measure(JobEntry job, SkillId skillId, int skillLevel, int characterLevel, int windowMs = SfrDials.DefenseWindowMs, Map arena = null, ArenaPool pool = null)
 		{
 			var className = skillId.ToString();
 
@@ -106,8 +107,8 @@ namespace Melia.Test.Balance.Sfr
 			try
 			{
 				var map = arena ?? SyntheticActors.GetArena();
-				var controlTotal = 0f;
-				var treatmentTotal = 0f;
+				var controls = new float[SfrDials.DefenseProbeTrials];
+				var treatments = new float[SfrDials.DefenseProbeTrials];
 				var basicSwing = 0f;
 
 				// A 10 s window holds only a handful of the mob's attacks, so
@@ -122,11 +123,11 @@ namespace Melia.Test.Balance.Sfr
 					DeterministicRandom.Seed(SkillPressProbe.Seed + trial);
 					try
 					{
-						controlTotal += RunWindow(job, skillId, skillLevel, characterLevel, windowMs, false, map, out className, out var swing);
+						controls[trial] = RunWindow(job, skillId, skillLevel, characterLevel, windowMs, false, map, out className, out var swing);
 						basicSwing = swing;
 
 						DeterministicRandom.Seed(SkillPressProbe.Seed + trial);
-						treatmentTotal += RunWindow(job, skillId, skillLevel, characterLevel, windowMs, true, map, out className, out _);
+						treatments[trial] = RunWindow(job, skillId, skillLevel, characterLevel, windowMs, true, map, out className, out _);
 					}
 					finally
 					{
@@ -134,17 +135,14 @@ namespace Melia.Test.Balance.Sfr
 					}
 				}
 
-				var control = controlTotal / SfrDials.DefenseProbeTrials;
-				var treatment = treatmentTotal / SfrDials.DefenseProbeTrials;
-
 				return new SfrDefenseResult
 				{
 					SkillClassName = className,
 					CharacterLevel = characterLevel,
 					SkillLevel = skillLevel,
-					ControlDamageTaken = control,
-					TreatmentDamageTaken = treatment,
-					SwingsPrevented = Math.Max(0f, control - treatment) / Math.Max(1f, basicSwing),
+					ControlDamageTaken = controls.Average(),
+					TreatmentDamageTaken = treatments.Average(),
+					SwingsPrevented = Math.Max(0f, PairedTrimmedMean(controls, treatments)) / Math.Max(1f, basicSwing),
 				};
 			}
 			catch (Exception ex)
@@ -170,18 +168,51 @@ namespace Melia.Test.Balance.Sfr
 		/// <param name="pool"></param>
 		private static SfrDefenseResult MeasureParallel(JobEntry job, SkillId skillId, int skillLevel, int characterLevel, int windowMs, ArenaPool pool)
 		{
-			// Nearly every skill in the roster buys no defensive value at all,
-			// and a full DefenseProbeTrials on those is most of the run's
-			// windows spent confirming a zero. A cheap first batch decides
-			// whether the rest is worth measuring: only a skill that shows
-			// something goes on to the trials that make the number stable
-			// enough to price against.
-			var scout = RunTrials(job, skillId, skillLevel, characterLevel, windowMs, pool, SfrDials.DefenseScoutTrials);
-
-			if (scout.Error != null || scout.SwingsPrevented <= SfrDials.RiderDeadband * SfrDials.DefenseScoutMargin)
-				return scout;
-
+			// Every skill pays the full trials. The scout that used to stand in
+			// front of this ran two pairs and escalated to nine only if they
+			// showed something, which made the sample count itself a coin flip:
+			// a skill whose true value sits near RiderDeadband was priced off
+			// two pairs on one run and nine on the next, and the two disagree.
+			// Archer_Multishot read 0.00 swings on two runs and 0.76 on a
+			// third, which is the difference between a x1.00 rider and a x0.75
+			// one. There is no threshold on a noisy scout that does not have
+			// this problem somewhere, so the scout is gone and every press is
+			// measured the same way.
 			return RunTrials(job, skillId, skillLevel, characterLevel, windowMs, pool, SfrDials.DefenseProbeTrials);
+		}
+
+		/// <summary>
+		/// Returns the trimmed mean of the per-pair differences between two
+		/// matched sets of windows.
+		/// </summary>
+		/// <remarks>
+		/// Control and treatment share a seed trial by trial, so they are a
+		/// matched pair and the difference belongs inside the pair. Taking it
+		/// between two independent means instead let one window that happened
+		/// to hold an extra mob swing move the whole result, and a 10 s window
+		/// holds only a handful of them.
+		///
+		/// Trimmed mean rather than plain median, because what a press prevents
+		/// is bimodal per trial and not merely noisy: a knockback either lands
+		/// before the mob's next swing or after it, so a single trial reads
+		/// roughly one swing or roughly none. A median of such a set jumps
+		/// between the two modes as soon as the majority does - it is the wrong
+		/// estimator for a quantity whose true value is the mix. The mean is
+		/// the right one and converges as 1/sqrt(n); the trim is what keeps the
+		/// outlier window from carrying it.
+		/// </remarks>
+		/// <param name="controls"></param>
+		/// <param name="treatments"></param>
+		private static float PairedTrimmedMean(float[] controls, float[] treatments)
+		{
+			if (controls.Length == 0)
+				return 0f;
+
+			var differences = controls.Zip(treatments, (c, t) => c - t).OrderBy(d => d).ToArray();
+			var trim = (int)(differences.Length * SfrDials.DefenseTrimShare);
+			var kept = differences.Skip(trim).Take(Math.Max(1, differences.Length - trim * 2)).ToArray();
+
+			return kept.Average();
 		}
 
 		/// <summary>
@@ -224,8 +255,6 @@ namespace Melia.Test.Balance.Sfr
 					}
 				})).ToArray());
 
-				var control = controls.Average();
-				var treatment = treatments.Average();
 				var basicSwing = swings.FirstOrDefault(s => s > 0);
 
 				return new SfrDefenseResult
@@ -233,9 +262,9 @@ namespace Melia.Test.Balance.Sfr
 					SkillClassName = names.FirstOrDefault(n => n != null) ?? className,
 					CharacterLevel = characterLevel,
 					SkillLevel = skillLevel,
-					ControlDamageTaken = control,
-					TreatmentDamageTaken = treatment,
-					SwingsPrevented = Math.Max(0f, control - treatment) / Math.Max(1f, basicSwing),
+					ControlDamageTaken = controls.Average(),
+					TreatmentDamageTaken = treatments.Average(),
+					SwingsPrevented = Math.Max(0f, PairedTrimmedMean(controls, treatments)) / Math.Max(1f, basicSwing),
 				};
 			}
 			catch (Exception ex)
@@ -271,6 +300,13 @@ namespace Melia.Test.Balance.Sfr
 			className = skillId.ToString();
 			basicSwing = 0f;
 
+			// The mob fights back on the same clock the caster acts on, so a
+			// control window and its treatment window hold exactly the same
+			// number of the mob's swings every run. Real time is what made a
+			// single skill read 0.07 swings prevented on one run and 0.88 on
+			// the next.
+			GameClock.Use(new VirtualClock(DateTime.Now));
+
 			try
 			{
 				var stat = JobCatalog.GetPrimaryStat(job);
@@ -297,6 +333,7 @@ namespace Melia.Test.Balance.Sfr
 				basicSwing = SfrDamageCurve.MitigatedAttack(AttackPower(character, skill), Defense(mob, skill));
 
 				var tick = TimeSpan.FromMilliseconds(TickMs);
+				var clock = GameClock.Current;
 
 				using (var recorder = new SfrPressRecorder(character))
 				{
@@ -305,7 +342,7 @@ namespace Melia.Test.Balance.Sfr
 					// is not measuring an empty aggro window.
 					for (var elapsed = 0; elapsed < SfrDials.DefenseSettleMs; elapsed += TickMs)
 					{
-						Thread.Sleep(TickMs);
+						SkillPressProbe.Step(clock, tick);
 						arena.Update(tick);
 						Refill(character);
 					}
@@ -317,7 +354,7 @@ namespace Melia.Test.Balance.Sfr
 
 					for (var elapsed = 0; elapsed < windowMs; elapsed += TickMs)
 					{
-						Thread.Sleep(TickMs);
+						SkillPressProbe.Step(clock, tick);
 						arena.Update(tick);
 					}
 
@@ -326,6 +363,7 @@ namespace Melia.Test.Balance.Sfr
 			}
 			finally
 			{
+				GameClock.Use(null);
 				SyntheticActors.Cleanup(character, mob);
 			}
 		}

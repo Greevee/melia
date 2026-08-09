@@ -2,6 +2,7 @@
 using Melia.Shared.Game.Const;
 using Melia.Zone.World.Actors.Characters;
 using Melia.Zone.World.Items;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.World.Actors.Monsters
 {

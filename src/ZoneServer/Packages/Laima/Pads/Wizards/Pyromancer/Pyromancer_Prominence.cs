@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Melia.Shared.Packages;
@@ -13,6 +13,7 @@ using Melia.Zone.World.Actors.Monsters;
 using Melia.Zone.World.Actors.Pads;
 using Yggdrasil.Util;
 using static Melia.Zone.Skills.SkillUseFunctions;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Pads.Handlers
 {
@@ -70,7 +71,7 @@ namespace Melia.Zone.Pads.Handlers
 
 			this.ApplyLineDamage(caster, skill, start, end);
 
-			await Task.Delay(2000);
+			await GameClock.Delay(2000);
 			Send.ZC_NORMAL.Skill_124(caster, handleId);
 		}
 

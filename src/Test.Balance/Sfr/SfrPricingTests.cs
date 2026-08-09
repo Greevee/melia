@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -142,7 +142,7 @@ namespace Melia.Test.Balance.Sfr
 			var started = DateTime.UtcNow;
 			var result = SfrPricer.ApplyAll(write);
 
-			Write($"{result.Changes.Count} skills priced, {result.NotPriceable} not priceable, " +
+			Write($"{result.Changes.Count} skills priced, {result.SpChanges.Count} SP costs priced, {result.NotPriceable} not priceable, " +
 				$"simulated in {(DateTime.UtcNow - started).TotalMinutes:0.0} min " +
 				$"({SfrPricer.LastPoolBuildTime.TotalSeconds:0}s building {SfrDials.ArenaPoolSize} arenas, " +
 				$"{SfrPricer.LastMeasureTime.TotalSeconds:0}s measuring on {SfrDials.SkillWorkers} workers)");
@@ -178,6 +178,44 @@ namespace Melia.Test.Balance.Sfr
 
 			foreach (var pair in result.Changes.OrderBy(c => c.Value.Ratio).Take(12))
 				Write($"   {pair.Key,-34} x{pair.Value.Ratio:0.00} -> factor {pair.Value.Factor}, factorByLevel {pair.Value.FactorByLevel:0.0}");
+
+			if (result.SpChanges.Count > 0)
+			{
+				var costs = result.SpChanges.Values.Select(c => c.Sp).OrderBy(v => v).ToArray();
+
+				Write("");
+				Write($"SP costs: median {costs[costs.Length / 2]}, range {costs[0]}-{costs[^1]}"
+					+ $"  (anchor {SfrDials.SpAnchorCost:0}, arcane x{SfrDials.SpArcaneMultiplier:0.00},"
+					+ $" advanced x{SfrDials.SpAdvancementMultiplier:0.00}, buff x{SfrDials.SpBuffMultiplier:0.0},"
+					+ $" channel x{SfrDials.SpChannelMultiplier:0.00})");
+				Write("largest SP raises:");
+
+				foreach (var pair in result.SpChanges.OrderByDescending(c => c.Value.Ratio).Take(8))
+					Write($"   {pair.Key,-34} x{pair.Value.Ratio:0.00} -> basicSp {pair.Value.Sp}, lvUpSpendSp {pair.Value.SpByLevel}");
+
+				Write("largest SP cuts:");
+
+				foreach (var pair in result.SpChanges.OrderBy(c => c.Value.Ratio).Take(8))
+					Write($"   {pair.Key,-34} x{pair.Value.Ratio:0.00} -> basicSp {pair.Value.Sp}, lvUpSpendSp {pair.Value.SpByLevel}");
+			}
+
+			if (result.SpRepeatCharges.Count > 0)
+			{
+				Write("");
+				Write($"{result.SpRepeatCharges.Count} skill(s) charge their SP cost more than once per press - the written cost is per charge:");
+
+				foreach (var entry in result.SpRepeatCharges.OrderByDescending(s => s.Charges))
+					Write($"   {entry.Skill,-34} {entry.Charges:0.0} charges -> basicSp {entry.Sp}");
+			}
+
+			if (result.SpUnmeasuredChannels.Count > 0)
+			{
+				Write("");
+				Write($"{result.SpUnmeasuredChannels.Count} channel(s) kept their SP cost - the press was never measured, so how often it charges is unknown:");
+
+				foreach (var entry in result.SpUnmeasuredChannels.OrderBy(s => s.Skill))
+					Write($"   {entry.Skill,-34} basicSp {entry.OldSp:0.#}");
+			}
 
 			if (result.NewlyPriced.Count > 0)
 			{
@@ -249,15 +287,15 @@ namespace Melia.Test.Balance.Sfr
 		private void Explain(string skillName)
 		{
 			var measureDefense = Environment.GetEnvironmentVariable(DefenseVariable) == "1";
-			var isAnchor = skillName == SfrDials.AnchorSkill;
 
 			using var pool = new ArenaPool(SfrDials.ExplainPoolSize);
 
 			SfrMeasuredPress press = null;
-			SfrMeasuredPress anchorPress = null;
+			var anchorPresses = new SfrMeasuredPress[SfrDials.AnchorTrials];
 			Exception failure = null;
 
-			SkillPressProbe.RunAll(
+			var work = new List<Action>
+			{
 				() =>
 				{
 					try
@@ -269,11 +307,18 @@ namespace Melia.Test.Balance.Sfr
 						failure = ex;
 					}
 				},
-				() =>
-				{
-					if (!isAnchor)
-						anchorPress = SkillPressProbe.MeasureAll(SfrDials.AnchorSkill, measureDefense: false, pool: pool);
-				});
+			};
+
+			// The anchor is measured as many times here as the roster run
+			// measures it, so the two calibrate on the same statistic and an
+			// explained factor matches the written one.
+			for (var trial = 0; trial < SfrDials.AnchorTrials; ++trial)
+			{
+				var at = trial;
+				work.Add(() => anchorPresses[at] = SkillPressProbe.MeasureAll(SfrDials.AnchorSkill, measureDefense: false, pool: pool));
+			}
+
+			SkillPressProbe.RunAll(work.ToArray());
 
 			if (failure != null)
 			{
@@ -282,7 +327,7 @@ namespace Melia.Test.Balance.Sfr
 				return;
 			}
 
-			SfrPricer.SetAnchorMeasurement(isAnchor ? press : anchorPress);
+			SfrPricer.CalibrateOnMedian(anchorPresses);
 
 			Write($"measured: DirectHits {press.DirectHits} (fromDamage {press.HitsFromDamage}), " +
 				$"HitsTruncated {press.HitsTruncated}, Delivered {press.Delivered}");
@@ -309,7 +354,8 @@ namespace Melia.Test.Balance.Sfr
 				return;
 			}
 
-			Write($"{r.Skill}  ({r.Class}, circle {r.Circle}, max level {r.Levels}, circle premium x{r.CirclePremium:0.00})");
+			Write($"{r.Skill}  ({r.Class}, circle {r.Circle}, max level {r.Levels}, circle premium x{r.CirclePremium:0.00}, "
+				+ $"advancement x{r.AdvancementPremium:0.00}, channel x{r.ChannelPremium:0.00})");
 			Write($"  occupancy t   {r.Occupancy:0.00} s      cycle T {r.Cycle:0.00} s      u {r.Utilization:0.00}");
 			Write($"  hits/press   {r.Hits:0.0}      basic swings/s {r.BasicRate:0.00}");
 			Write($"  damage span  {r.DamageSpan:0.0} s   burst {r.BurstFraction:0.00} of total   divisor {r.Divisor:0.0}");
@@ -319,12 +365,16 @@ namespace Melia.Test.Balance.Sfr
 			Write($"  e ceiling     {r.Efficiency:0.00}   ({(r.IsChannel ? "channel" : "cast")} {r.Cast:0.00} s)");
 			Write($"  cast premium  x{r.CastPremium:0.00}  ({(r.CastPremiumKinds.Length > 0 ? string.Join(", ", r.CastPremiumKinds) : "none")})");
 			Write("  targets       " + string.Join("  ", r.Targets.OrderBy(t => t.Key.Length).ThenBy(t => t.Key)
-				.Select(t => $"{t.Key} {t.Value.Mine}/{t.Value.Theirs:0.0}")));
+				.Select(t => $"{t.Key} {t.Value.Mine:0.0}/{t.Value.Theirs:0.0}")));
 			Write($"  weighted reach {r.WeightedReach:0.00}  charged as {MathF.Pow(Math.Max(r.WeightedReach, 1e-6f), SfrDials.AoeExponent):0.00}"
 				+ (r.SpreadCapped ? "   SPREAD-CAPPED" : ""));
 			Write("");
 			Write($"  total SFR at max level   {r.Sfr:0}%");
 			Write($"  factor: {r.Factor}, factorByLevel: {r.FactorByLevel:0.0}");
+			Write($"  SP target {r.Sp.Target:0.0} over {r.Sp.Charges:0.0} charge(s)"
+				+ $"{(r.Sp.Measured ? " (measured)" : " (assumed)")}"
+				+ $"  {(r.Sp.Kinds.Length > 0 ? string.Join(", ", r.Sp.Kinds) : "plain")}");
+			Write($"  basicSp: {r.Sp.Cost}, lvUpSpendSp: {r.Sp.CostByLevel}");
 
 			_output.WriteLine("report saved to " + SaveReport());
 		}

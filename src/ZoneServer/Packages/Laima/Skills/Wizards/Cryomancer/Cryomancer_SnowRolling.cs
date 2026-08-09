@@ -15,6 +15,7 @@ using Melia.Zone.World.Actors.CombatEntities.Components;
 using Melia.Zone.World.Actors.Monsters;
 using Yggdrasil.Util;
 using static Melia.Zone.Skills.SkillUseFunctions;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Skills.Handlers.Cryomancer
 {
@@ -70,8 +71,8 @@ namespace Melia.Zone.Skills.Handlers.Cryomancer
 
 		private async Task ApplyDamageAndPullEffect(ICombatEntity caster, Skill skill, Mob snowball)
 		{
-			var startTime = DateTime.Now;
-			while ((DateTime.Now - startTime).TotalMilliseconds < SnowRollingDuration)
+			var startTime = GameClock.LocalNow;
+			while ((GameClock.LocalNow - startTime).TotalMilliseconds < SnowRollingDuration)
 			{
 				if (snowball.IsDead)
 					break;

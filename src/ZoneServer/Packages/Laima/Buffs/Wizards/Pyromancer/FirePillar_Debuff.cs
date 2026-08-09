@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
 using Melia.Zone.Buffs.Base;
@@ -30,7 +30,7 @@ namespace Melia.Zone.Buffs.Handlers
 				var target = buff.Target;
 				var minMATK = caster.Properties.GetFloat(PropertyName.MINMATK);
 				var maxMATK = caster.Properties.GetFloat(PropertyName.MAXMATK);
-				var damage = (minMATK + maxMATK) / RandomProvider.Next(7, 10);
+				var damage = (minMATK + maxMATK) / RandomProvider.Get().Next(7, 10);
 
 				var forceId = ForceId.GetNew();
 

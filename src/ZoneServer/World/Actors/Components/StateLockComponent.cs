@@ -9,6 +9,7 @@ using Melia.Zone.World.Actors.Monsters;
 using Yggdrasil.Composition;
 using Yggdrasil.Logging;
 using Yggdrasil.Scheduling;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.World.Actors.Components
 {
@@ -154,7 +155,7 @@ namespace Melia.Zone.World.Actors.Components
 
 			if (duration != TimeSpan.MaxValue)
 			{
-				var endTime = DateTime.Now.Add(duration);
+				var endTime = GameClock.LocalNow.Add(duration);
 				_lockEnds.Add(new(lockType, endTime));
 			}
 		}
@@ -278,7 +279,7 @@ namespace Melia.Zone.World.Actors.Components
 
 				if (duration != TimeSpan.MaxValue)
 				{
-					var endTime = DateTime.Now.Add(duration);
+					var endTime = GameClock.LocalNow.Add(duration);
 					_stateEnds.Add(new(stateType, endTime));
 				}
 			}
@@ -329,7 +330,7 @@ namespace Melia.Zone.World.Actors.Components
 		/// <param name="elapsed"></param>
 		public void Update(TimeSpan elapsed)
 		{
-			var now = DateTime.Now;
+			var now = GameClock.LocalNow;
 			var movementLockChanged = false;
 
 			lock (_syncLock)

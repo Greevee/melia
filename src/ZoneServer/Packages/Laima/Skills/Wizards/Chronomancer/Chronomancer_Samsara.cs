@@ -64,11 +64,11 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Chronomancer
 			Send.ZC_SYNC_START(caster, skillHandle, 1);
 			foreach (var deadMob in deadTargets)
 			{
-				if (RandomProvider.Next(1, 101) > reincarnateChance)
+				if (RandomProvider.Get().Next(1, 101) > reincarnateChance)
 					continue;
 
 				var cloneCount = 1;
-				if (doubleCloneChance > 0 && RandomProvider.Next(1, 101) <= doubleCloneChance)
+				if (doubleCloneChance > 0 && RandomProvider.Get().Next(1, 101) <= doubleCloneChance)
 					cloneCount = 2;
 
 				for (var i = 0; i < cloneCount; i++)

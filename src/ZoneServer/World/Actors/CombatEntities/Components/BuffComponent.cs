@@ -13,6 +13,7 @@ using Yggdrasil.Extensions;
 using Yggdrasil.Scheduling;
 using Yggdrasil.Util;
 using Melia.Zone.Items.Effects;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.World.Actors.CombatEntities.Components
 {
@@ -803,7 +804,7 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 		{
 			_updateBuffer.Clear();
 			_removeBuffer.Clear();
-			var now = DateTime.Now;
+			var now = GameClock.LocalNow;
 
 			lock (_buffs)
 			{

@@ -4,6 +4,7 @@ using System.Linq;
 using Melia.Shared.Game.Const;
 using Melia.Zone.Skills;
 using Yggdrasil.Scheduling;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.World.Actors.CombatEntities.Components
 {
@@ -134,7 +135,7 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 		public void Update(TimeSpan elapsed)
 		{
 			if (this.CurrentSkill != SkillId.None
-				&& this.SkillUseTime < DateTime.Now)
+				&& this.SkillUseTime < GameClock.LocalNow)
 			{
 				this.CurrentSkill = SkillId.None;
 				this.CurrentSkillRef = null;
@@ -156,7 +157,7 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 			{
 				this.CurrentSkill = skillId;
 				this.CurrentSkillRef = skill;
-				this.SkillUseTime = DateTime.Now.Add(skill.Properties.ShootTime);
+				this.SkillUseTime = GameClock.LocalNow.Add(skill.Properties.ShootTime);
 				skill.IncreaseOverheat();
 			}
 		}
@@ -169,7 +170,7 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 		{
 			this.CurrentSkill = skill.Id;
 			this.CurrentSkillRef = skill;
-			this.SkillUseTime = DateTime.Now.Add(skill.Properties.ShootTime);
+			this.SkillUseTime = GameClock.LocalNow.Add(skill.Properties.ShootTime);
 		}
 
 		/// <summary>

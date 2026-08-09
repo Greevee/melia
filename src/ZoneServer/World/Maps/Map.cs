@@ -26,6 +26,7 @@ using Yggdrasil.Geometry;
 using Yggdrasil.Geometry.Shapes;
 using Yggdrasil.Logging;
 using Yggdrasil.Scheduling;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.World.Maps
 {
@@ -241,12 +242,12 @@ namespace Melia.Zone.World.Maps
 			if (newItemMonsters != null)
 			{
 				foreach (var itemMonster in newItemMonsters)
-					_pendingItemMerges.Enqueue((itemMonster, DateTime.Now + ItemMergeDelay));
+					_pendingItemMerges.Enqueue((itemMonster, GameClock.LocalNow + ItemMergeDelay));
 			}
 
 			// Process due item merges, batching all items that became
 			// due this tick so they're merged together at once.
-			while (_pendingItemMerges.TryPeek(out var pending) && pending.DueTime <= DateTime.Now)
+			while (_pendingItemMerges.TryPeek(out var pending) && pending.DueTime <= GameClock.LocalNow)
 			{
 				if (!_pendingItemMerges.TryDequeue(out pending))
 					break;

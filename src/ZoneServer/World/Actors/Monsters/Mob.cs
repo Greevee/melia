@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
@@ -28,6 +28,7 @@ using Melia.Zone.World.Spawning;
 using Yggdrasil.Logging;
 using Yggdrasil.Scheduling;
 using Yggdrasil.Util;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.World.Actors.Monsters
 {
@@ -600,7 +601,7 @@ namespace Melia.Zone.World.Actors.Monsters
 
 			this.Properties.SetFloat(PropertyName.HP, 0);
 			this.Components.Get<MovementComponent>()?.Stop();
-			this.DisappearTime = DateTime.Now.AddSeconds(3);
+			this.DisappearTime = GameClock.LocalNow.AddSeconds(3);
 			if (this.Effects?.Count != 0)
 				Send.ZC_NORMAL.ClearEffects(this);
 
@@ -1401,7 +1402,7 @@ namespace Melia.Zone.World.Actors.Monsters
 
 			var worldConf = ZoneServer.Instance.Conf.World;
 
-			var waves = RandomProvider.Next(worldConf.RedJackpotWaveMin, worldConf.RedJackpotWaveMax);
+			var waves = RandomProvider.Get().Next(worldConf.RedJackpotWaveMin, worldConf.RedJackpotWaveMax);
 			var waveMinDelay = worldConf.RedJackpotWaveDelayMin;
 			var waveMaxDelay = worldConf.RedJackpotWaveDelayMax;
 			var mobPerWave = worldConf.RedJackpotWaveMonsterCount;
@@ -1414,7 +1415,7 @@ namespace Melia.Zone.World.Actors.Monsters
 			var deathPos = mob.Position;
 			var aiName = mob.Data?.AiName;
 
-			await Task.Delay(500);
+			await GameClock.Delay(500);
 			for (var i = 0; i < waves; i++)
 			{
 				if (map == null)
@@ -1453,7 +1454,7 @@ namespace Melia.Zone.World.Actors.Monsters
 						spawnMob.ApplyOverrides(propertyOverrides);
 					map.AddMonster(spawnMob);
 				}
-				await Task.Delay(waveDelay);
+				await GameClock.Delay(waveDelay);
 			}
 		}
 

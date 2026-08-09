@@ -12,6 +12,7 @@ using Melia.Zone.Network;
 using Melia.Zone.Scripting;
 using Melia.Zone.Skills;
 using Melia.Zone.World.Actors.Characters.Components;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.World.Actors.Characters
 {
@@ -287,7 +288,7 @@ namespace Melia.Zone.World.Actors.Characters
 		public void ChangeJob(JobId jobId, JobCircle circle, int skillPoints, bool playEffect = true)
 		{
 			var newJob = new Job(this, jobId, circle, skillPoints);
-			newJob.AdvancementDate = DateTime.Now;
+			newJob.AdvancementDate = GameClock.LocalNow;
 
 			if (playEffect)
 				this.PlayEffect("F_pc_class_change");

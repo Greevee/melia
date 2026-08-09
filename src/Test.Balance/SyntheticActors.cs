@@ -592,9 +592,21 @@ namespace Melia.Test.Balance
 		/// <summary>
 		/// Returns an arena to the pool once its actors have been cleaned up.
 		/// </summary>
+		/// <remarks>
+		/// Scrubbed on the way back in. SyntheticActors.Cleanup removes the
+		/// character and the mobs a window placed, but not a pad the press
+		/// left running, a summon it raised or an obstacle it built - those
+		/// outlive the window and would still be on the arena when the next
+		/// one rents it. Which arena a window gets is decided by whichever is
+		/// free, so that residue lands on a different measurement every run,
+		/// which is a correctness problem before it is a stability one.
+		/// </remarks>
 		/// <param name="arena"></param>
 		public void Return(Map arena)
-			=> _free.Add(arena);
+		{
+			arena.RemoveEntitiesOnLayer(0);
+			_free.Add(arena);
+		}
 
 		/// <summary>
 		/// Runs one unit of work against a pooled arena, returning it whether

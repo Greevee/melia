@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
@@ -60,6 +60,21 @@ namespace Melia.Test.Balance.Sfr
 			if (measured != null && measured.Skill != SfrDials.AnchorSkill)
 				throw new ArgumentException($"The anchor is '{SfrDials.AnchorSkill}', not '{measured.Skill}'.", nameof(measured));
 
+			// The anchor is priced without its rider, and that is what makes
+			// the roster's level reproducible. Every other term in a press is
+			// exact now; the defensive probe is the one that still moves,
+			// because the mob acts through its AI. Through the anchor that
+			// wobble is not one skill's price - the scale multiplies all 106,
+			// so a knockdown on Swordman_Bash reading 0.33 swings on one run
+			// and 0.53 on the next moved the whole roster by 15%. It also
+			// restores what the model always intended: the anchor measured
+			// 0.10 swings and took no rider at all, until a longer defence
+			// window revealed the real value. A rider on the anchor is a level
+			// shift, not a discount, since Calibration pins it to AnchorFactor
+			// either way.
+			if (measured != null)
+				measured.SwingsPrevented = 0f;
+
 			lock (_syncLock)
 			{
 				_anchorMeasurement = measured;
@@ -110,6 +125,53 @@ namespace Melia.Test.Balance.Sfr
 
 				return scale;
 			}
+		}
+
+		/// <summary>
+		/// Picks the anchor measurement that prices in the middle, and
+		/// calibrates on it.
+		/// </summary>
+		/// <remarks>
+		/// The anchor's price is pinned to AnchorFactor whatever it measures,
+		/// so its own noise is invisible in its own number and lands instead in
+		/// the scale every other skill is multiplied by. Taking the median of
+		/// several presses is what stops one unlucky anchor window moving the
+		/// whole roster the other way.
+		/// </remarks>
+		/// <param name="candidates"></param>
+		public static void CalibrateOnMedian(IEnumerable<SfrMeasuredPress> candidates)
+		{
+			var scored = new List<(SfrMeasuredPress Press, float Raw)>();
+
+			foreach (var candidate in candidates)
+			{
+				if (candidate == null)
+					continue;
+
+				try
+				{
+					// Priced against a scale of one, which is what
+					// Calibration() measures its own scale against.
+					lock (_syncLock)
+					{
+						_anchorMeasurement = candidate;
+						_measuredCalibration = 1f;
+					}
+
+					scored.Add((candidate, Price(SfrDials.AnchorSkill, null, candidate).RawFactor));
+				}
+				catch (Exception)
+				{
+					// An anchor press that cannot be priced is no anchor.
+				}
+			}
+
+			if (scored.Count == 0)
+				throw new InvalidOperationException($"{SfrDials.AnchorSkill}: no anchor press could be priced.");
+
+			scored.Sort((a, b) => a.Raw.CompareTo(b.Raw));
+
+			SetAnchorMeasurement(scored[scored.Count / 2].Press);
 		}
 
 		/// <summary>
@@ -167,13 +229,12 @@ namespace Melia.Test.Balance.Sfr
 
 			var levels = maxLevel ?? SfrData.SkillMaxLevel(skillName);
 			var cast = entry.Num("basicCast") / 1000f;
-			var shoot = entry.Num("shootTime") / 1000f;
 
 			// A channel delivers damage for as long as it runs rather than
 			// landing one hit at the end of a wind-up, decided purely from
 			// how long the data says the press is held - shootTime past the
 			// channel threshold, with no cast committing to it first.
-			var channel = cast <= 0 && shoot * 1000f >= SfrDials.ChannelShootMs;
+			var channel = IsChannel(entry);
 
 			var (t, rawOccupancy, cycle) = SfrData.PressWindow(entry);
 
@@ -206,7 +267,7 @@ namespace Melia.Test.Balance.Sfr
 			var cappedEfficiency = efficiency * castPremium;
 
 			var reach = new Dictionary<string, float>();
-			var targets = new Dictionary<string, (int Mine, float Theirs)>();
+			var targets = new Dictionary<string, (float Mine, float Theirs)>();
 
 			foreach (var spec in SfrGeometry.PricedScenarios)
 			{
@@ -215,7 +276,7 @@ namespace Melia.Test.Balance.Sfr
 				// The yardstick stays resolved rather than measured: it is an
 				// average over the five base-job swings, a property of the
 				// model rather than of this skill.
-				var mine = measured.Targets.TryGetValue(spec.Id, out var reached) ? reached : 0;
+				var mine = measured.Targets.TryGetValue(spec.Id, out var reached) ? reached : 0f;
 				var theirs = SfrGeometry.GenericBasicReach(offsets, aim);
 
 				targets[spec.Id] = (mine, theirs);
@@ -246,6 +307,18 @@ namespace Melia.Test.Balance.Sfr
 			var circlePremium = SfrData.CirclePremium(skillName);
 			sfr *= circlePremium;
 
+			// What leaving a base job buys. The anchor is a base-job skill, so
+			// this raises the advanced pool against it rather than the roster's
+			// level.
+			var advancementPremium = SfrData.AdvancementPremium(skillName);
+			sfr *= advancementPremium;
+
+			// A channel pays its SP over the hold rather than up front, and is
+			// charged SpChannelMultiplier for it; this is the other half of
+			// that trade.
+			var channelPremium = channel ? SfrDials.ChannelSfrPremium : 1f;
+			sfr *= channelPremium;
+
 			// The press budget is spread over everything the press delivers,
 			// so total damage lands back on the budget exactly. The retired
 			// blend divided by hits x k with k <= 1, which handed a spread
@@ -255,6 +328,8 @@ namespace Melia.Test.Balance.Sfr
 
 			var factor = sfr / Math.Max(divisor, 1f) / SfrDials.LevelGrowth;
 
+			var sp = PriceSp(skillName, measured);
+
 			return new SfrPrice
 			{
 				Skill = skillName,
@@ -263,6 +338,9 @@ namespace Melia.Test.Balance.Sfr
 				Circle = SfrData.SkillCircle(skillName),
 				Measured = true,
 				CirclePremium = circlePremium,
+				AdvancementPremium = advancementPremium,
+				ChannelPremium = channelPremium,
+				Sp = sp,
 				Occupancy = t,
 				RawOccupancy = rawOccupancy,
 				Cycle = cycle,
@@ -304,6 +382,113 @@ namespace Melia.Test.Balance.Sfr
 		}
 
 		/// <summary>
+		/// Returns whether the data says a press is held rather than wound up.
+		/// </summary>
+		/// <remarks>
+		/// A channel delivers damage for as long as it runs instead of landing
+		/// one hit at the end of a wind-up, so a skill with a real cast is
+		/// never one whatever its shoot time is.
+		/// </remarks>
+		/// <param name="entry"></param>
+		public static bool IsChannel(SkillEntryData entry)
+			=> entry.Num("basicCast") <= 0 && entry.Num("shootTime") >= SfrDials.ChannelShootMs;
+
+		/// <summary>
+		/// Returns what one press should cost at the bar, and what a level of
+		/// it adds.
+		/// </summary>
+		/// <remarks>
+		/// SP is the throttle the model has that does not lengthen a cooldown
+		/// (BALANCE.md §7), so it is priced on what a press takes from the
+		/// player rather than on what it delivers: the slice of the rotation it
+		/// gates, the wind-up it commits to, and the class it belongs to.
+		///
+		/// The cycle term is sublinear, so a long cooldown costs more without
+		/// costing proportionally more - the cooldown is already that press's
+		/// throttle. The cast term takes the same (1 + cast)^k shape the SFR
+		/// cast premium does, so what a wind-up earns in damage it pays for at
+		/// the bar.
+		///
+		/// The written cost is divided by the measured charge count, so what a
+		/// press actually spends lands on the budget: a channel billing every
+		/// tick writes a per-tick cost, not a per-press one. Nothing is
+		/// measured for a skill the damage pass never pressed - a factor-0
+		/// buff, a heal - and those take the fallback of one charge, which is
+		/// what all but a handful of presses measure anyway.
+		///
+		/// Both numbers are integers with a floor of one: SCR_Get_SpendSP
+		/// floors its own result, so a fractional cost is a cost the engine
+		/// rounds away.
+		/// </remarks>
+		/// <param name="skillName"></param>
+		/// <param name="measured"></param>
+		public static SfrSpPrice PriceSp(string skillName, SfrMeasuredPress measured)
+		{
+			if (!SfrData.Skills.TryGetValue(skillName, out var entry))
+				throw new KeyNotFoundException($"No skill data for '{skillName}'.");
+
+			var cast = entry.Num("basicCast") / 1000f;
+			var cycle = SfrData.PressWindow(entry).Cycle;
+			var anchorCycle = SfrData.CycleFor(SfrDials.AnchorSkill) ?? 1f;
+
+			var cycleTerm = MathF.Pow(Math.Min(cycle, SfrDials.SpMaxCycle) / Math.Max(anchorCycle, 1e-6f), SfrDials.SpCycleExponent);
+			var castTerm = MathF.Pow(1f + cast, SfrDials.SpCastExponent);
+
+			var target = SfrDials.SpAnchorCost * cycleTerm * castTerm;
+			var kinds = new List<string>();
+
+			// factor 0 is the data's marker for a press that deals no damage,
+			// so nothing in the damage model is holding it and SP is the only
+			// thing that is.
+			if (!SfrData.DealsDamage(skillName))
+			{
+				target *= SfrDials.SpBuffMultiplier;
+				kinds.Add("buff");
+			}
+
+			var jobMultiplier = SfrData.SpJobMultiplier(skillName);
+
+			if (jobMultiplier != 1f)
+			{
+				target *= jobMultiplier;
+				kinds.Add("arcane");
+			}
+
+			if (!SfrData.IsBaseJobSkill(skillName))
+			{
+				target *= SfrDials.SpAdvancementMultiplier;
+				kinds.Add("advanced");
+			}
+
+			var channel = IsChannel(entry);
+
+			if (channel)
+			{
+				target *= SfrDials.SpChannelMultiplier;
+				kinds.Add("channel");
+			}
+
+			var charges = measured is { SpMeasured: true } ? measured.SpChargeSlope : 1f;
+			var levels = SfrData.SkillMaxLevel(skillName);
+
+			var cost = Math.Max(SfrDials.MinSpCost, (int)Math.Round(target / Math.Max(charges, SfrDials.MinSpChargeSlope)));
+
+			return new SfrSpPrice
+			{
+				Skill = skillName,
+				Target = target,
+				Charges = charges,
+				Measured = measured is { SpMeasured: true },
+				Kinds = kinds.ToArray(),
+				Cost = cost,
+				// Mirrors factorByLevel: the growth is keyed on the skill's own
+				// cap, so a point buys more on a skill that reaches its cap in
+				// fewer of them.
+				CostByLevel = Math.Max(SfrDials.MinSpCost, (int)Math.Round((float)cost / Math.Max(1, levels))),
+			};
+		}
+
+		/// <summary>
 		/// Returns the seconds between presses: a full overheat volley plus its
 		/// cooldown, per press.
 		/// </summary>
@@ -320,11 +505,18 @@ namespace Melia.Test.Balance.Sfr
 		/// <summary>
 		/// Returns the rider multiplier a measured press earns.
 		/// </summary>
+		/// <remarks>
+		/// Continuous, with no deadband in front of it. A deadband is a step,
+		/// and a step turns a measurement landing either side of it into a jump
+		/// in the price - Archer_Multishot measured 0.07 swings on one run and
+		/// 0.61 on the next and moved 33% for it, which is the whole lever. The
+		/// deadband existed to stop that flicker when the floor was 0.5 and the
+		/// lever was 2x; at a floor of 0.75 the curve is gentle enough that
+		/// being continuous is strictly better than being gated.
+		/// </remarks>
 		/// <param name="swingsPrevented"></param>
 		public static float RiderMultiplier(float swingsPrevented)
-			=> swingsPrevented > SfrDials.RiderDeadband
-				? Math.Max(SfrDials.RiderFloor, 1f / (1f + SfrDials.DefenseValueScale * swingsPrevented))
-				: 1f;
+			=> Math.Max(SfrDials.RiderFloor, 1f / (1f + SfrDials.DefenseValueScale * Math.Max(0f, swingsPrevented)));
 
 		/// <summary>
 		/// Returns what waiting out a cooldown is worth, keyed on the wait
@@ -462,12 +654,16 @@ namespace Melia.Test.Balance.Sfr
 		/// raised to the full width up front so no wave is throttled by the
 		/// pool growing into it on its own.
 		/// </remarks>
-		/// <param name="skillNames"></param>
+		/// <param name="keys">
+		/// One entry per press to run. A key may carry a "#n" suffix to queue
+		/// the same skill more than once, which is how the anchor's repeat
+		/// trials ride along with the roster instead of costing time after it.
+		/// </param>
 		/// <param name="poolSize"></param>
-		private static Dictionary<string, SfrMeasuredPress> MeasureRoster(List<string> skillNames, int poolSize)
+		private static Dictionary<string, SfrMeasuredPress> MeasureRoster(List<string> keys, int poolSize)
 		{
 			var results = new ConcurrentDictionary<string, SfrMeasuredPress>();
-			var queue = new ConcurrentQueue<string>(skillNames);
+			var queue = new ConcurrentQueue<string>(keys);
 			var workersPerWave = Math.Max(1, SfrDials.SkillWorkers / SfrDials.RosterWaveCount);
 
 			// Every window is a sleep rather than work, and a skill now fans
@@ -484,11 +680,14 @@ namespace Melia.Test.Balance.Sfr
 
 			void Worker()
 			{
-				while (queue.TryDequeue(out var skillName))
+				while (queue.TryDequeue(out var key))
 				{
+					var at = key.IndexOf('#');
+					var skillName = at < 0 ? key : key[..at];
+
 					try
 					{
-						results[skillName] = SkillPressProbe.MeasureAll(skillName, pool: pool);
+						results[key] = SkillPressProbe.MeasureAll(skillName, pool: pool);
 					}
 					catch (Exception)
 					{
@@ -544,8 +743,10 @@ namespace Melia.Test.Balance.Sfr
 		{
 			var result = new SfrApplyResult();
 			var lines = File.ReadAllLines(SfrData.OverridesPath);
-			var priced = new Dictionary<string, SfrPrice>();
+			var priced = new Dictionary<string, (int Factor, float FactorByLevel)>();
+			var spPriced = new Dictionary<string, SfrSpPrice>();
 			var inScope = new List<string>();
+			var spScope = new List<string>();
 
 			foreach (var line in lines)
 			{
@@ -554,6 +755,16 @@ namespace Melia.Test.Balance.Sfr
 					continue;
 
 				var skillName = name.Groups[1].Value;
+				var cls = SfrData.ClassOf(skillName);
+
+				if (!SfrData.BaseJob.ContainsKey(cls) || !SfrData.Scope.Contains(cls))
+					continue;
+
+				// SP is priced for every in-scope press, damage or not: a buff
+				// costs SP, a heal costs SP, and a press the damage model
+				// cannot measure still charges the bar. Only the charge count
+				// needs a measurement, and a press without one charges once.
+				spScope.Add(skillName);
 
 				// The field has to exist for the rewrite to have something to
 				// replace, but its value is never read - the "deals no damage"
@@ -562,11 +773,6 @@ namespace Melia.Test.Balance.Sfr
 				var currentFactor = Regex.Match(line, @"\bfactor: ([0-9.]+)");
 
 				if (!currentFactor.Success || !SfrData.DealsDamage(skillName))
-					continue;
-
-				var cls = SfrData.ClassOf(skillName);
-
-				if (!SfrData.BaseJob.ContainsKey(cls) || !SfrData.Scope.Contains(cls))
 					continue;
 
 				// Not worth a measurement window: Price() rejects these
@@ -583,18 +789,34 @@ namespace Melia.Test.Balance.Sfr
 				inScope.Add(skillName);
 			}
 
-			var measured = MeasureRoster(inScope, arenaPoolSize ?? SfrDials.ArenaPoolSize);
+			// The anchor's repeat trials are queued with everything else, so
+			// they run inside the same fan-out and add no wall time.
+			var keys = new List<string>(inScope);
+
+			for (var trial = 1; trial < SfrDials.AnchorTrials; ++trial)
+				keys.Add($"{SfrDials.AnchorSkill}#{trial}");
+
+			var measured = MeasureRoster(keys, arenaPoolSize ?? SfrDials.ArenaPoolSize);
 
 			// The anchor calibrates the whole roster (Calibration()); losing
 			// it loses the whole pass rather than pricing against no scale
 			// at all.
-			if (!measured.TryGetValue(SfrDials.AnchorSkill, out var anchorPress))
+			if (!measured.ContainsKey(SfrDials.AnchorSkill))
 			{
 				result.NotPriceable = inScope.Count;
 				return result;
 			}
 
-			SetAnchorMeasurement(anchorPress);
+			try
+			{
+				CalibrateOnMedian(keys.Where(k => k == SfrDials.AnchorSkill || k.StartsWith(SfrDials.AnchorSkill + "#", StringComparison.Ordinal))
+					.Select(k => measured.GetValueOrDefault(k)));
+			}
+			catch (Exception)
+			{
+				result.NotPriceable = inScope.Count;
+				return result;
+			}
 
 			foreach (var line in lines)
 			{
@@ -638,7 +860,7 @@ namespace Melia.Test.Balance.Sfr
 					continue;
 				}
 
-				priced[skillName] = price;
+				priced[skillName] = (price.Factor, price.FactorByLevel);
 
 				// A ratio against zero says nothing, so a skill coming off the
 				// zero marker is reported on its own rather than topping the
@@ -653,13 +875,54 @@ namespace Melia.Test.Balance.Sfr
 					result.Overrunning.Add((skillName, price.FullDamageSpan, price.CountWindow, price.Hits));
 			}
 
+			foreach (var skillName in spScope)
+			{
+				SfrSpPrice sp;
+
+				try
+				{
+					sp = PriceSp(skillName, measured.GetValueOrDefault(skillName));
+				}
+				catch (Exception)
+				{
+					continue;
+				}
+
+				var oldSp = SfrData.Skills.TryGetValue(skillName, out var entry) ? entry.Num("basicSp") : 0f;
+
+				// A channel bills its cost every tick, so writing the whole
+				// press budget as the per-tick cost over-charges it by however
+				// many ticks it runs. The charge count is the one thing the
+				// fallback of one cannot stand in for.
+				if (sp.Charges <= 1f && IsChannel(entry))
+				{
+					result.SpUnmeasuredChannels.Add((skillName, oldSp));
+					continue;
+				}
+
+				spPriced[skillName] = sp;
+				result.SpChanges[skillName] = (sp.Cost, sp.CostByLevel, oldSp > 0 ? sp.Cost / oldSp : 1f);
+
+				if (sp.Measured && sp.Charges > 1.5f)
+					result.SpRepeatCharges.Add((skillName, sp.Charges, sp.Cost));
+			}
+
 			if (write)
 			{
 				var rewritten = lines.Select(line =>
 				{
 					var name = Regex.Match(line, @"className: ""([^""]+)""");
 
-					if (!name.Success || !priced.TryGetValue(name.Groups[1].Value, out var price))
+					if (!name.Success)
+						return line;
+
+					if (spPriced.TryGetValue(name.Groups[1].Value, out var sp))
+					{
+						line = SetField(line, "basicSp", sp.Cost.ToString(CultureInfo.InvariantCulture));
+						line = SetField(line, "lvUpSpendSp", sp.CostByLevel.ToString(CultureInfo.InvariantCulture), after: "basicSp");
+					}
+
+					if (!priced.TryGetValue(name.Groups[1].Value, out var price))
 						return line;
 
 					line = Regex.Replace(line, @"\bfactor: [0-9.]+", "factor: " + price.Factor, RegexOptions.None);
@@ -673,6 +936,43 @@ namespace Melia.Test.Balance.Sfr
 			}
 
 			return result;
+		}
+
+		/// <summary>
+		/// Sets a field on an override line, adding it when the line does not
+		/// already carry one.
+		/// </summary>
+		/// <remarks>
+		/// The factor rewrite can assume its field is there, because a line
+		/// without one is skipped. SP cannot: two thirds of the override lines
+		/// carry no lvUpSpendSp at all, and a replace that matched nothing
+		/// would silently leave them on the base data's growth. Inserted after
+		/// the name, which is where the file's own field order puts it.
+		/// </remarks>
+		/// <param name="line"></param>
+		/// <param name="field"></param>
+		/// <param name="value"></param>
+		/// <param name="after">
+		/// Field the new one is inserted behind when the line carries it. Two
+		/// fields inserted at the same anchor come out in reverse order, since
+		/// the second lands in front of the first.
+		/// </param>
+		public static string SetField(string line, string field, string value, string after = null)
+		{
+			var existing = new Regex($@"\b{field}: [0-9.]+");
+
+			if (existing.IsMatch(line))
+				return existing.Replace(line, $"{field}: {value}");
+
+			var anchor = after != null ? Regex.Match(line, $@"\b{after}: [0-9.]+, ") : Match.Empty;
+
+			if (!anchor.Success)
+				anchor = Regex.Match(line, @"name: ""[^""]*"", ");
+
+			if (!anchor.Success)
+				return line;
+
+			return line.Insert(anchor.Index + anchor.Length, $"{field}: {value}, ");
 		}
 	}
 
@@ -693,6 +993,22 @@ namespace Melia.Test.Balance.Sfr
 		public bool Measured { get; init; }
 
 		public float CirclePremium { get; init; }
+
+		/// <summary>
+		/// What leaving a base job bought this skill.
+		/// </summary>
+		public float AdvancementPremium { get; init; }
+
+		/// <summary>
+		/// What being held rather than wound up bought this skill.
+		/// </summary>
+		public float ChannelPremium { get; init; }
+
+		/// <summary>
+		/// What one press costs at the bar.
+		/// </summary>
+		public SfrSpPrice Sp { get; init; }
+
 		public float Occupancy { get; init; }
 		public float RawOccupancy { get; init; }
 		public float Cycle { get; init; }
@@ -748,7 +1064,7 @@ namespace Melia.Test.Balance.Sfr
 		public string[] RiderKinds { get; init; }
 		public float BasicRate { get; init; }
 		public Dictionary<string, float> Reach { get; init; }
-		public Dictionary<string, (int Mine, float Theirs)> Targets { get; init; }
+		public Dictionary<string, (float Mine, float Theirs)> Targets { get; init; }
 		public float WeightedReach { get; init; }
 		public float Sfr { get; init; }
 		public bool SpreadCapped { get; init; }
@@ -761,6 +1077,45 @@ namespace Melia.Test.Balance.Sfr
 
 		public int Factor { get; init; }
 		public float FactorByLevel { get; init; }
+	}
+
+	/// <summary>
+	/// One skill's priced SP cost, with the terms behind it.
+	/// </summary>
+	public class SfrSpPrice
+	{
+		public string Skill { get; init; }
+
+		/// <summary>
+		/// What one press should spend in total, before the charge count is
+		/// divided out.
+		/// </summary>
+		public float Target { get; init; }
+
+		/// <summary>
+		/// How many times the press was measured charging its own cost.
+		/// </summary>
+		public float Charges { get; init; }
+
+		/// <summary>
+		/// Whether the charge count was measured rather than assumed to be one.
+		/// </summary>
+		public bool Measured { get; init; }
+
+		/// <summary>
+		/// Which multipliers the cost picked up.
+		/// </summary>
+		public string[] Kinds { get; init; } = [];
+
+		/// <summary>
+		/// The basicSp written to the data.
+		/// </summary>
+		public int Cost { get; init; }
+
+		/// <summary>
+		/// The lvUpSpendSp written alongside it.
+		/// </summary>
+		public int CostByLevel { get; init; }
 	}
 
 	/// <summary>
@@ -800,6 +1155,35 @@ namespace Melia.Test.Balance.Sfr
 		/// with the value they landed on.
 		/// </summary>
 		public List<(string Skill, int Factor)> NewlyPriced { get; } = [];
+
+		/// <summary>
+		/// Skill name to its new SP cost, its per-level growth and the ratio
+		/// against the cost it replaced.
+		/// </summary>
+		/// <remarks>
+		/// Wider than Changes: SP is priced for every in-scope skill, including
+		/// the buffs, heals and unmeasurable presses the damage model holds
+		/// back, since a press with no charge measurement simply charges once.
+		/// </remarks>
+		public Dictionary<string, (int Sp, int SpByLevel, float Ratio)> SpChanges { get; } = [];
+
+		/// <summary>
+		/// Skills whose press was measured charging its cost more than once,
+		/// with the count the written cost was divided by.
+		/// </summary>
+		public List<(string Skill, float Charges, int Sp)> SpRepeatCharges { get; } = [];
+
+		/// <summary>
+		/// Channels whose charge count was never measured, so they keep the SP
+		/// cost the file already carried.
+		/// </summary>
+		/// <remarks>
+		/// The fallback of one charge is what every unmeasured press takes, and
+		/// for a channel it is the one assumption that cannot hold: a press
+		/// billing every tick would be written the whole budget as its per-tick
+		/// cost.
+		/// </remarks>
+		public List<(string Skill, float OldSp)> SpUnmeasuredChannels { get; } = [];
 
 		/// <summary>
 		/// How many in-scope skills could not be priced at all.

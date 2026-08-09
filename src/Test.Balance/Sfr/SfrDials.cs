@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Melia.Test.Balance.Sfr
 {
@@ -288,6 +288,127 @@ namespace Melia.Test.Balance.Sfr
 		};
 
 		/// <summary>
+		/// What advancing out of a base job buys, in SFR.
+		/// </summary>
+		/// <remarks>
+		/// The five rank-1 classes take 1.00 and every advanced class takes
+		/// this. It is a level shift between the two pools rather than a
+		/// redistribution inside either, and the anchor is a base-job skill, so
+		/// it moves the advanced roster against Swordman_Bash and leaves the
+		/// base pool where it was.
+		/// </remarks>
+		public const float AdvancementPremium = 1.10f;
+
+		/// <summary>
+		/// What a channel earns for paying its SP over the hold rather than up
+		/// front.
+		/// </summary>
+		/// <remarks>
+		/// Paired with SpChannelMultiplier: a channel is charged that much more
+		/// SP and returns that much more SFR, so the trade is explicit and
+		/// symmetric rather than one side of it being free.
+		/// </remarks>
+		public const float ChannelSfrPremium = 1.15f;
+
+		/// <summary>
+		/// SP one press of the anchor's shape costs: base job, no wind-up, no
+		/// buff payload, on the anchor's own cycle.
+		/// </summary>
+		/// <remarks>
+		/// Chosen so the priced roster's median lands on the median the file
+		/// already carried, which is 18. Swordman_Bash's own 5 would have put
+		/// the whole roster at roughly half its current cost.
+		/// </remarks>
+		public const float SpAnchorCost = 8f;
+
+		/// <summary>
+		/// How much of the cycle a press gates is charged as SP.
+		/// </summary>
+		/// <remarks>
+		/// Sublinear: a press that holds the rotation for longer is worth more
+		/// SP, but a 60 s ultimate is not worth thirty times a filler. 0.35 is
+		/// the log-log slope of basicSp against the cycle across the in-scope
+		/// roster as the file carries it today.
+		/// </remarks>
+		public const float SpCycleExponent = 0.35f;
+
+		/// <summary>
+		/// How hard a wind-up is charged in SP, as <c>(1 + cast)^k</c>.
+		/// </summary>
+		/// <remarks>
+		/// The same shape the SFR cast premium takes, so what a cast earns in
+		/// damage it also pays for at the bar. 0.60 is the measured slope of
+		/// the current file's own cast skills.
+		/// </remarks>
+		public const float SpCastExponent = 0.60f;
+
+		/// <summary>
+		/// The longest cycle SP is charged for, in seconds.
+		/// </summary>
+		public const float SpMaxCycle = 60f;
+
+		/// <summary>
+		/// What a press carrying no damage factor at all costs, against one
+		/// that does.
+		/// </summary>
+		/// <remarks>
+		/// factor 0 is the data's marker for a buff or a utility press. Nothing
+		/// in the damage model prices those, so SP is the only thing holding
+		/// them, and it holds them harder.
+		/// </remarks>
+		public const float SpBuffMultiplier = 1.5f;
+
+		/// <summary>
+		/// What an advanced class's press costs, against a base job's.
+		/// </summary>
+		public const float SpAdvancementMultiplier = 1.10f;
+
+		/// <summary>
+		/// What a Wizard- or Cleric-family press costs, against the rest.
+		/// </summary>
+		public const float SpArcaneMultiplier = 1.20f;
+
+		/// <summary>
+		/// What a channel is charged for spending its SP over the hold.
+		/// </summary>
+		public const float SpChannelMultiplier = 1.15f;
+
+		/// <summary>
+		/// The two basicSp values a press is measured at, so how many times a
+		/// press charges its own cost can be read off the slope between them.
+		/// </summary>
+		/// <remarks>
+		/// Pinned on the same two runs the factor line is taken from, so the
+		/// SP measurement costs no window of its own. Most presses charge once
+		/// and read a slope of 1; a channel or a pad that bills per tick reads
+		/// its tick count, and the priced cost is divided by it so what the
+		/// press actually spends lands on the budget.
+		/// </remarks>
+		public const float SpProbeLow = 50f;
+
+		/// <summary>
+		/// The second point of the SP line.
+		/// </summary>
+		public const float SpProbeHigh = 100f;
+
+		/// <summary>
+		/// Charges per press below which the SP measurement is treated as
+		/// having found nothing, so the skill keeps the cost it carried.
+		/// </summary>
+		/// <remarks>
+		/// A press whose cost does not move with basicSp at all is on a
+		/// spendSpScript of its own - SCR_Get_SpendSP_Common_MovingForward
+		/// reads a share of max SP and never touches the field - and writing
+		/// the field would change nothing.
+		/// </remarks>
+		public const float MinSpChargeSlope = 0.25f;
+
+		/// <summary>
+		/// Floor on a written SP cost, and on its per-level growth.
+		/// </summary>
+		public const int MinSpCost = 1;
+
+		/// <summary>
 		/// Rider multipliers for the non-damage payload the direct-hit model
 		/// cannot see.
 		/// </summary>
@@ -326,6 +447,22 @@ namespace Melia.Test.Balance.Sfr
 		public const int EncounterWindowMs = 10_000;
 
 		/// <summary>
+		/// How long each half of a defence trial counts the mob's output over.
+		/// </summary>
+		/// <remarks>
+		/// Much longer than the press window, and it costs nothing: under the
+		/// virtual clock a window is advanced rather than waited out, so length
+		/// is free where it used to be the run's whole budget. The reading is a
+		/// difference in damage taken over a fixed window, so its noise is set
+		/// by how many of the mob's swings the window holds - at 10 s that was
+		/// a handful, and one swing landing either side of the boundary moved
+		/// the answer. Lengthening the window is a better buy than more trials:
+		/// noise falls with the square root of the swings either way, and this
+		/// multiplies them without multiplying the setup.
+		/// </remarks>
+		public const int DefenseWindowMs = 90_000;
+
+		/// <summary>
 		/// How long the caster is left standing still, mobs already hostile,
 		/// before the defensive/CC probe's control half starts counting - long
 		/// enough that aggro has resolved and the first swing has landed.
@@ -347,11 +484,17 @@ namespace Melia.Test.Balance.Sfr
 		public const int ArenaPoolSize = 640;
 
 		/// <summary>
-		/// Skills measured at once. Each one fans its own scenarios, factor
-		/// points and defence trials out across the pool on top of this, so the
-		/// arenas in flight peak near SkillWorkers * ScenarioCount.
+		/// Skills measured at once.
 		/// </summary>
-		public const int SkillWorkers = 110;
+		/// <remarks>
+		/// Sized near core count, not far past it. A window used to be almost
+		/// entirely Thread.Sleep, so 110 workers were cheaper than 22 and the
+		/// pool was deliberately oversized against a sleeping thread. Under the
+		/// virtual clock a window is advanced instead of waited out, so the run
+		/// is CPU-bound and oversubscribing only adds contention: the same pass
+		/// measured 1.8 min on 110 workers and 1.1 min on 12.
+		/// </remarks>
+		public const int SkillWorkers = 12;
 
 		/// <summary>
 		/// Arenas the single-skill diagnostic runs on.
@@ -384,49 +527,33 @@ namespace Melia.Test.Balance.Sfr
 		public const int RosterRampUpMs = 1_500;
 
 		/// <summary>
-		/// Control/treatment pairs SfrDefenseProbe averages over. A single
-		/// 10 s window holds only a handful of the mob's attacks, so whether
-		/// one lands just inside or outside the window is real scheduling
-		/// jitter large enough to swing the result by a full swing either
-		/// way; averaging several pairs is what makes the number stable
-		/// enough to price against.
-		/// </summary>
-		public const int DefenseProbeTrials = 9;
-
-		/// <summary>
-		/// Swings prevented below which a press is treated as having bought
-		/// no defensive value at all.
+		/// Control/treatment pairs SfrDefenseProbe averages over.
 		/// </summary>
 		/// <remarks>
-		/// The measurement is a difference between two windows holding only a
-		/// handful of the mob's attacks, so a press that really prevents
-		/// nothing still reads a fraction of a swing either way. Left ungated,
-		/// the rider flickered between 1.00 and the 0.50 floor across runs and
-		/// the whole pass oscillated 2x per run rather than converging - the
-		/// movers list was mostly skills whose ratio was exactly 2.00 or 0.48.
+		/// Small, because DefenseWindowMs does the work instead: a long window
+		/// holds many of the mob's swings, where more short windows each hold
+		/// a handful. The remaining trials are there for the part of the
+		/// defence path that is still not reproducible - unlike a press, the
+		/// mob acts through its AI, and not every branch of that is on the
+		/// clock yet.
 		/// </remarks>
-		public const float RiderDeadband = 0.25f;
+		public const int DefenseProbeTrials = 7;
 
 		/// <summary>
-		/// Control/treatment pairs run before deciding whether a skill has any
-		/// defensive value worth measuring properly.
+		/// Share trimmed off each end of the defence trials before they are
+		/// averaged.
 		/// </summary>
 		/// <remarks>
-		/// The defence probe is over half the windows in a roster run, and
-		/// almost all of them are spent confirming that a skill with no CC
-		/// still has no CC. Scouting first and only paying for the full
-		/// DefenseProbeTrials on a skill that showed something keeps the
-		/// stability where it matters without paying for it everywhere.
+		/// What a press prevents is bimodal per trial - a knockback lands
+		/// before the mob's next swing or after it - so the estimator has to be
+		/// a mean to converge on the mix rather than a median, which jumps
+		/// between the modes. The trim is what stops one window that caught an
+		/// extra swing from carrying that mean.
 		/// </remarks>
-		public const int DefenseScoutTrials = 2;
+		public const float DefenseTrimShare = 0.2f;
 
-		/// <summary>
-		/// How far below the deadband the scout has to land for a skill to be
-		/// dismissed without the full trials. Above one, so a skill sitting
-		/// near the deadband is measured properly rather than dismissed on a
-		/// noisy pair.
-		/// </summary>
-		public const float DefenseScoutMargin = 1.5f;
+
+
 
 		/// <summary>
 		/// How hard a measured defensive/CC value discounts the rider
@@ -446,7 +573,36 @@ namespace Melia.Test.Balance.Sfr
 		/// what the curve does out there, and a class whose budget is CC is
 		/// already paid for it once through its §4 weight.
 		/// </remarks>
-		public const float RiderFloor = 0.5f;
+		public const float RiderFloor = 0.75f;
+
+		/// <summary>
+		/// Independent measurements of the anchor the calibration takes the
+		/// median of.
+		/// </summary>
+		/// <remarks>
+		/// One, for the same reason ScenarioTrials is: the anchor is a press,
+		/// and a press replays identically now. It was three because the
+		/// anchor is pinned to AnchorFactor whatever it measures, so its own
+		/// noise never showed in its own number - it landed in the scale that
+		/// multiplies every other skill, and moved the whole roster inversely.
+		/// The machinery stays because that failure mode is invisible in the
+		/// anchor's own output and worth being able to re-arm.
+		/// </remarks>
+		public const int AnchorTrials = 1;
+
+		/// <summary>
+		/// How many times the whole low/high scenario pair is repeated.
+		/// </summary>
+		/// <remarks>
+		/// One, because a press is reproducible now. Under the virtual clock
+		/// every scenario reading - reach, hit count, SP charge slope - comes
+		/// out bit-identical run to run, so repeating the pair costs three
+		/// times the windows to produce three copies of the same number. It
+		/// was three while the probe ran on the wall clock and a volley landed
+		/// a different number of arrows inside the window each time. Raise it
+		/// only if something reintroduces real time into a press.
+		/// </remarks>
+		public const int ScenarioTrials = 1;
 
 		/// <summary>
 		/// Floor on the window a press's delivery is counted over, in

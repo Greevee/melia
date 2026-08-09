@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
 using Melia.Zone.Network;
@@ -6,6 +6,7 @@ using Melia.Zone.Pads.Handlers;
 using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.Monsters;
 using Melia.Zone.World.Actors.Pads;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Pads.HandlersOverride.Archers.Fletcher
 {
@@ -29,7 +30,7 @@ namespace Melia.Zone.Pads.HandlersOverride.Archers.Fletcher
 			var creator = args.Creator;
 
 			if (pad.Variables.TryGet<Npc>("Melia.Pad.CatenaAnchor", out var anchor))
-				anchor.DisappearTime = DateTime.Now;
+				anchor.DisappearTime = GameClock.LocalNow;
 
 			creator.RemoveEffect("Melia.Skill.CatenaChainLink");
 			creator.StopBuff(BuffId.Fletcher_CatenaChainArrow_Buff);

@@ -5,6 +5,7 @@ using Melia.Zone.Scripting;
 using Melia.Zone.Scripting.Dialogues;
 using Melia.Zone.World.Quests;
 using Melia.Zone.World.Tracks;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.World.Actors.Characters.Components
 {
@@ -88,7 +89,7 @@ namespace Melia.Zone.World.Actors.Characters.Components
 
 			this.TrackStarted?.Invoke(this.Character, this.ActiveTrack);
 
-			await Task.Delay(track.Data.StartDelay);
+			await GameClock.Delay(track.Data.StartDelay);
 
 			return true;
 		}

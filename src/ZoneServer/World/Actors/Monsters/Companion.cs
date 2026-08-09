@@ -387,7 +387,7 @@ namespace Melia.Zone.World.Actors.Monsters
 			if (this.IsDead)
 				return;
 
-			if (DateTime.Now < _emergencyCareReadyAt)
+			if (GameClock.LocalNow < _emergencyCareReadyAt)
 				return;
 
 			if (!this.Owner.TryGetActiveAbilityLevel(AbilityId.CompMastery2, out var level))
@@ -405,7 +405,7 @@ namespace Melia.Zone.World.Actors.Monsters
 			this.StartBuff(BuffId.Pet_Heal, 1, 0, duration, this.Owner);
 			this.PlayGroundEffect("F_buff_basic008_blue", 1);
 
-			_emergencyCareReadyAt = DateTime.Now + TimeSpan.FromMinutes(10);
+			_emergencyCareReadyAt = GameClock.LocalNow + TimeSpan.FromMinutes(10);
 		}
 
 		/// <summary>
@@ -480,10 +480,10 @@ namespace Melia.Zone.World.Actors.Monsters
 				this.DetachEffect("F_sys_heart");
 				this.AttachEffect("F_sys_heart", 2, EffectLocation.Top);
 
-				Task.Delay(2000).ContinueWith(_ =>
+				GameClock.Delay(2000).ContinueWith(_ =>
 				{
 					this.DetachEffect("F_sys_heart");
-				});
+				}, TaskContinuationOptions.ExecuteSynchronously);
 			}
 		}
 
@@ -647,7 +647,7 @@ namespace Melia.Zone.World.Actors.Monsters
 				attachSeconds: 1f, attachAnimation: "SIT", preserveCurrentAnim: 1);
 			Send.ZC_NORMAL.AddAttachAnimList(this, "SIT_IDLE", "SIT_IDLE2");
 
-			await Task.Delay(1000);
+			await GameClock.Delay(1000);
 
 			if (this.Owner == null || !this.IsLandedOnShoulder)
 				return;
@@ -721,7 +721,7 @@ namespace Melia.Zone.World.Actors.Monsters
 				attachSeconds: 1f, attachAnimation: "SIT", preserveCurrentAnim: 1);
 			Send.ZC_NORMAL.AddAttachAnimList(this, "SIT_IDLE", "SIT_IDLE2");
 
-			await Task.Delay(1000);
+			await GameClock.Delay(1000);
 
 			if (roost == null || roost.IsDead || !this.IsOnRoost)
 				return;
@@ -744,7 +744,7 @@ namespace Melia.Zone.World.Actors.Monsters
 		{
 			while (this.IsPerched)
 			{
-				await Task.Delay(PerchIdleLoopIntervalMs);
+				await GameClock.Delay(PerchIdleLoopIntervalMs);
 
 				if (!this.IsPerched)
 					break;

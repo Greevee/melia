@@ -7,6 +7,7 @@ using Melia.Shared.Game.Const;
 using Melia.Zone.Network;
 using Melia.Zone.World.Actors.CombatEntities.Components;
 using Melia.Zone.World.Actors.Components;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.World.Actors.Characters
 {
@@ -165,7 +166,7 @@ namespace Melia.Zone.World.Actors.Characters
 		{
 			if (delay == default)
 				delay = TimeSpan.Zero;
-			Task.Delay(delay).ContinueWith(_ => this.PlayEffectLocal(this.Connection, packetString, scale, heightOffset));
+			GameClock.Delay(delay).ContinueWith(_ => this.PlayEffectLocal(this.Connection, packetString, scale, heightOffset));
 		}
 
 		/// <summary>

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
 using Melia.Zone.Buffs.Base;
@@ -8,6 +8,7 @@ using Melia.Zone.Skills;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.Characters;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Buffs.Handlers.Scouts.Corsair
 {
@@ -76,7 +77,7 @@ namespace Melia.Zone.Buffs.Handlers.Scouts.Corsair
 		/// </summary>
 		private void IncrementCombo(Character caster)
 		{
-			var now = DateTime.Now;
+			var now = GameClock.LocalNow;
 			var feverStartTime = caster.Variables.Temp.Get<DateTime>("Melia.Buff.JollyRoger.FeverStartTime", DateTime.MinValue);
 			var timeSinceFever = (now - feverStartTime).TotalMilliseconds;
 

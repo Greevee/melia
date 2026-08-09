@@ -30,6 +30,7 @@ using Yggdrasil.Logging;
 using Yggdrasil.Util;
 using static Melia.Shared.Network.NormalOp;
 using static Melia.Zone.Skills.SkillUseFunctions;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.World.Actors
 {
@@ -536,7 +537,7 @@ namespace Melia.Zone.World.Actors
 		/// <returns></returns>
 		public static async Task PlayEffectToGround(this IActor actor, string effectName, Position position, float scale = 1f, float duration = 0f, float delay = 0, float unk1 = 0)
 		{
-			await Task.Delay(TimeSpan.FromMilliseconds(delay));
+			await GameClock.Delay(TimeSpan.FromMilliseconds(delay));
 			var effectHandle = ZoneServer.Instance.World.CreateEffectHandle();
 			Send.ZC_NORMAL.PlayEffectAtPosition(actor, effectName, position, scale, effectHandle, duration);
 		}
@@ -575,7 +576,7 @@ namespace Melia.Zone.World.Actors
 		/// </summary>
 		public static async void PlayAnimation(this IActor actor, string animationName, bool stopOnLastFrame = false, int delay = 0, byte b1 = 0)
 		{
-			await Task.Delay(delay);
+			await GameClock.Delay(delay);
 			Send.ZC_PLAY_ANI(actor, animationName, stopOnLastFrame, b1);
 		}
 
@@ -2234,7 +2235,7 @@ namespace Melia.Zone.World.Actors
 		/// </summary>
 		public static async void Resize(this ICombatEntity entity, float scale)
 		{
-			await Task.Delay(500);
+			await GameClock.Delay(500);
 			if (entity is Character)
 				return;
 

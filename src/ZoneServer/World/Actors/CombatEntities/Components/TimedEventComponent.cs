@@ -7,6 +7,7 @@ using Melia.Zone.World.Actors.CombatEntities.Components;
 using Yggdrasil.Composition;
 using Yggdrasil.Logging;
 using Yggdrasil.Scheduling;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.World.Actors.Components
 {
@@ -34,7 +35,7 @@ namespace Melia.Zone.World.Actors.Components
 				this.RepeatDelay = repeatDelay;
 				this.RepeatCount = repeatCount;
 				this.Function = function;
-				this.NextRunTime = DateTime.Now.Add(this.StartDelay);
+				this.NextRunTime = GameClock.LocalNow.Add(this.StartDelay);
 			}
 
 			public Action<ICombatEntity> Function { get; }
@@ -153,7 +154,7 @@ namespace Melia.Zone.World.Actors.Components
 
 						eventsToRemoved.Add(timedEventKey);
 					}
-					else if (DateTime.Now > timedEvent.NextRunTime && (timedEvent.IsInfinite || timedEvent.Count <= timedEvent.RepeatCount))
+					else if (GameClock.LocalNow > timedEvent.NextRunTime && (timedEvent.IsInfinite || timedEvent.Count <= timedEvent.RepeatCount))
 					{
 						if (timedEvent.Function != null)
 						{
@@ -161,7 +162,7 @@ namespace Melia.Zone.World.Actors.Components
 							toInvoke.Add(timedEvent.Function);
 						}
 
-						timedEvent.NextRunTime = DateTime.Now.Add(timedEvent.RepeatDelay);
+						timedEvent.NextRunTime = GameClock.LocalNow.Add(timedEvent.RepeatDelay);
 						timedEvent.Count++;
 
 						if (!timedEvent.IsInfinite && timedEvent.Count >= timedEvent.RepeatCount)

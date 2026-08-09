@@ -127,7 +127,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Ranger
 				var duration = TimeSpan.FromMilliseconds(2500);
 				target.StartBuff(BuffId.Freeze, skill.Level, 0, duration, caster);
 			}
-			else if (RandomProvider.Next(100) < 50)
+			else if (RandomProvider.Get().Next(100) < 50)
 			{
 				var duration = TimeSpan.FromSeconds(7);
 				target.StartBuff(BuffId.Common_Slow, skill.Level, 0, duration, caster);
@@ -161,7 +161,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Ranger
 					Send.ZC_HIT_INFO(caster, bounceTarget, hit2);
 
 					// Random chance to apply Slow debuff
-					if (RandomProvider.Next(100) < 50)
+					if (RandomProvider.Get().Next(100) < 50)
 					{
 						var duration = TimeSpan.FromSeconds(7);
 						bounceTarget.StartBuff(BuffId.Common_Slow, skill.Level, 0, duration, caster);

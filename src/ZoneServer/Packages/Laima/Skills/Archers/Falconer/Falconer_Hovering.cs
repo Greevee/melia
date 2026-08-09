@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,6 +14,7 @@ using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.Characters;
 using static Melia.Zone.Skills.SkillUseFunctions;
 using static Melia.Zone.Skills.Helpers.SkillDamageHelper;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Skills.Handlers.Archers.Falconer
 {
@@ -77,7 +78,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Falconer
 			if (caster.TryGetActiveAbilityLevel(AbilityId.Falconer3, out var abilLevel))
 				duration += abilLevel * 3000;
 
-			var endTime = DateTime.Now.AddMilliseconds(duration);
+			var endTime = GameClock.LocalNow.AddMilliseconds(duration);
 
 			// Falconer4: Hovering: Attack Speed Buff - reduced attack interval
 			var attackInterval = BaseAttackIntervalMs;
@@ -89,7 +90,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Falconer
 			hawk.PlayAnimation("HOVERING_LOOP");
 
 			// Periodic attack loop
-			while (DateTime.Now < endTime && !caster.IsDead && !hawk.IsDead && !pad.IsDead)
+			while (GameClock.LocalNow < endTime && !caster.IsDead && !hawk.IsDead && !pad.IsDead)
 			{
 				// Hovering loop effect
 				caster.PlayGroundEffect(targetPos, "F_archer_hovering_loop", 0.5f);

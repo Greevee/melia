@@ -27,6 +27,7 @@ using Melia.Zone.Scripting;
 using Melia.Zone.Skills.Handlers;
 using Melia.Zone.World.Actors.Characters;
 using Melia.Zone.World;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Skills.HandlersOverrides.Clerics.Dievdirbys
 {
@@ -184,7 +185,7 @@ namespace Melia.Zone.Skills.HandlersOverrides.Clerics.Dievdirbys
 
 				// Use Task.Delay instead of skill.Wait so the loop is independent
 				// of the skill's cancellation token (survives skill recast)
-				await Task.Delay(checkInterval);
+				await GameClock.Delay(checkInterval);
 			}
 		}
 	}

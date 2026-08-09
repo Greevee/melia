@@ -23,6 +23,7 @@ using static Melia.Zone.Skills.Helpers.SkillDamageHelper;
 using static Melia.Zone.Skills.Helpers.SkillResultHelper;
 using static Melia.Zone.Skills.Helpers.SkillTargetHelper;
 using static Melia.Zone.Skills.Helpers.SkillUtilHelper;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Skills.Handlers.Hunter
 {
@@ -113,7 +114,7 @@ namespace Melia.Zone.Skills.Handlers.Hunter
 			caster.Map.AddMonster(copy);
 			copy.DelayEnterWorld();
 			copy.EnterDelayedActor();
-			copy.DisappearTime = DateTime.Now.AddSeconds(2);
+			copy.DisappearTime = GameClock.LocalNow.AddSeconds(2);
 
 			return copy;
 		}
@@ -126,7 +127,7 @@ namespace Melia.Zone.Skills.Handlers.Hunter
 			caster.Map.AddMonster(meat);
 			meat.DelayEnterWorld();
 			meat.EnterDelayedActor();
-			meat.DisappearTime = DateTime.Now.AddSeconds(5);
+			meat.DisappearTime = GameClock.LocalNow.AddSeconds(5);
 			Send.ZC_NORMAL.Skill_08(meat, "F_smoke109_2", 1.5f, targetPos, 0.5f, 0f, 900f, 1f, 0f);
 			return meat;
 		}

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
@@ -11,6 +11,7 @@ using Melia.Zone.World.Actors.Monsters;
 using Melia.Zone.World.Actors.Pads;
 using static Melia.Zone.Pads.Helpers.PadHelper;
 using static Melia.Zone.Skills.SkillUseFunctions;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Pads.HandlersOverride.Archers.Wugushi
 {
@@ -100,7 +101,7 @@ namespace Melia.Zone.Pads.HandlersOverride.Archers.Wugushi
 			if (bossCardId <= 0)
 				return;
 
-			var now = DateTime.Now;
+			var now = GameClock.LocalNow;
 			if (pad.Variables.Has("Melia.BossCard.NextFire"))
 			{
 				var nextFire = pad.Variables.Get<DateTime>("Melia.BossCard.NextFire");

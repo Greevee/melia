@@ -9,6 +9,7 @@ using Melia.Zone.Skills.SplashAreas;
 using Melia.Zone.World.Actors;
 using Yggdrasil.Util;
 using static Melia.Zone.Skills.SkillUseFunctions;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Skills.Handlers.Archers.Archer
 {
@@ -56,7 +57,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Archer
 
 			Send.ZC_SKILL_FORCE_TARGET(caster, target, skill, skillHit);
 
-			if (RandomProvider.Next(100) < 50)
+			if (RandomProvider.Get().Next(100) < 50)
 			{
 				var duration = TimeSpan.FromSeconds(7);
 				target.StartBuff(BuffId.Common_Slow, skill.Level, 0, duration, caster);
@@ -68,7 +69,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Archer
 				// is hit. Uncommenting this delay will fix this, delaying the
 				// bounce shot animation.
 				// var bounceHitDelay = TimeSpan.FromMilliseconds(420);
-				// await Task.Delay(bounceHitDelay);
+				// await GameClock.Delay(bounceHitDelay);
 
 				skillHitResult = SCR_SkillHit(caster, bounceTarget, skill);
 				bounceTarget.TakeDamage(skillHitResult.Damage, caster);

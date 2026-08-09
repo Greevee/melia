@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
@@ -13,6 +13,7 @@ using Melia.Zone.World.Actors.Pads;
 using static Melia.Shared.Util.TaskHelper;
 using Melia.Zone.Pads;
 using Melia.Zone.Pads.Handlers;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Packages.Laima.Pads.Swordsmen.Peltasta
 {
@@ -96,7 +97,7 @@ namespace Melia.Zone.Packages.Laima.Pads.Swordsmen.Peltasta
 		{
 			// Forward and back, hovering a moment in between.
 			await this.FlyForward(pad, creator);
-			await Task.Delay(500);
+			await GameClock.Delay(500);
 			await this.FlyBack(pad, creator);
 
 			pad.Destroy();
@@ -113,7 +114,7 @@ namespace Melia.Zone.Packages.Laima.Pads.Swordsmen.Peltasta
 		{
 			var dest = creator.Position.GetRelative(creator.Direction, ShieldFlyDistance);
 			var moveTime = pad.Movement.MoveTo(dest);
-			await Task.Delay(moveTime);
+			await GameClock.Delay(moveTime);
 		}
 
 		/// <summary>
@@ -138,7 +139,7 @@ namespace Melia.Zone.Packages.Laima.Pads.Swordsmen.Peltasta
 				var dest = pad.Position.GetRelative(creator.Position, 300);
 				pad.Movement.MoveTo(dest);
 
-				await Task.Delay(HomingTickTime);
+				await GameClock.Delay(HomingTickTime);
 			}
 
 			// Final push to get back to the creator. Aim past the creator
@@ -149,7 +150,7 @@ namespace Melia.Zone.Packages.Laima.Pads.Swordsmen.Peltasta
 				finalDest = creator.Position.GetRelative(creator.Direction, 50);
 
 			var moveTime = pad.Movement.MoveTo(finalDest);
-			await Task.Delay(moveTime);
+			await GameClock.Delay(moveTime);
 		}
 	}
 }

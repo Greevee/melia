@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Melia.Shared.Game.Const;
@@ -14,6 +14,7 @@ using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.Characters;
 using Melia.Zone.World.Actors.CombatEntities.Components;
 using Melia.Zone.World.Actors.Monsters;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Skills.Handlers.Archers.Falconer
 {
@@ -195,8 +196,8 @@ namespace Melia.Zone.Skills.Handlers.Archers.Falconer
 			try
 			{
 				// Monitor buff state — hold the queue for the full ride
-				var endTime = DateTime.Now.Add(buffTimeSpan);
-				while (DateTime.Now < endTime && !caster.IsDead && !hawk.IsDead)
+				var endTime = GameClock.LocalNow.Add(buffTimeSpan);
+				while (GameClock.LocalNow < endTime && !caster.IsDead && !hawk.IsDead)
 				{
 					if (!caster.IsBuffActive(BuffId.HangingShot))
 						break;

@@ -23,6 +23,7 @@ using Yggdrasil.Extensions;
 using Yggdrasil.Logging;
 using Yggdrasil.Util;
 using static Melia.Shared.Util.TaskHelper;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Scripting.AI
 {
@@ -219,7 +220,7 @@ namespace Melia.Zone.Scripting.AI
 					}
 				}
 
-				var now = DateTime.UtcNow;
+				var now = GameClock.Now;
 
 				// Recompute the lead every ~250ms or whenever the target
 				// has drifted far enough from the last destination that
@@ -388,8 +389,8 @@ namespace Melia.Zone.Scripting.AI
 			var estimatedTime = _movement?.MoveStraight(validDest) ?? TimeSpan.Zero;
 			if (estimatedTime <= TimeSpan.Zero) yield break;
 
-			var deadline = DateTime.UtcNow + estimatedTime + TimeSpan.FromMilliseconds(200);
-			while (_movement != null && _movement.IsMoving && DateTime.UtcNow < deadline)
+			var deadline = GameClock.Now + estimatedTime + TimeSpan.FromMilliseconds(200);
+			while (_movement != null && _movement.IsMoving && GameClock.Now < deadline)
 			{
 				// Target came into range during the walk — stop and cast now
 				// so we don't waste time arriving at a spot we no longer need.
@@ -571,7 +572,7 @@ namespace Melia.Zone.Scripting.AI
 		protected virtual IEnumerable UseSkill(Skill skill, ICombatEntity target, TimeSpan delay = default)
 		{
 			// Track when we start using a skill for fear behavior timing
-			_lastSkillUseTime = DateTime.UtcNow;
+			_lastSkillUseTime = GameClock.Now;
 			// Track the skill's duration to prevent interruption during animation
 			_lastSkillDuration = (delay == default) ? skill.Properties.ShootTime : delay;
 
@@ -622,8 +623,8 @@ namespace Melia.Zone.Scripting.AI
 			var useTime = (delay == default) ? skill.Properties.ShootTime : delay;
 			if (useTime > TimeSpan.Zero)
 			{
-				var waitEnd = DateTime.Now + useTime;
-				while (DateTime.Now < waitEnd)
+				var waitEnd = GameClock.LocalNow + useTime;
+				while (GameClock.LocalNow < waitEnd)
 				{
 					// If the cast was interrupted, stop waiting immediately
 					if (skill.Vars.GetBool("Melia.MonsterCastInterrupted"))

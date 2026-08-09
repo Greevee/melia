@@ -18,6 +18,7 @@ using Melia.Zone.World.Actors.Monsters;
 using Yggdrasil.Geometry;
 using Yggdrasil.Geometry.Shapes;
 using static Melia.Zone.Skills.SkillUseFunctions;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Skills.Handlers.Clerics.Cleric
 {
@@ -156,7 +157,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Cleric
 					trigger.SetTriggerArea(area);
 					trigger.SetEnterTrigger("CLERIC_HEAL_ENTER", this.OnEnterHealingPad);
 
-					trigger.DisappearTime = DateTime.Now.AddSeconds(10);
+					trigger.DisappearTime = GameClock.LocalNow.AddSeconds(10);
 					caster.Map.AddMonster(trigger);
 
 					trigger.AttachEffect("F_cleric_heal_loop_ground_cleric01_3", scale);
@@ -201,7 +202,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Cleric
 				}
 
 				Send.ZC_NORMAL.ClearEffects(trigger);
-				trigger.DisappearTime = DateTime.Now.AddSeconds(1);
+				trigger.DisappearTime = GameClock.LocalNow.AddSeconds(1);
 			}
 
 			return Task.CompletedTask;

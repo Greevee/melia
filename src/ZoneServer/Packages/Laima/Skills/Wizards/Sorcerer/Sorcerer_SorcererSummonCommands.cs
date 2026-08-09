@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -13,6 +13,7 @@ using Melia.Zone.World.Actors.Characters;
 using Melia.Zone.World.Actors.Characters.Components;
 using Melia.Zone.World.Actors.CombatEntities.Components;
 using Melia.Zone.World.Actors.Monsters;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Skills.Handlers.Wizards.Sorcerer
 {
@@ -397,7 +398,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Sorcerer
 							ResetBatState(bat);
 							return;
 						}
-						await Task.Delay(TimeSpan.FromMilliseconds(500));
+						await GameClock.Delay(TimeSpan.FromMilliseconds(500));
 					}
 				}
 
@@ -415,7 +416,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Sorcerer
 						break;
 
 					bat.MoveTo(target.Position);
-					await Task.Delay(TimeSpan.FromMilliseconds(500));
+					await GameClock.Delay(TimeSpan.FromMilliseconds(500));
 				}
 
 				// Attack and die (kamikaze attack)

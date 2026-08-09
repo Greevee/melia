@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
@@ -11,6 +11,7 @@ using Melia.Zone.World.Actors.Components;
 using Melia.Zone.World.Actors.Monsters;
 using Melia.Zone.World.Actors.Pads;
 using static Melia.Zone.Pads.Helpers.PadHelper;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Pads.Handlers.Clerics.Paladin
 {
@@ -128,7 +129,7 @@ namespace Melia.Zone.Pads.Handlers.Clerics.Paladin
 
 		private static void CleanupExpired(Dictionary<int, DateTime> tracked)
 		{
-			var now = DateTime.UtcNow;
+			var now = GameClock.Now;
 			var expired = new List<int>();
 
 			foreach (var kv in tracked)
@@ -145,7 +146,7 @@ namespace Melia.Zone.Pads.Handlers.Clerics.Paladin
 		{
 			if (tracked.ContainsKey(handle))
 			{
-				tracked[handle] = DateTime.UtcNow;
+				tracked[handle] = GameClock.Now;
 				return true;
 			}
 
@@ -154,7 +155,7 @@ namespace Melia.Zone.Pads.Handlers.Clerics.Paladin
 			if (tracked.Count >= MaxTrackedEnemies)
 				return false;
 
-			tracked[handle] = DateTime.UtcNow;
+			tracked[handle] = GameClock.Now;
 			return true;
 		}
 	}

@@ -7,6 +7,7 @@ using Melia.Zone.Network;
 using Melia.Zone.Scripting.ScriptableEvents;
 using Melia.Zone.Skills.Handlers.Base;
 using Melia.Zone.World.Actors;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Skills.Handlers.Wizards.Wizard
 {
@@ -43,7 +44,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Wizard
 
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos, null);
 
-			var now = DateTime.Now;
+			var now = GameClock.LocalNow;
 			var usedRecently = false;
 
 			if (skill.Vars.TryGet("Melia.LastUse", out DateTime lastUse))

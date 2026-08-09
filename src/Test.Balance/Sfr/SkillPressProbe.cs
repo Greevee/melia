@@ -1,10 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Shared.World;
 using Melia.Zone;
 using Melia.Zone.Buffs;
@@ -115,6 +116,22 @@ namespace Melia.Test.Balance.Sfr
 		/// The factor the press was run at, which is the same for every skill.
 		/// </summary>
 		public float Factor { get; init; }
+
+		/// <summary>
+		/// The basicSp the press was run at, or zero when it ran on the skill's
+		/// own cost.
+		/// </summary>
+		public float SpPinned { get; init; }
+
+		/// <summary>
+		/// SP the caster actually spent over the whole window.
+		/// </summary>
+		/// <remarks>
+		/// Read off the bar rather than hooked, which is why the caster's SP
+		/// regeneration is suppressed for the press: the number has to be what
+		/// the press took, not what it took net of what ticked back.
+		/// </remarks>
+		public float SpSpent { get; init; }
 
 		/// <summary>
 		/// Attack power before the defense curve, averaged over the roll's
@@ -252,7 +269,7 @@ namespace Melia.Test.Balance.Sfr
 		/// Entities damaged per scenario, which replaces the resolved splash
 		/// count in the price.
 		/// </summary>
-		public Dictionary<string, int> Targets { get; } = [];
+		public Dictionary<string, float> Targets { get; } = [];
 
 		/// <summary>
 		/// Whether every priced scenario measured without error.
@@ -288,6 +305,30 @@ namespace Melia.Test.Balance.Sfr
 		/// probe found nothing or could not run.
 		/// </summary>
 		public float SwingsPrevented { get; set; }
+
+		/// <summary>
+		/// How many times one press charges its own SP cost.
+		/// </summary>
+		/// <remarks>
+		/// The slope of SP spent against the cost it was pinned at, taken from
+		/// the two points the factor line is already measured at. One for a
+		/// press that pays once; a channel or a per-tick pad reads its tick
+		/// count, and the priced cost is divided by it so what the press
+		/// actually spends is the budget rather than a multiple of it.
+		/// </remarks>
+		public float SpChargeSlope { get; set; } = 1f;
+
+		/// <summary>
+		/// SP the press spent that did not move with the pinned cost, which is
+		/// whatever a handler bills at a rate of its own.
+		/// </summary>
+		public float SpFixedSpend { get; set; }
+
+		/// <summary>
+		/// Whether the charge slope came from a measurement rather than the
+		/// fallback of one.
+		/// </summary>
+		public bool SpMeasured { get; set; }
 	}
 
 	/// <summary>
@@ -347,6 +388,12 @@ namespace Melia.Test.Balance.Sfr
 		/// Extra max HP so a press never kills what it is being measured on.
 		/// </summary>
 		private const float SurvivalHp = 100_000_000f;
+
+		/// <summary>
+		/// Extra max SP so a press pinned at SpProbeHigh never runs the bar
+		/// dry, kept small enough that a float still holds the spend exactly.
+		/// </summary>
+		private const float SurvivalSp = 100_000f;
 
 		/// <summary>
 		/// Seed the press runs under, so a rerun reproduces it.
@@ -411,11 +458,30 @@ namespace Melia.Test.Balance.Sfr
 		/// in full so truncation is still detected; this only bounds what is
 		/// counted. Null counts everything.
 		/// </param>
-		public static SkillPressResult Measure(JobEntry job, SkillId skillId, int skillLevel, ScenarioSpec spec, int characterLevel, float factor = SfrDamageCurve.BaselineFactor, Map arena = null, bool fullWindow = false, int? countWindowMs = null)
+		/// <param name="basicSp">
+		/// The SP cost to pin the skill at for this press, so what it actually
+		/// spends can be read against a known input. Null leaves the skill's
+		/// own cost alone.
+		/// </param>
+		public static SkillPressResult Measure(JobEntry job, SkillId skillId, int skillLevel, ScenarioSpec spec, int characterLevel, float factor = SfrDamageCurve.BaselineFactor, Map arena = null, bool fullWindow = false, int? countWindowMs = null, float? basicSp = null)
 		{
 			var character = (Character)null;
 			var mobs = new List<Mob>();
 			var className = skillId.ToString();
+
+			// Installed before anything is created, so every task the press
+			// starts inherits it: GameClock.Current is AsyncLocal, and an
+			// async flow carries the value it was started with. Started at the
+			// real local time rather than an epoch, so any timing site that
+			// still reads the wall clock compares against something sane.
+			GameClock.Use(new VirtualClock(DateTime.Now));
+
+			// Seeded before anything is built, not just before the press.
+			// Creating the character, rolling its reference gear and placing
+			// the pull all draw on the RNG, so seeding after them left the
+			// actors themselves varying between runs - and a mob that rolled
+			// different stats takes a different number of hits.
+			DeterministicRandom.Seed(Seed);
 
 			try
 			{
@@ -460,10 +526,13 @@ namespace Melia.Test.Balance.Sfr
 				DeterministicRandom.Seed(Seed);
 
 				using (new SfrFactorScope(skill, factor))
+				using (var spScope = basicSp != null ? new SfrSpScope(skill, basicSp.Value) : null)
 				using (var recorder = new SfrPressRecorder(character))
 				{
 					var timeline = fullWindow ? new List<(int, float)>() : null;
+					var spBefore = character.Properties.GetFloat(PropertyName.SP);
 					var truncated = Press(skill, character, aimPos, mobs, map, recorder, fullWindow, timeline);
+					var spSpent = Math.Max(0f, spBefore - character.Properties.GetFloat(PropertyName.SP));
 
 					// The pricer's budget is one cycle, so the delivery it
 					// divides by is read over one cycle too. The press itself
@@ -502,6 +571,8 @@ namespace Melia.Test.Balance.Sfr
 						PrimaryDamage = primary != null ? recorder.DamageOn(primary) : 0,
 						TotalDamage = recorder.TotalDamage(),
 						Factor = factor,
+						SpPinned = basicSp ?? 0f,
+						SpSpent = spSpent,
 						AttackPower = AttackPower(character, skill),
 						TargetDefense = Defense(primary, skill),
 						MitigatedAttack = SfrDamageCurve.MitigatedAttack(AttackPower(character, skill), Defense(primary, skill)),
@@ -527,6 +598,7 @@ namespace Melia.Test.Balance.Sfr
 			finally
 			{
 				DeterministicRandom.Reset();
+				GameClock.Use(null);
 				SyntheticActors.Cleanup(character, mobs.ToArray());
 			}
 		}
@@ -578,8 +650,9 @@ namespace Melia.Test.Balance.Sfr
 			void Scenarios()
 			{
 				var specs = SfrGeometry.PricedScenarios.ToArray();
-				var low = new SkillPressResult[specs.Length];
-				var high = new SkillPressResult[specs.Length];
+				var trials = Math.Max(1, SfrDials.ScenarioTrials);
+				var low = new SkillPressResult[trials][];
+				var high = new SkillPressResult[trials][];
 
 				// Every scenario is run at both factor points, because how many
 				// times a press hits each target is a property of the encounter
@@ -588,22 +661,39 @@ namespace Melia.Test.Balance.Sfr
 				// per target in a pile. Read from S1 alone that was 1.0, and the
 				// crowd damage it was actually delivering went unpriced.
 				//
-				// fullWindow on both, so a DoT or pad tail is inside the count
+				// The whole pair is then repeated ScenarioTrials times and every
+				// reading taken as a median across the repeats. A press is a
+				// live wall-clock simulation, so how many of a volley's arrows
+				// land inside the window is not the same twice, and reach feeds
+				// both the width term and the spread cap - which divides by a
+				// max across scenarios, the least stable statistic in the model.
+				//
+				// fullWindow throughout, so a DoT or pad tail is inside the count
 				// the same way the old single-scenario pass had it.
 				var work = new List<Action>();
 
-				for (var i = 0; i < specs.Length; ++i)
+				for (var trial = 0; trial < trials; ++trial)
 				{
-					var at = i;
+					low[trial] = new SkillPressResult[specs.Length];
+					high[trial] = new SkillPressResult[specs.Length];
 
-					work.Add(() => low[at] = Run(specs[at], SfrDamageCurve.BaselineFactor));
-					work.Add(() => high[at] = Run(specs[at], SfrDamageCurve.BaselineFactor * 2f));
+					for (var i = 0; i < specs.Length; ++i)
+					{
+						var t = trial;
+						var at = i;
+
+						work.Add(() => low[t][at] = Run(specs[at], SfrDamageCurve.BaselineFactor, SfrDials.SpProbeLow));
+						work.Add(() => high[t][at] = Run(specs[at], SfrDamageCurve.BaselineFactor * 2f, SfrDials.SpProbeHigh));
+					}
 				}
 
-				SkillPressResult Run(ScenarioSpec spec, float factor)
+				// The two factor points carry the two SP points as well, so
+				// what a press charges costs no window of its own: the pair
+				// gives the factor line and the SP line at once.
+				SkillPressResult Run(ScenarioSpec spec, float factor, float basicSp)
 					=> pool == null
-						? Measure(job, data.Id, level, spec, charLevel, factor, arena, fullWindow: true)
-						: pool.Use(a => Measure(job, data.Id, level, spec, charLevel, factor, a, fullWindow: true));
+						? Measure(job, data.Id, level, spec, charLevel, factor, arena, fullWindow: true, basicSp: basicSp)
+						: pool.Use(a => Measure(job, data.Id, level, spec, charLevel, factor, a, fullWindow: true, basicSp: basicSp));
 
 				if (pool == null)
 				{
@@ -617,8 +707,13 @@ namespace Melia.Test.Balance.Sfr
 
 				for (var i = 0; i < specs.Length; ++i)
 				{
-					measured.Scenarios[specs[i].Id] = low[i];
-					measured.Targets[specs[i].Id] = low[i].TargetsDamaged;
+					var at = i;
+
+					measured.Scenarios[specs[i].Id] = low[0][i];
+					measured.Targets[specs[i].Id] = Median(Enumerable.Range(0, trials)
+						.SelectMany(t => new[] { low[t][at], high[t][at] })
+						.Where(r => r != null && r.Error == null)
+						.Select(r => (float)r.TargetsDamaged));
 				}
 
 				if (measured.Scenarios.TryGetValue("S1", out var single) && single.Error == null)
@@ -631,18 +726,33 @@ namespace Melia.Test.Balance.Sfr
 					measured.CountWindowSeconds = SfrData.CycleFor(skillName) ?? 0f;
 				}
 
-				try
+				MeasureSpCharges(specs, low, high, measured);
+
+				var counts = new List<float>();
+				var anyTruncated = false;
+
+				for (var trial = 0; trial < trials; ++trial)
 				{
-					var hits = HitsPerTarget(specs, low, high, out var truncated);
+					try
+					{
+						counts.Add(HitsPerTarget(specs, low[trial], high[trial], out var truncated));
+						anyTruncated |= truncated;
+					}
+					catch (Exception ex)
+					{
+						measured.HitsFailure = ex.Message;
+					}
+				}
+
+				if (counts.Count > 0)
+				{
+					var hits = Median(counts);
 
 					measured.DirectHits = Math.Max(1, (int)Math.Round(hits));
 					measured.HitEquivalents = hits;
-					measured.HitsTruncated = truncated;
+					measured.HitsTruncated = anyTruncated;
 					measured.HitsFromDamage = true;
-				}
-				catch (Exception ex)
-				{
-					measured.HitsFailure = ex.Message;
+					measured.HitsFailure = null;
 				}
 			}
 
@@ -677,6 +787,91 @@ namespace Melia.Test.Balance.Sfr
 				measured.DirectHits = fallbackHits;
 
 			return measured;
+		}
+
+		/// <summary>
+		/// Returns the median of a set of readings, or zero when there are none.
+		/// </summary>
+		/// <remarks>
+		/// The median rather than the mean throughout, because the readings this
+		/// stabilizes are counts taken over a fixed wall-clock window: a press
+		/// that happened to have its last arrow land a tick past the boundary is
+		/// an outlier, not a sample of the same distribution, and a mean carries
+		/// it into the price.
+		/// </remarks>
+		/// <param name="values"></param>
+		private static float Median(IEnumerable<float> values)
+		{
+			var ordered = values.OrderBy(v => v).ToArray();
+
+			if (ordered.Length == 0)
+				return 0f;
+
+			var middle = ordered.Length / 2;
+
+			return ordered.Length % 2 == 1
+				? ordered[middle]
+				: (ordered[middle - 1] + ordered[middle]) / 2f;
+		}
+
+		/// <summary>
+		/// Reads how many times one press charges its own SP cost, from the two
+		/// pinned costs the scenarios already ran at.
+		/// </summary>
+		/// <remarks>
+		/// SP spent is affine in the cost the skill is pinned at - a press
+		/// charges it a fixed number of times, whatever it is - so the slope
+		/// between the two points is the charge count and the intercept is
+		/// whatever the handler bills at a rate of its own. Most presses read a
+		/// slope of one; a channel, or a pad that bills per tick, reads its
+		/// tick count, which is the whole reason the pin exists.
+		///
+		/// Taken from the single-target scenario, so a wide press is not read
+		/// as charging once per target it reached. Averaged over nothing: the
+		/// two points are exact, since the pin removes the level term.
+		/// </remarks>
+		/// <param name="specs"></param>
+		/// <param name="low"></param>
+		/// <param name="high"></param>
+		/// <param name="measured"></param>
+		private static void MeasureSpCharges(ScenarioSpec[] specs, SkillPressResult[][] low, SkillPressResult[][] high, SfrMeasuredPress measured)
+		{
+			var at = Array.FindIndex(specs, s => s.Id == "S1");
+
+			if (at < 0)
+				return;
+
+			var slopes = new List<float>();
+			var fixedSpends = new List<float>();
+
+			for (var trial = 0; trial < low.Length; ++trial)
+			{
+				var a = low[trial][at];
+				var b = high[trial][at];
+
+				if (a == null || b == null || a.Error != null || b.Error != null)
+					continue;
+
+				var span = b.SpPinned - a.SpPinned;
+
+				if (span <= 0)
+					continue;
+
+				var slope = (b.SpSpent - a.SpSpent) / span;
+
+				if (slope < SfrDials.MinSpChargeSlope)
+					continue;
+
+				slopes.Add(slope);
+				fixedSpends.Add(Math.Max(0f, a.SpSpent - slope * a.SpPinned));
+			}
+
+			if (slopes.Count == 0)
+				return;
+
+			measured.SpChargeSlope = Median(slopes);
+			measured.SpFixedSpend = Median(fixedSpends);
+			measured.SpMeasured = true;
 		}
 
 		/// <summary>
@@ -874,10 +1069,11 @@ namespace Melia.Test.Balance.Sfr
 				return false;
 
 			var tick = TimeSpan.FromMilliseconds(TickMs);
+			var clock = GameClock.Current;
 
 			for (var elapsed = 0; elapsed < MaxPressMs; elapsed += TickMs)
 			{
-				Thread.Sleep(TickMs);
+				Step(clock, tick);
 				map.Update(tick);
 				timeline?.Add((elapsed, HpLost(mobs)));
 
@@ -912,12 +1108,36 @@ namespace Melia.Test.Balance.Sfr
 				if (!skill.IsRunning && OutlivingTickReason(caster, mobs) == null && OutlivingPadReason(map, caster) == null)
 					return false;
 
-				Thread.Sleep(TickMs);
+				Step(clock, tick);
 				map.Update(tick);
 				timeline?.Add((MaxPressMs + drained, HpLost(mobs)));
 			}
 
 			return skill.IsRunning || OutlivingTickReason(caster, mobs) != null || OutlivingPadReason(map, caster) != null;
+		}
+
+		/// <summary>
+		/// Moves one tick of the press's clock, virtual or real.
+		/// </summary>
+		/// <remarks>
+		/// With a virtual clock the tick costs nothing and everything paced
+		/// against it - a handler's own Wait, a buff's expiry, a pad's
+		/// lifetime - resolves on this thread before the call returns, so the
+		/// press replays identically however loaded the machine is. Without
+		/// one it falls back to sleeping, which is what the whole measurement
+		/// used to do.
+		/// </remarks>
+		/// <param name="clock"></param>
+		/// <param name="tick"></param>
+		internal static void Step(VirtualClock clock, TimeSpan tick)
+		{
+			if (clock == null)
+			{
+				Thread.Sleep(tick);
+				return;
+			}
+
+			clock.Advance(tick);
 		}
 
 		/// <summary>
@@ -1178,9 +1398,23 @@ namespace Melia.Test.Balance.Sfr
 		/// Tops the caster up so an empty SP pool is not what the press
 		/// measures.
 		/// </summary>
+		/// <remarks>
+		/// The bar is widened and its regeneration switched off, because the SP
+		/// a press spends is read off it. A channel pinned at SpProbeHigh bills
+		/// its cost every tick and would otherwise run the bar dry - which
+		/// stops the channel, so the damage measurement would move with the SP
+		/// pin too. SCR_Get_Character_RSP floors at zero, so a large enough
+		/// negative RSP_BM is what stops RecoverSp handing SP back mid-window.
+		/// SurvivalSp stays inside the range a float holds exactly, so a spend
+		/// of a few SP is not lost in the rounding.
+		/// </remarks>
 		/// <param name="character"></param>
 		private static void Refill(Character character)
 		{
+			character.Properties.SetFloat(PropertyName.MSP_BM, SurvivalSp);
+			character.Properties.SetFloat(PropertyName.RSP_BM, -SurvivalSp);
+			character.Properties.Invalidate(PropertyName.MSP, PropertyName.RSP);
+
 			character.Properties.SetFloat(PropertyName.HP, character.Properties.GetFloat(PropertyName.MHP));
 			character.Properties.SetFloat(PropertyName.SP, character.Properties.GetFloat(PropertyName.MSP));
 		}

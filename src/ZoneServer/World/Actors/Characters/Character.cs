@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
@@ -37,6 +37,7 @@ using Yggdrasil.Logging;
 using Yggdrasil.Scheduling;
 using Yggdrasil.Util;
 using static Melia.Shared.Util.TaskHelper;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.World.Actors.Characters
 {
@@ -95,7 +96,7 @@ namespace Melia.Zone.World.Actors.Characters
 		/// <summary>
 		/// Returns when the character was last saved.
 		/// </summary>
-		public DateTime LastSaved { get; set; } = DateTime.UtcNow;
+		public DateTime LastSaved { get; set; } = GameClock.Now;
 
 		/// <summary>
 		/// Returns whether the character is travelling between maps.

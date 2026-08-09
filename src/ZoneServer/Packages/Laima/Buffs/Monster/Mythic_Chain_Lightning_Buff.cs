@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,6 +13,7 @@ using Melia.Zone.Skills.Combat;
 using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.Monsters;
 using static Melia.Zone.Skills.SkillUseFunctions;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Buffs.Handlers.Laima.Monster
 {
@@ -142,7 +143,7 @@ namespace Melia.Zone.Buffs.Handlers.Laima.Monster
 				var hitInfo = new HitInfo(monster, chainTarget, dummySkill, damage, skillHitResult.Result);
 				Send.ZC_HIT_INFO(monster, chainTarget, hitInfo);
 
-				await Task.Delay(100);
+				await GameClock.Delay(100);
 			}
 		}
 	}

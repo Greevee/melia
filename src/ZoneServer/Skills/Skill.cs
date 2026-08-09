@@ -7,6 +7,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.ObjectProperties;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Buffs;
 using Melia.Zone.Buffs.Base;
 using Melia.Zone.Network;
@@ -754,13 +755,18 @@ namespace Melia.Zone.Skills
 
 			Interlocked.Increment(ref _runnerCount);
 
+			// Synchronously, so the runner count drops on the thread that
+			// finished the task rather than whenever the pool gets to it.
+			// IsRunning is what tells a caller the skill is done, and a
+			// pool-scheduled decrement makes that answer depend on how busy
+			// the machine is.
 			task.WaitAsync(_cts.Token).ContinueWith(t =>
 			{
 				Interlocked.Decrement(ref _runnerCount);
 
 				if (t.Exception != null)
 					Log.Error("An exception occured while running '{0}' for '{1}': {2}", this.Id, this.Owner?.Name ?? "(disposed)", t.Exception);
-			});
+			}, TaskContinuationOptions.ExecuteSynchronously);
 		}
 
 		/// <summary>
@@ -826,7 +832,7 @@ namespace Melia.Zone.Skills
 				return;
 
 			var token = (cancellable && _cts != null) ? _cts.Token : CancellationToken.None;
-			await Task.Delay(time, token);
+			await GameClock.Delay(time, token);
 		}
 
 		/// <summary>

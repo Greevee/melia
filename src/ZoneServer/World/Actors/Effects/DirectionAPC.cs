@@ -10,6 +10,7 @@ using Melia.Zone.World.Actors.Monsters;
 using Yggdrasil.Geometry.Shapes;
 using Yggdrasil.Logging;
 using Yggdrasil.Scheduling;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.World.Actors.Effects
 {
@@ -49,7 +50,7 @@ namespace Melia.Zone.World.Actors.Effects
 
 		public void Update(TimeSpan elapsed)
 		{
-			var now = DateTime.Now;
+			var now = GameClock.LocalNow;
 			var sinceLastUpdate = now - _lastUpdate;
 
 			if (sinceLastUpdate >= this.UpdateInterval && this.Actor != null)

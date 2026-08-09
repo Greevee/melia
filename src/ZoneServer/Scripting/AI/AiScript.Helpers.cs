@@ -4,6 +4,7 @@ using System.Linq;
 using Melia.Shared.World;
 using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.Monsters;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Scripting.AI
 {
@@ -21,7 +22,7 @@ namespace Melia.Zone.Scripting.AI
 		/// <returns>True if the action can be performed, false otherwise.</returns>
 		protected bool IsActionReady(string actionName, TimeSpan cooldown)
 		{
-			var now = DateTime.UtcNow;
+			var now = GameClock.Now;
 			if (_actionTimers.TryGetValue(actionName, out var readyTime))
 			{
 				if (now >= readyTime)

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Numerics;
 using Melia.Shared.Packages;
@@ -12,6 +12,7 @@ using Melia.Zone.World.Actors.Monsters;
 using static Melia.Zone.Pads.Helpers.PadHelper;
 using static Melia.Zone.Skills.SkillUseFunctions;
 using Melia.Zone.Skills;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Pads.Handlers
 {
@@ -83,7 +84,7 @@ namespace Melia.Zone.Pads.Handlers
 				return;
 
 			var staggerKey = "Melia.Zaibas.Stagger." + target.Handle;
-			var now = DateTime.Now;
+			var now = GameClock.LocalNow;
 
 			if (pad.Variables.TryGet<DateTime>(staggerKey, out var lastStagger) && (now - lastStagger).TotalMilliseconds < 1000)
 				return;

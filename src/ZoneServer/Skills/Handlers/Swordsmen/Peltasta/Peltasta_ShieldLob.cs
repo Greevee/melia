@@ -110,7 +110,7 @@ namespace Melia.Zone.Skills.Handlers.Swordsmen.Peltasta
 		{
 			// Forward and back, hovering a moment in between.
 			await this.FlyForward(pad, creator);
-			await Task.Delay(500);
+			await GameClock.Delay(500);
 			await this.FlyBack(pad, creator);
 
 			pad.Destroy();
@@ -128,7 +128,7 @@ namespace Melia.Zone.Skills.Handlers.Swordsmen.Peltasta
 			var dest = creator.Position.GetRelative2D(creator.Direction, ShieldFlyDistance);
 			var moveTime = pad.Movement.MoveTo(dest);
 
-			await Task.Delay(moveTime);
+			await GameClock.Delay(moveTime);
 		}
 
 		/// <summary>
@@ -153,7 +153,7 @@ namespace Melia.Zone.Skills.Handlers.Swordsmen.Peltasta
 				var dest = pad.Position.GetRelative3D(creator.Position, 300);
 				pad.Movement.MoveTo(dest);
 
-				await Task.Delay(HomingTickTime);
+				await GameClock.Delay(HomingTickTime);
 			}
 
 			// Final push to get back to the creator. Aim past the creator
@@ -164,7 +164,7 @@ namespace Melia.Zone.Skills.Handlers.Swordsmen.Peltasta
 				finalDest = creator.Position.GetRelative2D(creator.Direction, 50);
 
 			var moveTime = pad.Movement.MoveTo(finalDest);
-			await Task.Delay(moveTime);
+			await GameClock.Delay(moveTime);
 		}
 
 		/// <summary>

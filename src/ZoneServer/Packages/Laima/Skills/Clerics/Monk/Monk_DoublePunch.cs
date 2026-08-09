@@ -12,6 +12,7 @@ using Melia.Zone.Skills.SplashAreas;
 using Melia.Zone.World.Actors;
 using static Melia.Zone.Skills.SkillUseFunctions;
 using static Melia.Zone.Skills.Helpers.SkillDamageHelper;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Skills.Handlers.Clerics.Monk
 {
@@ -37,7 +38,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Monk
 
 		private async Task HandleSkill(Skill skill, ICombatEntity caster, Position originPos, Position farPos)
 		{
-			var endTime = DateTime.Now.AddMilliseconds(3500);
+			var endTime = GameClock.LocalNow.AddMilliseconds(3500);
 
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
 
@@ -45,7 +46,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Monk
 
 			while (caster.IsCasting(skill))
 			{
-				if (endTime <= DateTime.Now)
+				if (endTime <= GameClock.LocalNow)
 					break;
 
 				if (!caster.TrySpendSp(skill))

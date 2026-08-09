@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
 using Melia.Zone.Buffs.Base;
 using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.CombatEntities.Components;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Buffs.Handlers.Archers.Wugushi
 {
@@ -81,7 +82,7 @@ namespace Melia.Zone.Buffs.Handlers.Archers.Wugushi
 			{
 				var expectedUpdateTime = TimeSpan.FromTicks((long)(buff.Data.UpdateTime.Ticks * multiplier));
 				buff.UpdateTime = expectedUpdateTime;
-				buff.NextUpdateTime = DateTime.Now.Add(expectedUpdateTime);
+				buff.NextUpdateTime = GameClock.LocalNow.Add(expectedUpdateTime);
 			}
 
 			if (buff.HasDuration)
@@ -123,7 +124,7 @@ namespace Melia.Zone.Buffs.Handlers.Archers.Wugushi
 			{
 				var newUpdateTime = TimeSpan.FromTicks((long)(buff.Data.UpdateTime.Ticks * multiplier));
 				buff.UpdateTime = newUpdateTime;
-				buff.NextUpdateTime = DateTime.Now.Add(newUpdateTime);
+				buff.NextUpdateTime = GameClock.LocalNow.Add(newUpdateTime);
 			}
 
 			if (buff.HasDuration)

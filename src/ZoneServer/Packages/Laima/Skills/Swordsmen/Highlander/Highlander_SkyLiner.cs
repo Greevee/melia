@@ -14,6 +14,7 @@ using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.Characters;
 using static Melia.Zone.Skills.SkillUseFunctions;
 using static Melia.Zone.Skills.Helpers.SkillDamageHelper;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Skills.Handlers.Swordsman.Highlander
 {
@@ -101,7 +102,7 @@ namespace Melia.Zone.Skills.Handlers.Swordsman.Highlander
 		private async Task HandleSkill(Skill skill, ICombatEntity caster, Position originPos, Position farPos)
 		{
 			var remainingCastTime = TimeSpan.FromMilliseconds(2500f);
-			var endTime = DateTime.Now.Add(remainingCastTime);
+			var endTime = GameClock.LocalNow.Add(remainingCastTime);
 
 			var delay = TimeSpan.FromMilliseconds(300f);
 			await skill.Wait(delay);
@@ -109,7 +110,7 @@ namespace Melia.Zone.Skills.Handlers.Swordsman.Highlander
 
 			while (caster.IsCasting(skill))
 			{
-				if (endTime <= DateTime.Now)
+				if (endTime <= GameClock.LocalNow)
 					break;
 
 				var skillCastDelay = TimeSpan.FromMilliseconds(600f / skill.Properties.GetFloat(PropertyName.SklSpdRate));

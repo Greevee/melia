@@ -17,6 +17,7 @@ using Yggdrasil.Logging;
 using Yggdrasil.Scheduling;
 using Yggdrasil.Scripting;
 using Yggdrasil.Util;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Scripting.AI
 {
@@ -278,7 +279,7 @@ namespace Melia.Zone.Scripting.AI
 				return;
 			}
 
-			var now = DateTime.UtcNow;
+			var now = GameClock.Now;
 			if (_lastTargetDistanceTime != default && (now - _lastTargetDistanceTime) < TimeSpan.FromMilliseconds(100))
 				return;
 
@@ -310,7 +311,7 @@ namespace Melia.Zone.Scripting.AI
 			{
 				if (_target != mostHated)
 				{
-					_targetAcquiredTime = DateTime.UtcNow;
+					_targetAcquiredTime = GameClock.Now;
 				}
 				_target = mostHated;
 				this.StartRoutine("StopAndAttack", this.StopAndAttack());
@@ -469,7 +470,7 @@ namespace Melia.Zone.Scripting.AI
 
 			// Also check if we're still in the skill's animation/recovery period
 			// This ensures the full attack animation completes before fleeing
-			var timeSinceLastSkill = DateTime.UtcNow - _lastSkillUseTime;
+			var timeSinceLastSkill = GameClock.Now - _lastSkillUseTime;
 			if (timeSinceLastSkill < _lastSkillDuration)
 				return;
 
@@ -833,7 +834,7 @@ namespace Melia.Zone.Scripting.AI
 			}
 
 			// Check cooldown
-			if ((DateTime.UtcNow - _lastHelpCallTime) < actualCooldown)
+			if ((GameClock.Now - _lastHelpCallTime) < actualCooldown)
 				return;
 
 			// Random chance check
@@ -892,7 +893,7 @@ namespace Melia.Zone.Scripting.AI
 				}
 			}
 
-			_lastHelpCallTime = DateTime.UtcNow;
+			_lastHelpCallTime = GameClock.Now;
 		}
 		/// <summary>
 		/// Checks HP and updates phase state automatically
@@ -1521,7 +1522,7 @@ namespace Melia.Zone.Scripting.AI
 			if ((damage / maxHp) < this.StaggerThreshold)
 				return;
 
-			var now = DateTime.UtcNow;
+			var now = GameClock.Now;
 			if ((now - _lastStaggerTime) < this.StaggerCooldown)
 				return;
 
@@ -1585,7 +1586,7 @@ namespace Melia.Zone.Scripting.AI
 
 					if (entityWasAttacked)
 					{
-						_lastAttackedTime = DateTime.UtcNow;
+						_lastAttackedTime = GameClock.Now;
 						_lastAttackerHandle = hitEventAlert.Attacker.Handle;
 
 						this.OnTakeDamage(hitEventAlert.Attacker, hitEventAlert.Damage);
@@ -1663,10 +1664,10 @@ namespace Melia.Zone.Scripting.AI
 					if (moveToAlert.SuspendAI)
 					{
 						this.Suspended = true;
-						Task.Delay(moveToAlert.MoveTime).ContinueWith(_ =>
+						GameClock.Delay(moveToAlert.MoveTime).ContinueWith(_ =>
 						{
 							this.Suspended = false;
-						});
+						}, TaskContinuationOptions.ExecuteSynchronously);
 					}
 					break;
 				}
@@ -2217,7 +2218,7 @@ namespace Melia.Zone.Scripting.AI
 			if (this.IsUsingSkill())
 				return true;
 
-			return DateTime.UtcNow - _lastSkillUseTime < _lastSkillDuration;
+			return GameClock.Now - _lastSkillUseTime < _lastSkillDuration;
 		}
 
 		#region TempVar Helpers

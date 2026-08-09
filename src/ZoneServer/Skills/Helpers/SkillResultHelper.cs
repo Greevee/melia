@@ -13,6 +13,7 @@ using Yggdrasil.Util;
 using static Melia.Zone.Scripting.Shortcuts;
 using static Melia.Zone.Skills.Helpers.SkillUtilHelper;
 using static Melia.Zone.Skills.SkillUseFunctions;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Skills.Helpers
 {
@@ -64,7 +65,7 @@ namespace Melia.Zone.Skills.Helpers
 			var drStackKey = $"{drKey}.Stacks";
 
 			// Use milliseconds since a fixed epoch for time tracking (fits in float)
-			var nowMs = (float)(DateTime.UtcNow - DateTime.UnixEpoch).TotalMilliseconds;
+			var nowMs = (float)(GameClock.Now - DateTime.UnixEpoch).TotalMilliseconds;
 			var lastApplicationMs = target.GetTempVar(drTimeKey);
 			var currentStacks = (int)target.GetTempVar(drStackKey);
 
@@ -166,7 +167,7 @@ namespace Melia.Zone.Skills.Helpers
 					continue;
 
 				var finalChance = SCR_Calc_Status_Chance(caster, target, skill, buffId, percent);
-				if (finalChance < 100 && RandomProvider.Next(1, 101) > finalChance)
+				if (finalChance < 100 && RandomProvider.Get().Next(1, 101) > finalChance)
 					continue;
 
 				var finalDuration = SCR_Calc_Status_Duration(caster, target, skill, buffId, buffTime);
@@ -218,7 +219,7 @@ namespace Melia.Zone.Skills.Helpers
 			if (caster is not Character && caster.CheckBoolTempVar("BUNSIN"))
 				return;
 
-			if (percent < 100 && RandomProvider.Next(1, 101) > percent)
+			if (percent < 100 && RandomProvider.Get().Next(1, 101) > percent)
 				return;
 
 			var buff = caster.StartBuff(buffId, level, arg2, TimeSpan.FromMilliseconds(buffTime), caster);

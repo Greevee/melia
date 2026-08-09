@@ -11,6 +11,7 @@ using Melia.Zone.World.Actors.Characters;
 using Melia.Zone.World.Actors.Monsters;
 using Yggdrasil.Extensions;
 using Yggdrasil.Scheduling;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.World.Actors.CombatEntities.Components
 {
@@ -68,7 +69,7 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 			var prevState = this.AttackState;
 
 			this.AttackState = state;
-			this.LastCombatTime = DateTime.UtcNow;
+			this.LastCombatTime = GameClock.Now;
 
 			Send.ZC_PC_ATKSTATE(this.Entity, state);
 
@@ -93,7 +94,7 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 			if (!this.AttackState)
 				return;
 
-			var timePassed = DateTime.UtcNow - this.LastCombatTime;
+			var timePassed = GameClock.Now - this.LastCombatTime;
 			if (timePassed > AttackStateDuration)
 				this.SetAttackState(false);
 		}

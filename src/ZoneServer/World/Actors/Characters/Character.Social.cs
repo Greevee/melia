@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Zone.Network;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.World.Actors.Characters
 {
@@ -83,7 +84,7 @@ namespace Melia.Zone.World.Actors.Characters
 		/// </summary>
 		public async Task ShowMainChatOnLogin()
 		{
-			await Task.Delay(5000);
+			await GameClock.Delay(5000);
 
 			if (this.Connection == null)
 				return;

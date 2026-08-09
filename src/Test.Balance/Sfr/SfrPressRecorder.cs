@@ -295,4 +295,49 @@ namespace Melia.Test.Balance.Sfr
 			_skill.Properties.InvalidateAll();
 		}
 	}
+
+	/// <summary>
+	/// Holds a skill's SP cost at a chosen value for the length of a
+	/// measurement.
+	/// </summary>
+	/// <remarks>
+	/// The same private-copy arrangement SfrFactorScope relies on: every
+	/// measured skill gets its own SkillData through SyntheticActors.GiveSkill,
+	/// so this writes state no other window can see and takes no lock. The
+	/// per-level term is zeroed alongside it, so what a press charges is the
+	/// pinned value itself whatever level the skill is measured at.
+	/// </remarks>
+	public sealed class SfrSpScope : IDisposable
+	{
+		private readonly Skill _skill;
+		private readonly float _basicSp;
+		private readonly float _lvUpSpendSp;
+
+		/// <summary>
+		/// Overrides the skill's SP cost until disposed.
+		/// </summary>
+		/// <param name="skill"></param>
+		/// <param name="basicSp"></param>
+		public SfrSpScope(Skill skill, float basicSp)
+		{
+			_skill = skill;
+
+			_basicSp = skill.Data.BasicSp;
+			_lvUpSpendSp = skill.Data.LvUpSpendSp;
+
+			skill.Data.BasicSp = basicSp;
+			skill.Data.LvUpSpendSp = 0;
+			skill.Properties.InvalidateAll();
+		}
+
+		/// <summary>
+		/// Restores the skill's own SP cost.
+		/// </summary>
+		public void Dispose()
+		{
+			_skill.Data.BasicSp = _basicSp;
+			_skill.Data.LvUpSpendSp = _lvUpSpendSp;
+			_skill.Properties.InvalidateAll();
+		}
+	}
 }

@@ -310,7 +310,7 @@ namespace Melia.Zone.Scripting
 		/// <returns></returns>
 		public static int Random(int max)
 		{
-			return RandomProvider.Next(max);
+			return RandomProvider.Get().Next(max);
 		}
 
 		/// <summary>
@@ -321,7 +321,7 @@ namespace Melia.Zone.Scripting
 		/// <returns></returns>
 		public static int Random(int min, int max)
 		{
-			return RandomProvider.Next(min, max);
+			return RandomProvider.Get().Next(min, max);
 		}
 
 		/// <summary>
@@ -382,7 +382,7 @@ namespace Melia.Zone.Scripting
 		/// <returns></returns>
 		public static T RandomElement<T>(params T[] values)
 		{
-			return values[RandomProvider.Next(values.Length)];
+			return values[RandomProvider.Get().Next(values.Length)];
 		}
 
 		/// <summary>

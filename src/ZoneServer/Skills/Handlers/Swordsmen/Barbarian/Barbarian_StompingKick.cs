@@ -15,6 +15,7 @@ using Melia.Zone.World.Actors.Characters;
 using Melia.Zone.World.Actors.CombatEntities.Components;
 using static Melia.Zone.Skills.SkillUseFunctions;
 using static Melia.Shared.Util.TaskHelper;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Skills.Handlers.Swordsmen.Barbarian
 {
@@ -121,7 +122,7 @@ namespace Melia.Zone.Skills.Handlers.Swordsmen.Barbarian
 				return;
 
 			while (!movementComponent.IsGrounded)
-				await Task.Delay(30);
+				await GameClock.Delay(30);
 		}
 	}
 }

@@ -7,6 +7,7 @@ using Melia.Zone.Skills;
 using Melia.Zone.World.Actors.Characters;
 using Yggdrasil.Scheduling;
 using Yggdrasil.Util;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.World.Actors.CombatEntities.Components
 {
@@ -157,7 +158,7 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 			lock (_syncLock)
 			{
 				if (_cooldowns.TryGetValue(cooldownId, out var cooldown))
-					return DateTime.Now < cooldown.EndTime;
+					return GameClock.LocalNow < cooldown.EndTime;
 
 				return false;
 			}
@@ -308,7 +309,7 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 		/// <param name="id"></param>
 		/// <param name="duration"></param>
 		public Cooldown(CooldownId id, TimeSpan duration)
-			: this(id, duration, duration, DateTime.Now)
+			: this(id, duration, duration, GameClock.LocalNow)
 		{
 		}
 
@@ -336,7 +337,7 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 		{
 			this.Duration = duration;
 			this.Remaining = duration;
-			this.StartTime = DateTime.Now;
+			this.StartTime = GameClock.LocalNow;
 		}
 
 		/// <summary>

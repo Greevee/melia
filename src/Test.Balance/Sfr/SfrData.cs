@@ -416,6 +416,44 @@ namespace Melia.Test.Balance.Sfr
 			=> SfrDials.CirclePremium.TryGetValue(SkillCircle(skillName), out var v) ? v : 1f;
 
 		/// <summary>
+		/// Returns what advancing out of a base job is worth in SFR for this
+		/// skill.
+		/// </summary>
+		/// <remarks>
+		/// The five rank-1 classes take 1.00, every advanced class takes the
+		/// premium. The anchor is a base-job skill, so this raises the advanced
+		/// pool against it rather than moving the roster's level.
+		/// </remarks>
+		/// <param name="skillName"></param>
+		public static float AdvancementPremium(string skillName)
+			=> BaseClasses.Contains(ClassOf(skillName)) ? 1f : SfrDials.AdvancementPremium;
+
+		/// <summary>
+		/// Returns whether a skill belongs to a base job rather than an
+		/// advanced one.
+		/// </summary>
+		/// <param name="skillName"></param>
+		public static bool IsBaseJobSkill(string skillName)
+			=> BaseClasses.Contains(ClassOf(skillName));
+
+		/// <summary>
+		/// Returns the SP multiplier the skill's base job carries.
+		/// </summary>
+		/// <remarks>
+		/// The Wizard and Cleric families run more expensive across the board,
+		/// which is what the file already carries and what the classes are
+		/// balanced around - their throttle is the bar, not the cooldown.
+		/// </remarks>
+		/// <param name="skillName"></param>
+		public static float SpJobMultiplier(string skillName)
+		{
+			if (!BaseJob.TryGetValue(ClassOf(skillName), out var job))
+				return 1f;
+
+			return job is "Wizard" or "Cleric" ? SfrDials.SpArcaneMultiplier : 1f;
+		}
+
+		/// <summary>
 		/// Returns the seconds one press occupies the timeline, and the seconds
 		/// between presses, from the skill data alone.
 		/// </summary>

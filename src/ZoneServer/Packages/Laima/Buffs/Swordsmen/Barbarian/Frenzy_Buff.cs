@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
 using Melia.Zone.Buffs.Base;
@@ -10,6 +10,7 @@ using Melia.Zone.Skills.Combat;
 using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.Characters;
 using Melia.Zone.World.Actors.CombatEntities.Components;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Buffs.Handlers.Swordsman.Barbarian
 {
@@ -48,7 +49,7 @@ namespace Melia.Zone.Buffs.Handlers.Swordsman.Barbarian
 			this.SetNextDecayTime(buff);
 
 			// Update last stack gain time (for the 1-second cooldown check in skill handler).
-			buff.Vars.Set(LastStackGainTimeKey, DateTime.UtcNow);
+			buff.Vars.Set(LastStackGainTimeKey, GameClock.Now);
 		}
 
 		/// <summary>
@@ -57,7 +58,7 @@ namespace Melia.Zone.Buffs.Handlers.Swordsman.Barbarian
 		public override void WhileActive(Buff buff)
 		{
 			// If the current time has passed the scheduled decay time, remove a stack.
-			if (DateTime.UtcNow >= GetNextDecayTime(buff))
+			if (GameClock.Now >= GetNextDecayTime(buff))
 			{
 				// Decay one stack.
 				buff.OverbuffCounter--;
@@ -160,7 +161,7 @@ namespace Melia.Zone.Buffs.Handlers.Swordsman.Barbarian
 
 		private void SetNextDecayTime(Buff buff)
 		{
-			buff.Vars.Set(NextDecayTimeKey, DateTime.UtcNow + StackDecayInterval);
+			buff.Vars.Set(NextDecayTimeKey, GameClock.Now + StackDecayInterval);
 		}
 
 		private DateTime GetNextDecayTime(Buff buff)
