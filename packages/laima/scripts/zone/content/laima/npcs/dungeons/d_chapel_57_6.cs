@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Tenet Church 1F
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Tenet Church 1F.
@@ -14,7 +14,7 @@ public class DChapel576NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(18, 40120, "Statue of Goddess Vakarine", "d_chapel_57_6", 1322.36, 0.16, 435.09, 270, "WARP_D_CHAPEL_57_6", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(18, "WARP_D_CHAPEL_57_6", "d_chapel_57_6", 1322.36, 0.16, 435.09, 270);
 		
 		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------

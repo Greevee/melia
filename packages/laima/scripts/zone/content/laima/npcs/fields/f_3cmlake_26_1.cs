@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Lanko 26 Waters
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Lanko 26 Waters.
@@ -14,7 +14,7 @@ public class F3Cmlake261NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(63, 40120, "Statue of Goddess Vakarine", "f_3cmlake_26_1", -291.0521, -70.41682, 1488.81, 90, "WARP_F_3CMLAKE_26_1", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(63, "WARP_F_3CMLAKE_26_1", "f_3cmlake_26_1", -291.0521, -70.41682, 1488.81, 90);
 		
 		// Track NPCs
 		//---------------------------------------------------------------------------

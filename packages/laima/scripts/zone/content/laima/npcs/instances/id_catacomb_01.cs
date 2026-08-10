@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Guards Graveyard
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Guards Graveyard.
@@ -14,7 +14,7 @@ public class IdCatacomb01NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(8, 40120, "Statue of Goddess Vakarine", "id_catacomb_01", 1344.74, 887.0438, -1033.726, 90, "WARP_ID_CATACOMB_01", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(8, "WARP_ID_CATACOMB_01", "id_catacomb_01", 1344.74, 887.0438, -1033.726, 90);
 		
 		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------

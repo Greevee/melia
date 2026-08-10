@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Elgos Monastery Main Building
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Elgos Monastery Main Building.
@@ -14,7 +14,7 @@ public class DAbbey354NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(20, 40120, "Statue of Goddess Vakarine", "d_abbey_35_4", 1284.374, 0.3437, -1020.557, 77, "WARP_D_ABBEY_35_4", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(20, "WARP_D_ABBEY_35_4", "d_abbey_35_4", 1284.374, 0.3437, -1020.557, 77);
 		
 		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------

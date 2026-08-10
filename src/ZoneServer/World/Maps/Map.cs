@@ -839,6 +839,11 @@ namespace Melia.Zone.World.Maps
 		/// </summary>
 		public void RemoveMonster(IMonster monster)
 		{
+			// Announce a still-pending death while the monster is on the
+			// map, so its death packets and drops aren't lost.
+			if (monster is Mob dyingMob)
+				dyingMob.FlushDeathBroadcast();
+
 			monster.Components.Get<TriggerComponent>()?.OnRemovingFromMap();
 			monster.Components.Get<MovementComponent>()?.RemoveMarker();
 

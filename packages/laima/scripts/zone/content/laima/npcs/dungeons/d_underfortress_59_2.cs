@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Royal Mausoleum Constructors' Chapel
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Royal Mausoleum Constructors' Chapel.
@@ -14,11 +14,11 @@ public class DUnderfortress592NpcScript : GeneralScript
 	{
 		// Statue of Goddess Zemyna
 		//-------------------------------------------------------------------------
-		AddNpc(28, 40110, "Statue of Goddess Zemyna", "d_underfortress_59_2", -951.0473, 0.377, 696.8472, 0, "UNDERF592_ZEMINA_STATUE", "UNDERF592_ZEMINA_STATUE", "UNDERF592_ZEMINA_STATUE");
+		AddStatPointStatue(28, "UNDERF592_ZEMINA_STATUE", "d_underfortress_59_2", -951.0473, 0.377, 696.8472, 0);
 		
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(37, 40120, "Statue of Goddess Vakarine", "d_underfortress_59_2", 449.585, 0.377, -208.2484, -30, "WARP_D_UNDERFORTRESS_59_2", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(37, "WARP_D_UNDERFORTRESS_59_2", "d_underfortress_59_2", 449.585, 0.377, -208.2484, -30);
 		
 		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------

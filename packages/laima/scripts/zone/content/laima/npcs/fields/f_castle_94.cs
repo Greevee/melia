@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Inner Wall District 10
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Inner Wall District 10.
@@ -14,6 +14,6 @@ public class FCastle94NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(24, 40120, "Statue of Goddess Vakarine", "f_castle_94", 1133.941, 295.1365, 726.7096, 90, "WARP_F_CASTLE_94", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(24, "WARP_F_CASTLE_94", "f_castle_94", 1133.941, 295.1365, 726.7096, 90);
 	}
 }

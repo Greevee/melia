@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Gate Route
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Gate Route.
@@ -14,7 +14,7 @@ public class DThorn19NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(664, 40120, "Statue of Goddess Vakarine", "d_thorn_19", -208.2775, 622.5202, -3814.656, 35, "WARP_D_THORN_19", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(664, "WARP_D_THORN_19", "d_thorn_19", -208.2775, 622.5202, -3814.656, 35);
 		
 		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------

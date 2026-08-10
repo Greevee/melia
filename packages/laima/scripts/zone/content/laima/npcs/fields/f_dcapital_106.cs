@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Gliehel Memorial
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Gliehel Memorial.
@@ -14,7 +14,7 @@ public class FDcapital106NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(22, 40120, "Statue of Goddess Vakarine", "f_dcapital_106", 1449.792, 89.99438, 642.953, 90, "WARP_DCAPITAL_106", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(22, "WARP_DCAPITAL_106", "f_dcapital_106", 1449.792, 89.99438, 642.953, 90);
 		
 		// Track NPCs
 		//---------------------------------------------------------------------------

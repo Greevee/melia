@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Passage of the Recluse
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Passage of the Recluse.
@@ -14,6 +14,6 @@ public class PCathedral1NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(3, 40120, "Statue of Goddess Vakarine", "p_cathedral_1", 429.5168, 0.3999373, -446.9579, 270, "WARP_P_CATHEDRAL_1", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(3, "WARP_P_CATHEDRAL_1", "p_cathedral_1", 429.5168, 0.3999373, -446.9579, 270);
 	}
 }

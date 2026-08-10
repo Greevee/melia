@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Mage Tower 1F
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Mage Tower 1F.
@@ -14,7 +14,7 @@ public class DFiretower41NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(116, 40120, "Statue of Goddess Vakarine", "d_firetower_41", 2005.266, 1446.488, -1369.808, 30, "WARP_D_FIRETOWER_41", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(116, "WARP_D_FIRETOWER_41", "d_firetower_41", 2005.266, 1446.488, -1369.808, 30);
 		
 		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------

@@ -44,7 +44,7 @@ public class RokasRidgeScript : GeneralScript
 
 		// Peregrin Lyon NPC
 		//-------------------------------------------------------------------------
-		AddNpc(153176, L("[Wanderer] Peregrin Lyon"), "f_rokas_25", -2065, 761, 90, async dialog =>
+		AddNpc(153176, L("[Wanderer] Peregrin Lyon"), "f_rokas_25", -2073, 707, 90, async dialog =>
 		{
 			var character = dialog.Player;
 

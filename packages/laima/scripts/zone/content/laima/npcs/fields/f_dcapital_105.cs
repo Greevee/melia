@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Baltinel Memorial
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Baltinel Memorial.
@@ -14,7 +14,7 @@ public class FDcapital105NpcScript : GeneralScript
 	{
 		// Statue of Goddess Zemyna
 		//-------------------------------------------------------------------------
-		AddNpc(23, 40110, "Statue of Goddess Zemyna", "f_dcapital_105", -1997.51, 127.5562, 1472.45, 90, "DCAPITAL_105_EV_55_001", "DCAPITAL_105_EV_55_001", "DCAPITAL_105_EV_55_001");
+		AddStatPointStatue(23, "DCAPITAL_105_EV_55_001", "f_dcapital_105", -1997.51, 127.5562, 1472.45, 90);
 		
 		// Track NPCs
 		//---------------------------------------------------------------------------

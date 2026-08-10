@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Crystal Mine 1F
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Crystal Mine 1F.
@@ -14,7 +14,7 @@ public class DCmine01NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(529, 40120, "Statue of Goddess Vakarine", "d_cmine_01", -1222.77, 316.34, -1230.72, 60, "WARP_D_CMINE_01", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(529, "WARP_D_CMINE_01", "d_cmine_01", -1222.77, 316.34, -1230.72, 60);
 		
 		// Lv2 Treasure Chest
 		//-------------------------------------------------------------------------

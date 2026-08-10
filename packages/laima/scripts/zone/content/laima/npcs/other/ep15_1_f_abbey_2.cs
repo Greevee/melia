@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Novaha Library
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Novaha Library.
@@ -14,7 +14,7 @@ public class Ep151FAbbey2NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(4, 40120, "Statue of Goddess Vakarine", "ep15_1_f_abbey_2", 844.3311, 156.7779, -353.6386, 149, "WARP_EP15_1_F_ABBEY_2", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(4, "WARP_EP15_1_F_ABBEY_2", "ep15_1_f_abbey_2", 844.3311, 156.7779, -353.6386, 149);
 		
 		// Statue of Goddess Zemyna
 		//-------------------------------------------------------------------------

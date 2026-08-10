@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Hidden Passage
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Hidden Passage.
@@ -14,7 +14,7 @@ public class Ep142DCastle2NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(2, 40120, "Statue of Goddess Vakarine", "ep14_2_d_castle_2", 213.0273, 0.3000107, -1052.083, 90, "WARP_EP14_2_DCASTLE_2", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(2, "WARP_EP14_2_DCASTLE_2", "ep14_2_d_castle_2", 213.0273, 0.3000107, -1052.083, 90);
 		
 		// Statue of Goddess Zemyna
 		//-------------------------------------------------------------------------

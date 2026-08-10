@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Issaugoti Forest
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Issaugoti Forest.
@@ -14,7 +14,7 @@ public class Ep13FSiauliai4NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(12, 40120, "Statue of Goddess Vakarine", "ep13_f_siauliai_4", 22.51642, 146.2609, -946.3156, 90, "WARP_EP13_F_SIAULIAI_4", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(12, "WARP_EP13_F_SIAULIAI_4", "ep13_f_siauliai_4", 22.51642, 146.2609, -946.3156, 90);
 		
 		// Statue of Goddess Zemyna
 		//-------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Mullers Passage
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Mullers Passage.
@@ -14,6 +14,6 @@ public class PCatacomb1NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(4, 40120, "Statue of Goddess Vakarine", "p_catacomb_1", 63.74635, 260.2255, 8.646395, 30, "WARP_P_CATACOMB_1", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(4, "WARP_P_CATACOMB_1", "p_catacomb_1", 63.74635, 260.2255, 8.646395, 30);
 	}
 }

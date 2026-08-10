@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Astral Tower 1F
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Astral Tower 1F.
@@ -14,6 +14,6 @@ public class DStartower88NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(34, 40120, "Statue of Goddess Vakarine", "d_startower_88", 2352.313, 212.6299, 1488.612, 45, "WARP_D_STARTOWER_88", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(34, "WARP_D_STARTOWER_88", "d_startower_88", 2352.313, 212.6299, 1488.612, 45);
 	}
 }

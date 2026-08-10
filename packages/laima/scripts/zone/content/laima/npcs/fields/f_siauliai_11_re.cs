@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Paupys Crossing
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Paupys Crossing.
@@ -14,7 +14,7 @@ public class FSiauliai11ReNpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(4, 40120, "Statue of Goddess Vakarine", "f_siauliai_11_re", 558.7085, 209.7152, 707.2426, 69, "WARP_F_SIAULIAI_11RE", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(4, "WARP_F_SIAULIAI_11RE", "f_siauliai_11_re", 558.7085, 209.7152, 707.2426, 69);
 
 		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------

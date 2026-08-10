@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Dingofasil District
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Dingofasil District.
@@ -18,7 +18,7 @@ public class FFlash58NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(24, 40120, "Statue of Goddess Vakarine", "f_flash_58", -694.7843, 407.5999, -1093.407, 45, "WARP_F_FLASH_58", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(24, "WARP_F_FLASH_58", "f_flash_58", -694.7843, 407.5999, -1093.407, 45);
 
 		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------

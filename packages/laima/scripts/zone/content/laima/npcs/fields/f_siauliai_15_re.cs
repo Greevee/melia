@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Woods of the Linked Bridges
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Woods of the Linked Bridges.
@@ -22,7 +22,11 @@ public class FSiauliai15ReNpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(10, 40120, "Statue of Goddess Vakarine", "f_siauliai_15_re", 372.0667, 878.1719, 194.3833, -4, "WARP_F_SIAULIAI_15RE", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(10, "WARP_F_SIAULIAI_15RE", "f_siauliai_15_re", 372.0667, 878.1719, 194.3833, -4);
+
+		// Statue of Goddess Zemyna
+		//-------------------------------------------------------------------------
+		AddStatPointStatue("F_SIAULIAI_15_RE_ZEMYNA", "f_siauliai_15_re", -405.6, 2207.2, 180);
 
 		// Emoticon Chest
 		//-------------------------------------------------------------------------

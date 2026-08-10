@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Ramstis Ridge
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Ramstis Ridge.
@@ -12,6 +12,10 @@ public class FRokas25NpcScript : GeneralScript
 {
 	protected override void Load()
 	{
+		// Statue of Goddess Zemyna
+		//-------------------------------------------------------------------------
+		AddStatPointStatue("F_ROKAS_25_ZEMYNA", "f_rokas_25", -2017.5, 830.8, 45);
+
 		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------
 		AddNpc(679, 147392, "Lv1 Treasure Chest", "f_rokas_25", -2482.46, 268.73, -913.39, 90, "TREASUREBOX_LV_F_ROKAS_25679", "", "");

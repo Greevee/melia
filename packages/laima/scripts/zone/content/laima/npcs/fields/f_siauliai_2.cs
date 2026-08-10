@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // East Siauliai Woods
 //--- Description -----------------------------------------------------------
 // NPCs found in and around East Siauliai Woods.
@@ -14,7 +14,7 @@ public class FSiauliai2NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(33, 40120, "Statue of Goddess Vakarine", "f_siauliai_2", 233, 157, 724, 0, "WARP_F_SIAULIAI_EST", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(33, "WARP_F_SIAULIAI_EST", "f_siauliai_2", 233, 157, 724, 0);
 		
 		// Lv2 Treasure Chest
 		//-------------------------------------------------------------------------

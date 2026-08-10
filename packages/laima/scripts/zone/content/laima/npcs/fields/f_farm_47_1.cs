@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Tenants' Farm
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Tenants' Farm.
@@ -14,7 +14,7 @@ public class FFarm471NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(4, 40120, "Statue of Goddess Vakarine", "f_farm_47_1", -1250.313, -41.2164, -270.3558, 90, "WARP_F_FARM_47_1", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(4, "WARP_F_FARM_47_1", "f_farm_47_1", -1250.313, -41.2164, -270.3558, 90);
 		
 		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------

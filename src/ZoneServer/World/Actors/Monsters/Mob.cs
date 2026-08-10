@@ -38,8 +38,29 @@ namespace Melia.Zone.World.Actors.Monsters
 	public partial class Mob : Actor, IMonster, ICombatEntity, IUpdateable
 	{
 		private readonly object _hpLock = new();
+		private readonly object _deathBroadcastLock = new();
 		private int _killed;
+		private bool _deathBroadcastPending;
+		private DateTime _deathBroadcastTime;
+		private Character _dropBeneficiary;
 		private Position _position;
+
+		/// <summary>
+		/// Grace window that lets the killing blow's skill packet reach
+		/// the senders before the death broadcast can be flushed.
+		/// </summary>
+		private static readonly TimeSpan DeathBroadcastGrace = TimeSpan.FromMilliseconds(20);
+
+		/// <summary>
+		/// Upper bound for how long the death broadcast may be held back,
+		/// so bad skill data can't leave corpses standing.
+		/// </summary>
+		private static readonly TimeSpan MaxDeathBroadcastDelay = TimeSpan.FromMilliseconds(1000);
+
+		/// <summary>
+		/// How long the corpse remains on the map after its death is shown.
+		/// </summary>
+		private static readonly TimeSpan CorpseDuration = TimeSpan.FromSeconds(3);
 
 		/// <summary>
 		/// Returns the monster's position on its current map.
@@ -593,17 +614,12 @@ namespace Melia.Zone.World.Actors.Monsters
 			if (Interlocked.Exchange(ref _killed, 1) != 0)
 				return;
 
-			Send.ZC_SKILL_CAST_CANCEL(this);
-			Send.ZC_SKILL_DISABLE(this);
-			Send.ZC_DEAD(this);
+			this.ScheduleDeathBroadcast();
 
 			this.Components.Get<BaseSkillComponent>()?.CancelCurrentSkill();
 
 			this.Properties.SetFloat(PropertyName.HP, 0);
 			this.Components.Get<MovementComponent>()?.Stop();
-			this.DisappearTime = GameClock.LocalNow.AddSeconds(3);
-			if (this.Effects?.Count != 0)
-				Send.ZC_NORMAL.ClearEffects(this);
 
 			var beneficiary = this.GetKillBeneficiary(killer);
 
@@ -611,7 +627,9 @@ namespace Melia.Zone.World.Actors.Monsters
 			{
 				this.GetExpToGive(out var exp, out var jobExp);
 
-				this.DropItems(beneficiary);
+				// Drops are spawned along with the death packets, so loot
+				// doesn't appear before the monster is seen dying.
+				_dropBeneficiary = beneficiary;
 
 				var SCR_Get_MON_ExpPenalty = ScriptableFunctions.MonsterCharacter.Get("GET_EXP_RATIO");
 				var SCR_Get_MON_ClassExpPenalty = ScriptableFunctions.MonsterCharacter.Get("GET_EXP_RATIO");
@@ -650,12 +668,97 @@ namespace Melia.Zone.World.Actors.Monsters
 		}
 
 		/// <summary>
+		/// Queues the monster's death packets, to be broadcast once the
+		/// clients have had a chance to display the killing hit.
+		/// </summary>
+		private void ScheduleDeathBroadcast()
+		{
+			lock (_deathBroadcastLock)
+			{
+				_deathBroadcastPending = true;
+				_deathBroadcastTime = GameClock.LocalNow + DeathBroadcastGrace;
+				this.DisappearTime = _deathBroadcastTime + CorpseDuration;
+			}
+		}
+
+		/// <summary>
+		/// Holds the pending death broadcast back by the given delay, so
+		/// clients are told the monster died only after they've played out
+		/// the hit that killed it. Ignored once the death was broadcast.
+		/// </summary>
+		/// <param name="delay"></param>
+		public void DelayDeathBroadcast(TimeSpan delay)
+		{
+			if (delay <= TimeSpan.Zero)
+				return;
+
+			if (delay > MaxDeathBroadcastDelay)
+				delay = MaxDeathBroadcastDelay;
+
+			lock (_deathBroadcastLock)
+			{
+				if (!_deathBroadcastPending)
+					return;
+
+				var broadcastTime = GameClock.LocalNow + delay;
+				if (broadcastTime <= _deathBroadcastTime)
+					return;
+
+				_deathBroadcastTime = broadcastTime;
+				this.DisappearTime = broadcastTime + CorpseDuration;
+			}
+		}
+
+		/// <summary>
+		/// Broadcasts the monster's death packets right away, whether they
+		/// were due yet or not. Used to make sure a death is announced before
+		/// the monster leaves the map.
+		/// </summary>
+		public void FlushDeathBroadcast()
+			=> this.FlushDeathBroadcast(true);
+
+		/// <summary>
+		/// Broadcasts the monster's death packets, optionally only once
+		/// they're due, and returns whether they were sent.
+		/// </summary>
+		/// <param name="force"></param>
+		private bool FlushDeathBroadcast(bool force)
+		{
+			lock (_deathBroadcastLock)
+			{
+				if (!_deathBroadcastPending)
+					return false;
+
+				if (!force && GameClock.LocalNow < _deathBroadcastTime)
+					return false;
+
+				_deathBroadcastPending = false;
+			}
+
+			Send.ZC_SKILL_CAST_CANCEL(this);
+			Send.ZC_SKILL_DISABLE(this);
+			Send.ZC_DEAD(this);
+
+			if (this.Effects?.Count != 0)
+				Send.ZC_NORMAL.ClearEffects(this);
+
+			var beneficiary = _dropBeneficiary;
+			_dropBeneficiary = null;
+
+			if (beneficiary != null && beneficiary.IsOnline && beneficiary.Connection != null)
+				this.DropItems(beneficiary);
+
+			return true;
+		}
+
+		/// <summary>
 		/// Clears heavy internal state after the monster is removed from
 		/// the map, allowing the GC to collect referenced objects sooner.
 		/// </summary>
 		public void Cleanup()
 		{
 			this.Died = null;
+			_dropBeneficiary = null;
 			this.FixedDrops.Clear();
 			//this.Vars.Clear();
 			while (this.StaticDrops.TryTake(out _)) { }
@@ -1585,6 +1688,9 @@ namespace Melia.Zone.World.Actors.Monsters
 		/// <param name="elapsed"></param>
 		public virtual void Update(TimeSpan elapsed)
 		{
+			if (_deathBroadcastPending)
+				this.FlushDeathBroadcast(false);
+
 			this.Components.Update(elapsed);
 		}
 

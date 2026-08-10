@@ -56,7 +56,7 @@ of skill, buff, pad, and ability handlers.
 Hoplite, Peltasta, Rodelero
 
 **Archer tree** — Archer, Hunter, Quarrel Shooter, Ranger, Sapper,
-Wugushi, Fletcher (WIP)
+Wugushi, Fletcher, Falconer
 
 **Cleric tree** — Cleric, Dievdirbys, Krivis, Monk, Paladin, Priest,
 Sadhu
@@ -65,7 +65,7 @@ Sadhu
 Rogue, Thaumaturge
 
 **Wizard tree** — Wizard, Bokor, Cryomancer, Elementalist,
-Psychokino, Pyromancer, Chronomancer (WIP)
+Psychokino, Pyromancer, Chronomancer
 
 **Monsters** — Extensive monster skill handlers covering boss and field
 monster abilities
@@ -275,7 +275,7 @@ Further Reading
 Links
 -----------------------------------------------------------------------------
 
-* GitHub: https://github.com/NoCode-NoLife/melia
-* Wiki: https://github.com/NoCode-NoLife/melia/wiki
-* Forum: https://nocodenolife.org/forum/65-melia/
-* Chat: https://discord.gg/5sszEgw
+* Melia GitHub: https://github.com/NoCode-NoLife/melia
+* Laima Wiki: https://laimawiki.servegame.com
+* Laima Forum: https://laimabb.ddns.net/
+* Chat: https://discord.com/invite/kgZJGTXZsp

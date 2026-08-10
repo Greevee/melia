@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Grynas Hills
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Grynas Hills.
@@ -14,7 +14,7 @@ public class FKatyn453NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(5, 40120, "Statue of Goddess Vakarine", "f_katyn_45_3", -463.6504, 81.97291, -370.6847, 0, "WARP_F_KATYN_45_3", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(5, "WARP_F_KATYN_45_3", "f_katyn_45_3", -463.6504, 81.97291, -370.6847, 0);
 		
 		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------

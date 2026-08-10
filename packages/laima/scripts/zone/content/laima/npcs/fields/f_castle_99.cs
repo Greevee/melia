@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Tvirtumas Fortress
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Tvirtumas Fortress.
@@ -14,6 +14,6 @@ public class FCastle99NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(8, 40120, "Statue of Goddess Vakarine", "f_castle_99", 1782.298, -43.84729, -1170.19, 90, "WARP_F_CASTLE_99", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(8, "WARP_F_CASTLE_99", "f_castle_99", 1782.298, -43.84729, -1170.19, 90);
 	}
 }

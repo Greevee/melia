@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Sienakal Graveyard
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Sienakal Graveyard.
@@ -14,7 +14,7 @@ public class IdCatacomb331NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(25, 40120, "Statue of Goddess Vakarine", "id_catacomb_33_1", 589.2645, 235.7689, -714.1481, 45, "WARP_ID_CATACOMB_33_1", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(25, "WARP_ID_CATACOMB_33_1", "id_catacomb_33_1", 589.2645, 235.7689, -714.1481, 45);
 
 		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------

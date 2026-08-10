@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Crystal Mine 3F
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Crystal Mine 3F.
@@ -14,7 +14,7 @@ public class DCmine6NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(525, 40120, "Statue of Goddess Vakarine", "d_cmine_6", -2175.529, 360.2849, -1773.89, 90, "WARP_D_CMINE_6", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(525, "WARP_D_CMINE_6", "d_cmine_6", -2175.529, 360.2849, -1773.89, 90);
 		
 		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------

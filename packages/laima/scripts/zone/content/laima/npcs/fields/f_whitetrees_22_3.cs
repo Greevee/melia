@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Izoliacjia Plateau
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Izoliacjia Plateau.
@@ -14,7 +14,11 @@ public class FWhitetrees223NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(34, 40120, "Statue of Goddess Vakarine", "f_whitetrees_22_3", -491.0911, 331.9633, 227.7959, 90, "WARP_WHITETREES_22_3", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(34, "WARP_WHITETREES_22_3", "f_whitetrees_22_3", -491.0911, 331.9633, 227.7959, 90);
+
+		// Statue of Goddess Zemyna
+		//-------------------------------------------------------------------------
+		AddStatPointStatue("F_WHITETREES_22_3_ZEMYNA", "f_whitetrees_22_3", 1266.2, -693.2, 0);
 
 		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------

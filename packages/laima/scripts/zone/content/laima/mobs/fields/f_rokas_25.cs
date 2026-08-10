@@ -17,12 +17,14 @@ public class FRokas25MobScript : GeneralScript
 		// Monster Spawners ---------------------------------
 
 		AddSpawner("f_rokas_25.Id1", MonsterId.Zinute, min: 15, max: 20);
-		AddSpawner("f_rokas_25.Id2", MonsterId.Zinute, min: 30, max: 40);
+		AddSpawner("f_rokas_25.Id2", MonsterId.Zinute, min: 20, max: 30);
 		AddSpawner("f_rokas_25.Id3", MonsterId.Chupacabra_Desert, min: 12, max: 15);
 		AddSpawner("f_rokas_25.Id4", MonsterId.Rootcrystal_05, min: 10, max: 13, respawn: Seconds(5));
 		AddSpawner("f_rokas_25.Id5", MonsterId.Chupacabra_Desert, min: 19, max: 25);
 		AddSpawner("f_rokas_25.Id6", MonsterId.Chupacabra_Desert, min: 30, max: 40);
 		AddSpawner("f_rokas_25.Id7", MonsterId.Lichenclops, min: 30, max: 40);
+		AddSpawner("f_rokas_25.Id8", MonsterId.Chupacabra_Desert, min: 24, max: 48);
+		AddSpawner("f_rokas_25.Id9", MonsterId.Zinute, min: 10, max: 25);
 
 		// Monster Spawn Points -----------------------------
 
@@ -30,23 +32,14 @@ public class FRokas25MobScript : GeneralScript
 		AddSpawnPoint("f_rokas_25.Id1", "f_rokas_25", Rectangle(-1184, 614, 9999));
 
 		// 'Zinute' GenType 41 Spawn Points
-		AddSpawnPoint("f_rokas_25.Id2", "f_rokas_25", Rectangle(-2058, -865, 25));
 		AddSpawnPoint("f_rokas_25.Id2", "f_rokas_25", Rectangle(-1033, 488, 25));
-		AddSpawnPoint("f_rokas_25.Id2", "f_rokas_25", Rectangle(-2347, -713, 25));
 		AddSpawnPoint("f_rokas_25.Id2", "f_rokas_25", Rectangle(-1816, -1222, 25));
 		AddSpawnPoint("f_rokas_25.Id2", "f_rokas_25", Rectangle(-2163, -1204, 25));
 		AddSpawnPoint("f_rokas_25.Id2", "f_rokas_25", Rectangle(-672, 637, 25));
 		AddSpawnPoint("f_rokas_25.Id2", "f_rokas_25", Rectangle(1968, -522, 25));
 		AddSpawnPoint("f_rokas_25.Id2", "f_rokas_25", Rectangle(2032, -19, 25));
 		AddSpawnPoint("f_rokas_25.Id2", "f_rokas_25", Rectangle(2295, -373, 25));
-		AddSpawnPoint("f_rokas_25.Id2", "f_rokas_25", Rectangle(-2236, -1012, 25));
-		AddSpawnPoint("f_rokas_25.Id2", "f_rokas_25", Rectangle(-1979, -1195, 25));
-		AddSpawnPoint("f_rokas_25.Id2", "f_rokas_25", Rectangle(-1830, -860, 25));
-		AddSpawnPoint("f_rokas_25.Id2", "f_rokas_25", Rectangle(-2218, -636, 25));
-		AddSpawnPoint("f_rokas_25.Id2", "f_rokas_25", Rectangle(-1854, -1034, 25));
-		AddSpawnPoint("f_rokas_25.Id2", "f_rokas_25", Rectangle(-2044, -1050, 25));
 		AddSpawnPoint("f_rokas_25.Id2", "f_rokas_25", Rectangle(-2518, -688, 25));
-		AddSpawnPoint("f_rokas_25.Id2", "f_rokas_25", Rectangle(-2346, -875, 25));
 		AddSpawnPoint("f_rokas_25.Id2", "f_rokas_25", Rectangle(2418, -583, 25));
 		AddSpawnPoint("f_rokas_25.Id2", "f_rokas_25", Rectangle(2471, -499, 25));
 		AddSpawnPoint("f_rokas_25.Id2", "f_rokas_25", Rectangle(2553, -400, 25));
@@ -313,9 +306,6 @@ public class FRokas25MobScript : GeneralScript
 		AddSpawnPoint("f_rokas_25.Id6", "f_rokas_25", Rectangle(-1825, 907, 25));
 
 		// 'Lichenclops' GenType 671 Spawn Points
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-957, 599, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-764, 396, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-743, 630, 30));
 		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(1021, -164, 30));
 		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(1153, 10, 30));
 		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(1783, -326, 30));
@@ -329,7 +319,6 @@ public class FRokas25MobScript : GeneralScript
 		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(2478, -1179, 30));
 		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(2640, -938, 30));
 		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(2460, -877, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-1081, 479, 30));
 		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-1246, 676, 30));
 		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(1152, -356, 30));
 		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(1996, -173, 30));
@@ -407,70 +396,30 @@ public class FRokas25MobScript : GeneralScript
 		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(1193, -308, 30));
 		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(1268, -231, 30));
 		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(1250, -106, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-576, 639, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-619, 684, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-533, 488, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-616, 539, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-669, 445, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-701, 370, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-800, 440, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-893, 316, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-934, 229, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-983, 321, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-882, 261, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-983, 432, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-1106, 537, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-1044, 628, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-1015, 541, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-979, 721, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-875, 730, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-872, 686, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-883, 544, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-872, 647, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-896, 464, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-919, 378, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-813, 499, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-770, 604, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-787, 727, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-631, 601, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-594, 449, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-732, 444, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-665, 512, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-735, 253, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-642, 288, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-527, 407, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-624, 395, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-1053, 412, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-1103, 378, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-2234, -1102, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-2144, -1050, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-2133, -988, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-2034, -959, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-1973, -983, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-1887, -927, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-1776, -926, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-1792, -1033, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-1947, -1088, 30));
 		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-2111, -1266, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-2286, -1121, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-2400, -1004, 30));
 		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-2506, -874, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-2437, -783, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-2322, -818, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-2132, -653, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-2116, -523, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-2246, -914, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-1933, -571, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-1870, -650, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-1898, -769, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-1860, -572, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-2022, -587, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-2180, -459, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-2095, -423, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-2142, -734, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-2166, -547, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-1887, -836, 30));
-		AddSpawnPoint("f_rokas_25.Id7", "f_rokas_25", Rectangle(-1926, -642, 30));
+
+		// 'Chupacabra' Spawn Points
+		AddSpawnPoint("f_rokas_25.Id8", "f_rokas_25", Rectangle(-2214, -736, 25));
+		AddSpawnPoint("f_rokas_25.Id8", "f_rokas_25", Rectangle(-2175, -991, 25));
+		AddSpawnPoint("f_rokas_25.Id8", "f_rokas_25", Rectangle(-1908, -980, 25));
+		AddSpawnPoint("f_rokas_25.Id8", "f_rokas_25", Rectangle(-1832, -752, 25));
+		AddSpawnPoint("f_rokas_25.Id8", "f_rokas_25", Rectangle(-2207, 331, 25));
+		AddSpawnPoint("f_rokas_25.Id8", "f_rokas_25", Rectangle(-1990, 407, 25));
+		AddSpawnPoint("f_rokas_25.Id8", "f_rokas_25", Rectangle(-1098, 615, 25));
+		AddSpawnPoint("f_rokas_25.Id8", "f_rokas_25", Rectangle(-856, 242, 25));
+		AddSpawnPoint("f_rokas_25.Id8", "f_rokas_25", Rectangle(-647, 472, 25));
+		AddSpawnPoint("f_rokas_25.Id8", "f_rokas_25", Rectangle(-766, 799, 25));
+
+		// 'Zinute' Spawn Points
+		AddSpawnPoint("f_rokas_25.Id9", "f_rokas_25", Rectangle(254, 627, 25));
+		AddSpawnPoint("f_rokas_25.Id9", "f_rokas_25", Rectangle(386, 319, 25));
+		AddSpawnPoint("f_rokas_25.Id9", "f_rokas_25", Rectangle(1043, -64, 25));
+		AddSpawnPoint("f_rokas_25.Id9", "f_rokas_25", Rectangle(1041, -313, 25));
+		AddSpawnPoint("f_rokas_25.Id9", "f_rokas_25", Rectangle(2024, -246, 25));
+		AddSpawnPoint("f_rokas_25.Id9", "f_rokas_25", Rectangle(1877, -561, 25));
+		AddSpawnPoint("f_rokas_25.Id9", "f_rokas_25", Rectangle(2946, -264, 25));
+		AddSpawnPoint("f_rokas_25.Id9", "f_rokas_25", Rectangle(2582, -1000, 25));
 
 		// Boss Spawners ---------------------------------
 		AddBossSpawner(MonsterId.Boss_BiteRegina, "f_rokas_25", 1, Hours(2), Hours(4));

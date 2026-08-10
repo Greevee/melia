@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // West Siauliai Woods
 //--- Description -----------------------------------------------------------
 // NPCs found in and around West Siauliai Woods.
@@ -17,7 +17,7 @@ public class FSiauliaiWestNpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(4, 40120, "Statue of Goddess Vakarine", "f_siauliai_west", -525, 260, -435, 0, "WARP_F_SIAULIAI_WEST", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(4, "WARP_F_SIAULIAI_WEST", "f_siauliai_west", -525, 260, -435, 0);
 
 		// Statue of Goddess Zemyna
 		//-------------------------------------------------------------------------
@@ -29,7 +29,7 @@ public class FSiauliaiWestNpcScript : GeneralScript
 
 		// Statue of Goddess Zemyna
 		//-------------------------------------------------------------------------
-		AddNpc(2029, 40110, "Statue of Goddess Zemyna", "f_siauliai_west", 1687, 285.05, 366, 20, "F_SIAULIAI_WEST_EV_55_001", "F_SIAULIAI_WEST_EV_55_001", "F_SIAULIAI_WEST_EV_55_001");
+		AddStatPointStatue(2029, "F_SIAULIAI_WEST_EV_55_001", "f_siauliai_west", 1687, 285.05, 366, 20);
 
 		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------

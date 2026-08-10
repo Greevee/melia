@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Pradzia Temple
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Pradzia Temple.
@@ -14,6 +14,6 @@ public class DDcapital108NpcScript : GeneralScript
 	{
 		// Statue of Goddess Zemyna
 		//-------------------------------------------------------------------------
-		AddNpc(78, 40110, "Statue of Goddess Zemyna", "d_dcapital_108", -1606.255, 27.08374, -2953.66, -20, "D_DCAPITAL_108_ZEMINA", "D_DCAPITAL_108_ZEMINA", "D_DCAPITAL_108_ZEMINA");
+		AddStatPointStatue(78, "D_DCAPITAL_108_ZEMINA", "d_dcapital_108", -1606.255, 27.08374, -2953.66, -20);
 	}
 }

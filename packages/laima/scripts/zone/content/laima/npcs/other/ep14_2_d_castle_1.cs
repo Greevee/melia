@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Delmore Waiting Area
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Delmore Waiting Area.
@@ -14,6 +14,6 @@ public class Ep142DCastle1NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(7, 40120, "Statue of Goddess Vakarine", "ep14_2_d_castle_1", 1133.609, 1.014136, 37.23258, 92, "WARP_EP14_2_DCASTLE_1", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(7, "WARP_EP14_2_DCASTLE_1", "ep14_2_d_castle_1", 1133.609, 1.014136, 37.23258, 92);
 	}
 }

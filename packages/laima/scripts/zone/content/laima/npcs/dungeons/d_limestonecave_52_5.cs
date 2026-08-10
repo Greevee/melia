@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Tevhrin Stalactite Cave Section 5
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Tevhrin Stalactite Cave Section 5.
@@ -14,7 +14,7 @@ public class DLimestonecave525NpcScript : GeneralScript
 	{
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
-		AddNpc(25, 40120, "Statue of Goddess Vakarine", "d_limestonecave_52_5", -1319.36, 818.53, -1057.98, -15, "WARP_D_LIMESTONE_52_5", "STOUP_CAMP", "STOUP_CAMP");
+		AddWarpStatue(25, "WARP_D_LIMESTONE_52_5", "d_limestonecave_52_5", -1319.36, 818.53, -1057.98, -15);
 		
 		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------
