@@ -16,8 +16,8 @@ public class FFarm472NpcScript : GeneralScript
 		//-------------------------------------------------------------------------
 		AddNpc(55, 147392, "Lv1 Treasure Chest", "f_farm_47_2", 1364.12, -116.04, -57.45, 90, "TREASUREBOX_LV_F_FARM_47_255", "", "");
 
-		// Lv3 Treasure Chest
+		// Lv2 Treasure Chest
 		//-------------------------------------------------------------------------
-		AddNpc(52, 147393, "Lv3 Treasure Chest", "f_farm_47_2", 100, -62, 1941, 0, "TREASUREBOX_LV_F_PILGRIMROAD_4652", "", "");
+		AddNpc(52, 40030, "Lv2 Treasure Chest", "f_farm_47_2", 100, -62, 1941, 0, "TREASUREBOX_LV_F_PILGRIMROAD_4652", "", "");
 	}
 }

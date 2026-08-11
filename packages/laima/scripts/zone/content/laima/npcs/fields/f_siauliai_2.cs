@@ -16,10 +16,6 @@ public class FSiauliai2NpcScript : GeneralScript
 		//-------------------------------------------------------------------------
 		AddWarpStatue(33, "WARP_F_SIAULIAI_EST", "f_siauliai_2", 233, 157, 724, 0);
 		
-		// Lv2 Treasure Chest
-		//-------------------------------------------------------------------------
-		// AddNpc(10023, 40030, "Lv2 Treasure Chest", "f_siauliai_2", 49.24, 130.12, -963.25, 90, "TREASUREBOX_LV_F_SIAULIAI_210023", "", "");
-		
 		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------
 		// AddNpc(10039, 147392, "Lv1 Treasure Chest", "f_siauliai_2", -2235.57, 130.12, 690.81, 90, "TREASUREBOX_LV_F_SIAULIAI_210039", "", "");

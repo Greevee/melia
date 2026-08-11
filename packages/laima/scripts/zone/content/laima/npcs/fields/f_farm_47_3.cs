@@ -12,9 +12,9 @@ public class FFarm473NpcScript : GeneralScript
 {
 	protected override void Load()
 	{
-		// Lv3 Treasure Chest
+		// Lv2 Treasure Chest
 		//-------------------------------------------------------------------------
-		AddNpc(39, 147393, "Lv3 Treasure Chest", "f_farm_47_3", -1311.72, -9.32, 647.56, 90, "TREASUREBOX_LV_F_FARM_47_339", "", "");
+		AddNpc(39, 40030, "Lv2 Treasure Chest", "f_farm_47_3", -1311.72, -9.32, 647.56, 90, "TREASUREBOX_LV_F_FARM_47_339", "", "");
 		
 		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------

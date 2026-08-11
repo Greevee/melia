@@ -269,10 +269,10 @@ namespace Melia.Zone.Scripting
 					character.PlaySound("quest_event_click");
 				}
 			}
-			else if (DefaultWarpStatueKeys.Contains(npc.DialogName))
+			else if (DefaultWarpStatueKeys.Contains(npc.DialogName) && PropertyTable.Exists("SessionObject", npc.DialogName))
 			{
-				// Silently sync the client, which tracks unlocks on its own.
-				MarkStatueUsed(character, npc.DialogName, WarpStatueVarPrefix, npc.DialogName);
+				// The client tracks unlocks on its own and needs these set.
+				character.SetProperty(character.SessionObjects.Main, npc.DialogName, 300);
 			}
 
 			character.ShowHelp("TUTO_CAMPWARP");

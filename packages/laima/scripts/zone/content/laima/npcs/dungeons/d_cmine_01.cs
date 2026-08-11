@@ -16,9 +16,9 @@ public class DCmine01NpcScript : GeneralScript
 		//-------------------------------------------------------------------------
 		AddWarpStatue(529, "WARP_D_CMINE_01", "d_cmine_01", -1222.77, 316.34, -1230.72, 60);
 		
-		// Lv2 Treasure Chest
+		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------
-		AddNpc(533, 40030, "Lv2 Treasure Chest", "d_cmine_01", 1316, 4, 730, 360, "TREASUREBOX_LV_D_CMINE_01533", "", "");
+		AddNpc(533, 147392, "Lv1 Treasure Chest", "d_cmine_01", 1316, 4, 730, 360, "TREASUREBOX_LV_D_CMINE_01533", "", "");
 		
 		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------

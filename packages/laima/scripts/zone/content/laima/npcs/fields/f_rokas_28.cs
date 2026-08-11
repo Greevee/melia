@@ -29,5 +29,9 @@ public class FRokas28NpcScript : GeneralScript
 			TimeSpan.FromSeconds(1), direction: 0, color: "red");
 		AddPlatformNpc("f_rokas_28", 415, 1559, 608, 0, "white");
 		AddFloatingTreasureChestSpawner("Laima.Treasures.f_rokas_28.Chest1", "f_rokas_28", 415, 1559, 608, 0, ItemId.EmoticonItem_109_110, monsterId: 147393);
+
+		// Lv1 Treasure Chest (Bronza Medal)
+		//-------------------------------------------------------------------------
+		AddNpc(9001, 147392, "Lv1 Treasure Chest", "f_rokas_28", 174, 1121, -1510, 270, "TREASUREBOX_LV_F_ROKAS_289001", "", "");
 	}
 }

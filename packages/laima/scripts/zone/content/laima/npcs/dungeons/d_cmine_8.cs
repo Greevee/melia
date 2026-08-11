@@ -12,9 +12,9 @@ public class DCmine8NpcScript : GeneralScript
 {
 	protected override void Load()
 	{
-		// Lv3 Treasure Chest
+		// Lv2 Treasure Chest
 		//-------------------------------------------------------------------------
-		AddNpc(1078, 147393, "Lv3 Treasure Chest", "d_cmine_8", 2615, -185, 2262, 0, "TREASUREBOX_LV_D_CMINE_81078", "", "");
+		AddNpc(1078, 40030, "Lv2 Treasure Chest", "d_cmine_8", 2615, -185, 2262, 0, "TREASUREBOX_LV_D_CMINE_81078", "", "");
 		
 		// Lv2 Treasure Chest
 		//-------------------------------------------------------------------------

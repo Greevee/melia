@@ -12,7 +12,6 @@
 { map: "c_Klaipe", x: 514, y: -1, z: 365, direction: 45 },
 { map: "c_Klaipe", x: -956, y: 240, z: 866, direction: 45 },
 { map: "f_siauliai_west", x: 763, y: 209, z: -1238, direction: 225 },
-{ map: "f_siauliai_west", x: 1752, y: 282, z: 438, direction: 315 },
 { map: "f_siauliai_west", x: 1019, y: 282, z: 665, direction: 90 },
 { map: "f_siauliai_west", x: 622, y: 282, z: 503, direction: 45 },
 { map: "f_siauliai_west", x: -659, y: 260, z: -832, direction: 90 },

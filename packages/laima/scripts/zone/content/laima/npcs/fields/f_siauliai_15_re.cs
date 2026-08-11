@@ -50,5 +50,21 @@ public class FSiauliai15ReNpcScript : GeneralScript
 		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------
 		AddNpc(644, 147392, "Lv1 Treasure Chest", "f_siauliai_15_re", 463.58, 922.86, 1401.50, 45, "TREASUREBOX_LV_F_SIAULIAI_15_RE644", "", "");
+
+		// Lv1 Treasure Chest (STA Necklace)
+		//-------------------------------------------------------------------------
+		AddNpc(9001, 147392, "Lv1 Treasure Chest", "f_siauliai_15_re", -1147, 742, -305, 270, "TREASUREBOX_LV_F_SIAULIAI_15_RE9001", "", "");
+
+		// Lv1 Treasure Chest (Lv1 EXP Card)
+		//-------------------------------------------------------------------------
+		AddNpc(9002, 147392, "Lv1 Treasure Chest", "f_siauliai_15_re", 4, 1015, 2776, 0, "TREASUREBOX_LV_F_SIAULIAI_15_RE9002", "", "");
+
+		// Lv1 Treasure Chest (Lv1 EXP Card)
+		//-------------------------------------------------------------------------
+		AddNpc(9003, 147392, "Lv1 Treasure Chest", "f_siauliai_15_re", 1792, 878, -1950, 90, "TREASUREBOX_LV_F_SIAULIAI_15_RE9003", "", "");
+
+		// Lv1 Treasure Chest (Lv1 EXP Card)
+		//-------------------------------------------------------------------------
+		AddNpc(9004, 147392, "Lv1 Treasure Chest", "f_siauliai_15_re", -737, 1146, -2410, 0, "TREASUREBOX_LV_F_SIAULIAI_15_RE9004", "", "");
 	}
 }

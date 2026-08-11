@@ -59,10 +59,15 @@ namespace Melia.Zone.World
 		public int Count => this.Maps.Count;
 
 		/// <summary>
+		/// The delay between heartbeat ticks, in milliseconds.
+		/// </summary>
+		public const int HeartbeatDelay = 10;
+
+		/// <summary>
 		/// Returns the world's heartbeat, a manager for regularly
 		/// occurring events.
 		/// </summary>
-		public Heartbeat Heartbeat { get; } = new Heartbeat(10);
+		public Heartbeat Heartbeat { get; } = new Heartbeat(HeartbeatDelay);
 
 		/// <summary>
 		/// Returns the world's day/night cycle manager.

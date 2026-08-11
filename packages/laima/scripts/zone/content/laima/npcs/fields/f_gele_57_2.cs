@@ -14,9 +14,9 @@ public class FGele572NpcScript : GeneralScript
 {
 	protected override void Load()
 	{
-		// Lv4 Treasure Chest
+		// Lv3 Treasure Chest
 		//-------------------------------------------------------------------------
-		AddNpc(150, 147394, "Lv4 Treasure Chest", "f_gele_57_2", -659, 418.99, -72.39, 90, "TREASUREBOX_LV_F_GELE_57_2150", "", "");
+		AddNpc(150, 147393, "Lv3 Treasure Chest", "f_gele_57_2", -659, 418.99, -72.39, 90, "TREASUREBOX_LV_F_GELE_57_2150", "", "");
 		
 		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------
@@ -34,5 +34,8 @@ public class FGele572NpcScript : GeneralScript
 		AddPlatformNpc("f_gele_57_2", 980, 663, -1134, 0, "white");
 		AddFloatingTreasureChestSpawner("Laima.Treasures.f_gele_57_2.Chest1", "f_gele_57_2", 980, 663, -1134, 0, ItemId.EmoticonItem_Gabija_EarringRaid_1_4, monsterId: 147393);
 
+		// Lv1 Treasure Chest (Carnivore Necklace)
+		//-------------------------------------------------------------------------
+		AddNpc(9001, 147392, "Lv1 Treasure Chest", "f_gele_57_2", -813, 419, -548, 225, "TREASUREBOX_LV_F_GELE_57_29001", "", "");
 	}
 }

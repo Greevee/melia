@@ -325,14 +325,16 @@ namespace Melia.Zone.Scripting
 		}
 
 		/// <summary>
-		/// Plays chest opening animations and makes the chest disappear.
-		/// Returns after the animation played and the chest's contents
-		/// can be distributed.
+		/// Plays chest opening animations and makes the chest disappear,
+		/// handing out the chest's contents via onOpened once the animation
+		/// is under way. Returns after the animation played.
 		/// </summary>
 		/// <param name="character"></param>
 		/// <param name="npc"></param>
+		/// <param name="disappearOnOpen"></param>
+		/// <param name="onOpened"></param>
 		/// <returns></returns>
-		public static async Task OpenChest(Character character, Npc npc, bool disappearOnOpen = false)
+		public static async Task OpenChest(Character character, Npc npc, bool disappearOnOpen = false, Action onOpened = null)
 		{
 			character.ShowHelp("MINI_E_BUFFBOX");
 
@@ -342,8 +344,12 @@ namespace Melia.Zone.Scripting
 			Send.ZC_PLAY_ANI(character, AnimationName.KickBox);
 			Send.ZC_PLAY_ANI(npc, anim, true);
 
-			// Wait a second, so the animations can play
-			await Task.Delay(TimeSpan.FromSeconds(3));
+			// Hand out the contents while the animation is still playing
+			await Task.Delay(TimeSpan.FromSeconds(1.5));
+			onOpened?.Invoke();
+
+			// Wait for the rest of the animation
+			await Task.Delay(TimeSpan.FromSeconds(1.5));
 
 			// Make chest disappear
 			Send.ZC_NORMAL.FadeOut(npc, TimeSpan.FromSeconds(3));

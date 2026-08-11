@@ -514,7 +514,7 @@ public class FSiauliaiOutGoblinProblemQuest : QuestScript
 		SetId("f_siauliai_out", 1001);
 		SetName(L("The Goblin Menace"));
 		SetType(QuestType.Sub);
-		SetDescription(L("Help Mine Foreman Karolis by clearing out the Goblin Spears that have been raiding the village's supply routes."));
+		SetDescription(L("Help Mine Foreman Karolis by clearing out the Vubbe Thieves that have been raiding the village's supply routes."));
 		SetLocation("f_siauliai_out");
 		SetAutoTracked(true);
 
@@ -524,7 +524,7 @@ public class FSiauliaiOutGoblinProblemQuest : QuestScript
 		AddQuestGiver(L("[Mine Foreman] Karolis"), "f_siauliai_out");
 
 		// Kill goblins
-		AddObjective("killGoblins", L("Defeat Goblin Spears"),
+		AddObjective("killGoblins", L("Defeat Vubbe Thieves"),
 			new KillObjective(18, new[] { MonsterId.Goblin_Spear }));
 
 		// Rewards

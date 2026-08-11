@@ -42,5 +42,17 @@ public class FSiauliaiWestNpcScript : GeneralScript
 		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------
 		AddNpc(2036, 147392, "Lv1 Treasure Chest", "f_siauliai_west", 1346.05, 210.31, -1087.24, 90, "TREASUREBOX_LV_F_SIAULIAI_WEST2036", "", "");
+
+		// Lv3 Treasure Chest (Muscharia Hat)
+		//-------------------------------------------------------------------------
+		AddNpc(9001, 147393, "Lv3 Treasure Chest", "f_siauliai_west", 1738, 283, 449, 315, "TREASUREBOX_LV_F_SIAULIAI_WEST9001", "", "");
+
+		// Lv1 Treasure Chest (Lv1 EXP Card)
+		//-------------------------------------------------------------------------
+		AddNpc(9002, 147392, "Lv1 Treasure Chest", "f_siauliai_west", -441, 360, 1561, 0, "TREASUREBOX_LV_F_SIAULIAI_WEST9002", "", "");
+
+		// Lv1 Treasure Chest (Lv1 EXP Card)
+		//-------------------------------------------------------------------------
+		AddNpc(9003, 147392, "Lv1 Treasure Chest", "f_siauliai_west", -2153, 261, -465, 90, "TREASUREBOX_LV_F_SIAULIAI_WEST9003", "", "");
 	}
 }

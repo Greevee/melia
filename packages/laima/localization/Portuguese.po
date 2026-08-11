@@ -13252,6 +13252,14 @@ msgid "{#666666}*continues praying*"
 msgstr "{#666666}*continua rezando*"
 
 # ============================================================================
+# Treasure Chests (NPCFunctions.cs)
+# ============================================================================
+
+#: src/ZoneServer/Scripting/Shared/NPCFunctions.cs
+msgid "You don't have the required key to open this.{nl}Perhaps the Item Merchant in town can help you out."
+msgstr "Você não tem a chave necessária para abrir isto.{nl}Talvez o Mercador de Itens da cidade possa te ajudar."
+
+# ============================================================================
 # Blacksmiths (NPCFunctions.cs)
 # ============================================================================
 

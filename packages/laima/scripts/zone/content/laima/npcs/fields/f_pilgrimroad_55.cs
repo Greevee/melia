@@ -16,9 +16,9 @@ public class FPilgrimroad55NpcScript : GeneralScript
 		//-------------------------------------------------------------------------
 		AddWarpStatue(7, "WARP_F_PILGRIMROAD_55", "f_pilgrimroad_55", 1055.57, 242.4188, -424.0734, 0);
 		
-		// Lv4 Treasure Chest
+		// Lv3 Treasure Chest
 		//-------------------------------------------------------------------------
-		AddNpc(39, 147394, "Lv4 Treasure Chest", "f_pilgrimroad_55", -105.74, 242.52, 77.43, 90, "TREASUREBOX_LV_F_PILGRIMROAD_5539", "", "");
+		AddNpc(39, 147393, "Lv3 Treasure Chest", "f_pilgrimroad_55", -105.74, 242.52, 77.43, 90, "TREASUREBOX_LV_F_PILGRIMROAD_5539", "", "");
 		
 		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------

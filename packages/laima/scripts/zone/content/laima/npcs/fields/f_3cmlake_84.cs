@@ -16,8 +16,8 @@ public class F3cmlake84NpcScript : GeneralScript
 		//-------------------------------------------------------------------------
 		AddNpc(183, 147392, "Lv1 Treasure Chest", "f_3cmlake_84", 808, 273, -339, 180, "TREASUREBOX_LV_F_3CMLAKE_84183", "", "");
 
-		// Lv4 Treasure Chest
+		// Lv3 Treasure Chest
 		//-------------------------------------------------------------------------
-		AddNpc(40, 147394, "Lv4 Treasure Chest", "f_3cmlake_84", -406, 261, -1097, 0, "TREASUREBOX_LV_F_3CMLAKE_8440", "", "");
+		AddNpc(40, 147393, "Lv3 Treasure Chest", "f_3cmlake_84", -406, 261, -1097, 0, "TREASUREBOX_LV_F_3CMLAKE_8440", "", "");
 	}
 }

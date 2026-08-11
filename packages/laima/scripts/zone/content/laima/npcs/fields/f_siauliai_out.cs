@@ -24,9 +24,9 @@ public class FSiauliaiOutNpcScript : GeneralScript
 		//-------------------------------------------------------------------------
 		AddNpc(10054, 147392, "Lv1 Treasure Chest", "f_siauliai_out", 1224.35, 198.02, 279.95, 90, "TREASUREBOX_LV_F_SIAULIAI_OUT10054", "", "");
 
-		// Lv2 Treasure Chest
+		// Lv3 Treasure Chest
 		//-------------------------------------------------------------------------
-		 AddNpc(10023, 40030, "Lv2 Treasure Chest", "f_siauliai_out", 1451, 229, 577, 0, "TREASUREBOX_LV_F_SIAULIAI_210023", "", "");
+		AddNpc(10023, 147393, "Lv3 Treasure Chest", "f_siauliai_out", 1451, 229, 577, 0, "TREASUREBOX_LV_F_SIAULIAI_210023", "", "");
 
 		// Lv1 Treasure Chest (East Siauliai Woods Collection)
 		// We're never going to have East Siauliai Woods, but having it in

@@ -42,5 +42,8 @@ public class FGele571NpcScript : GeneralScript
 		AddPlatformNpc("f_gele_57_1", 884, 708, -1244, 0, "white");
 		AddFloatingTreasureChestSpawner("Laima.Treasures.f_gele_57_1.Chest1", "f_gele_57_1", 884, 709, -1244, 0, ItemId.EmoticonItem_Gabija_EarringRaid_5_8, monsterId: 147393);
 
+		// Lv1 Treasure Chest (Panto Necklace)
+		//-------------------------------------------------------------------------
+		AddNpc(9001, 147392, "Lv1 Treasure Chest", "f_gele_57_1", 816, 169, -315, 315, "TREASUREBOX_LV_F_GELE_57_19001", "", "");
 	}
 }

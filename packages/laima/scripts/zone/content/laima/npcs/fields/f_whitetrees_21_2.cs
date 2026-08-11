@@ -44,5 +44,8 @@ public class FWhitetrees212NpcScript : GeneralScript
 		AddPlatformNpc("f_whitetrees_21_2", 1779, 122, 554, 0, "white");
 		AddFloatingTreasureChestSpawner("Laima.Treasures.f_whitetrees_21_2.Chest1", "f_whitetrees_21_2", 1779, 122, 554, 0, ItemId.EmoticonItem_111_112, monsterId: 147393);
 
+		// Lv1 Treasure Chest (Formine Necklace)
+		//-------------------------------------------------------------------------
+		AddNpc(9001, 147392, "Lv1 Treasure Chest", "f_whitetrees_21_2", -826, 120, -216, 0, "TREASUREBOX_LV_F_WHITETREES_21_29001", "", "");
 	}
 }

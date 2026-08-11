@@ -688,28 +688,6 @@ namespace Melia.Zone.Network
 		}
 
 		/// <summary>
-		/// Holds back the death broadcast of any target killed by the given
-		/// hits, until the clients have played out the hit that killed it.
-		/// Without this the death would reach the client before the killing
-		/// blow, making the corpse flicker back to life for the hit.
-		/// </summary>
-		/// <param name="hits"></param>
-		/// <param name="shootTime"></param>
-		private static void SyncDeathBroadcasts(IEnumerable<SkillHitInfo> hits, float shootTime = 0)
-		{
-			if (hits == null)
-				return;
-
-			foreach (var hit in hits)
-			{
-				if (hit?.Target is not Mob mob || !mob.IsDead)
-					continue;
-
-				mob.DelayDeathBroadcast(TimeSpan.FromMilliseconds(shootTime) + hit.AniTime + hit.HitDelay);
-			}
-		}
-
-		/// <summary>
 		/// Shows skill use for character, by sending ZC_SKILL_FORCE_TARGET to its connection.
 		/// </summary>
 		/// <param name="entity"></param>
@@ -741,8 +719,6 @@ namespace Melia.Zone.Network
 		{
 			var shootTime = skill.Properties.GetFloatSafe(PropertyName.ShootTime);
 			var sklSpdRate = skill.Properties.GetFloatSafe(PropertyName.SklSpdRate);
-
-			SyncDeathBroadcasts(hits, shootTime);
 
 			using var packet = Packet.Rent(Op.ZC_SKILL_FORCE_TARGET);
 
@@ -793,8 +769,6 @@ namespace Melia.Zone.Network
 			var shootTime = skill.Properties.GetFloat(PropertyName.ShootTime);
 			var sklSpdRate = skill.Properties.GetFloat(PropertyName.SklSpdRate);
 
-			SyncDeathBroadcasts(hits, shootTime);
-
 			using var packet = Packet.Rent(Op.ZC_SKILL_FORCE_TARGET);
 
 			packet.PutInt((int)visualSkillId);
@@ -836,8 +810,6 @@ namespace Melia.Zone.Network
 		{
 			var shootTime = skill.Properties.GetFloat(PropertyName.ShootTime);
 			var sklSpdRate = skill.Properties.GetFloat(PropertyName.SklSpdRate);
-
-			SyncDeathBroadcasts(hits, shootTime);
 
 			using var packet = Packet.Rent(Op.ZC_SKILL_FORCE_GROUND);
 
@@ -914,8 +886,6 @@ namespace Melia.Zone.Network
 			var sklSpdRate = skill.Properties.GetFloatSafe(PropertyName.SklSpdRate);
 			var enableCastMove = skill.Properties.GetFloat(PropertyName.EnableShootMove) == 1f;
 
-			SyncDeathBroadcasts(hits, shootTime);
-
 			using var packet = Packet.Rent(Op.ZC_SKILL_MELEE_GROUND);
 
 			packet.PutInt((int)skill.Id);
@@ -977,8 +947,6 @@ namespace Melia.Zone.Network
 			var shootTime = skill.Properties.GetFloat(PropertyName.ShootTime);
 			var sklSpdRate = skill.Properties.GetFloat(PropertyName.SklSpdRate);
 			var forceId = hits?.FirstOrDefault()?.ForceId ?? 0;
-
-			SyncDeathBroadcasts(hits, shootTime);
 
 			using var packet = Packet.Rent(Op.ZC_SKILL_MELEE_TARGET);
 
@@ -3047,9 +3015,6 @@ namespace Melia.Zone.Network
 		/// <param name="hitInfo"></param>
 		public static void ZC_HIT_INFO(ICombatEntity attacker, ICombatEntity target, HitInfo hitInfo)
 		{
-			if (target is Mob deadMob && deadMob.IsDead)
-				deadMob.DelayDeathBroadcast(hitInfo.AniTime);
-
 			using var packet = Packet.Rent(Op.ZC_HIT_INFO);
 
 			packet.PutInt(target.Handle);
@@ -3107,8 +3072,6 @@ namespace Melia.Zone.Network
 		/// <param name="hits"></param>
 		public static void ZC_SKILL_HIT_INFO(IActor attacker, IEnumerable<SkillHitInfo> hits)
 		{
-			SyncDeathBroadcasts(hits);
-
 			using var packet = Packet.Rent(Op.ZC_SKILL_HIT_INFO);
 
 			packet.PutInt(attacker.Handle);

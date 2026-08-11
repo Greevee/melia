@@ -46,16 +46,11 @@ namespace Melia.Zone.World.Actors.Monsters
 		private Position _position;
 
 		/// <summary>
-		/// Grace window that lets the killing blow's skill packet reach
-		/// the senders before the death broadcast can be flushed.
+		/// Grace window that lets the killing blow's skill packet reach the
+		/// senders first, so the death always goes out after the hit that
+		/// caused it rather than before it.
 		/// </summary>
-		private static readonly TimeSpan DeathBroadcastGrace = TimeSpan.FromMilliseconds(20);
-
-		/// <summary>
-		/// Upper bound for how long the death broadcast may be held back,
-		/// so bad skill data can't leave corpses standing.
-		/// </summary>
-		private static readonly TimeSpan MaxDeathBroadcastDelay = TimeSpan.FromMilliseconds(1000);
+		private static readonly TimeSpan DeathBroadcastGrace = TimeSpan.FromMilliseconds(WorldManager.HeartbeatDelay * 2);
 
 		/// <summary>
 		/// How long the corpse remains on the map after its death is shown.
@@ -678,34 +673,6 @@ namespace Melia.Zone.World.Actors.Monsters
 				_deathBroadcastPending = true;
 				_deathBroadcastTime = GameClock.LocalNow + DeathBroadcastGrace;
 				this.DisappearTime = _deathBroadcastTime + CorpseDuration;
-			}
-		}
-
-		/// <summary>
-		/// Holds the pending death broadcast back by the given delay, so
-		/// clients are told the monster died only after they've played out
-		/// the hit that killed it. Ignored once the death was broadcast.
-		/// </summary>
-		/// <param name="delay"></param>
-		public void DelayDeathBroadcast(TimeSpan delay)
-		{
-			if (delay <= TimeSpan.Zero)
-				return;
-
-			if (delay > MaxDeathBroadcastDelay)
-				delay = MaxDeathBroadcastDelay;
-
-			lock (_deathBroadcastLock)
-			{
-				if (!_deathBroadcastPending)
-					return;
-
-				var broadcastTime = GameClock.LocalNow + delay;
-				if (broadcastTime <= _deathBroadcastTime)
-					return;
-
-				_deathBroadcastTime = broadcastTime;
-				this.DisappearTime = broadcastTime + CorpseDuration;
 			}
 		}
 

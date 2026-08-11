@@ -119,22 +119,38 @@ namespace Melia.Zone.Scripting.Shared
 			await Task.CompletedTask;
 		}
 
+		private static readonly Dictionary<int, string> TreasureChestKeys = new()
+		{
+			{ 40030, "TreasureboxKey2" },
+			{ 147393, "TreasureboxKey3" },
+			{ 147394, "TreasureboxKey4" },
+			{ 147395, "TreasureboxKey5" },
+		};
+
 		/// <summary>
 		/// Treasure Box
 		/// </summary>
 		/// <param name="dialog"></param>
 		/// <param name="className"></param>
 		/// <param name="amount"></param>
-		/// <param name="itemRequiredToUnlock"></param>
 		/// <returns></returns>
-		public static async Task TREASUREBOX_LV(Dialog dialog, string className, int amount, string itemRequiredToUnlock = "")
+		public static async Task TREASUREBOX_LV(Dialog dialog, string className, int amount)
 		{
 			if (dialog.Npc != null && dialog.Player.GetMapNPCState(dialog.Npc) == NpcState.Invisible)
 				return;
-			if (!string.IsNullOrEmpty(itemRequiredToUnlock) && dialog.Player.RemoveItem(itemRequiredToUnlock) > 0)
-				return;
-			await OpenChest(dialog.Player, dialog.Npc);
-			dialog.Player.AddItem(className, amount);
+
+			if (dialog.Npc != null && TreasureChestKeys.TryGetValue(dialog.Npc.Id, out var keyClassName))
+			{
+				if (!dialog.Player.HasItem(keyClassName))
+				{
+					dialog.Player.AddonMessage(AddonMessage.NOTICE_Dm_Exclaimation, L("You don't have the required key to open this.{nl}Perhaps the Item Merchant in town can help you out."), 5);
+					return;
+				}
+
+				dialog.Player.RemoveItem(keyClassName);
+			}
+
+			await OpenChest(dialog.Player, dialog.Npc, false, () => dialog.Player.AddItem(className, amount));
 			await Task.Yield();
 		}
 
@@ -2456,6 +2472,138 @@ namespace Melia.Zone.Scripting.Shared
 		public static async Task TREASUREBOX_LV_F_SIAULIAI_WEST2032(Dialog dialog)
 			=> await TREASUREBOX_LV(dialog, "BRC02_114", 1);
 
+		[DialogFunction("TREASUREBOX_LV_F_SIAULIAI_WEST9001")]
+		public static async Task TREASUREBOX_LV_F_SIAULIAI_WEST9001(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "Hat_628016", 1);
+
+		[DialogFunction("TREASUREBOX_LV_F_SIAULIAI_WEST9002")]
+		public static async Task TREASUREBOX_LV_F_SIAULIAI_WEST9002(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "expCard1", 2);
+
+		[DialogFunction("TREASUREBOX_LV_F_SIAULIAI_WEST9003")]
+		public static async Task TREASUREBOX_LV_F_SIAULIAI_WEST9003(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "expCard1", 2);
+
+		[DialogFunction("TREASUREBOX_LV_D_CMINE_029001")]
+		public static async Task TREASUREBOX_LV_D_CMINE_029001(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "Hat_628002", 1);
+
+		[DialogFunction("TREASUREBOX_LV_F_PILGRIMROAD_41_49001")]
+		public static async Task TREASUREBOX_LV_F_PILGRIMROAD_41_49001(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "Hat_628012", 1);
+
+		[DialogFunction("TREASUREBOX_LV_F_ORCHARD_34_19001")]
+		public static async Task TREASUREBOX_LV_F_ORCHARD_34_19001(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "Hat_628014", 1);
+
+		[DialogFunction("TREASUREBOX_LV_F_WHITETREES_22_39001")]
+		public static async Task TREASUREBOX_LV_F_WHITETREES_22_39001(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "Hat_628026", 1);
+
+		[DialogFunction("TREASUREBOX_LV_F_SIAULIAI_11_RE9001")]
+		public static async Task TREASUREBOX_LV_F_SIAULIAI_11_RE9001(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "Hat_628028", 1);
+
+		[DialogFunction("TREASUREBOX_LV_F_SIAULIAI_11_RE9002")]
+		public static async Task TREASUREBOX_LV_F_SIAULIAI_11_RE9002(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "SHD02_102", 1);
+
+		[DialogFunction("TREASUREBOX_LV_F_SIAULIAI_47_49001")]
+		public static async Task TREASUREBOX_LV_F_SIAULIAI_47_49001(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "Hat_628030", 1);
+
+		[DialogFunction("TREASUREBOX_LV_F_ORCHARD_34_29001")]
+		public static async Task TREASUREBOX_LV_F_ORCHARD_34_29001(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "Hat_628031", 1);
+
+		[DialogFunction("TREASUREBOX_LV_D_ZACHARIEL_349001")]
+		public static async Task TREASUREBOX_LV_D_ZACHARIEL_349001(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "Hat_628033", 1);
+
+		[DialogFunction("TREASUREBOX_LV_F_KATYN_139001")]
+		public static async Task TREASUREBOX_LV_F_KATYN_139001(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "Hat_628035", 1);
+
+		[DialogFunction("TREASUREBOX_LV_F_REMAINS_389001")]
+		public static async Task TREASUREBOX_LV_F_REMAINS_389001(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "Hat_628042", 1);
+
+		[DialogFunction("TREASUREBOX_LV_D_THORN_199001")]
+		public static async Task TREASUREBOX_LV_D_THORN_199001(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "Hat_628080", 1);
+
+		[DialogFunction("TREASUREBOX_LV_F_SIAULIAI_15_RE9001")]
+		public static async Task TREASUREBOX_LV_F_SIAULIAI_15_RE9001(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "NECK01_103", 1);
+
+		[DialogFunction("TREASUREBOX_LV_F_SIAULIAI_15_RE9002")]
+		public static async Task TREASUREBOX_LV_F_SIAULIAI_15_RE9002(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "expCard1", 2);
+
+		[DialogFunction("TREASUREBOX_LV_F_SIAULIAI_15_RE9003")]
+		public static async Task TREASUREBOX_LV_F_SIAULIAI_15_RE9003(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "expCard1", 2);
+
+		[DialogFunction("TREASUREBOX_LV_F_SIAULIAI_15_RE9004")]
+		public static async Task TREASUREBOX_LV_F_SIAULIAI_15_RE9004(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "expCard1", 2);
+
+		[DialogFunction("TREASUREBOX_LV_F_GELE_57_19001")]
+		public static async Task TREASUREBOX_LV_F_GELE_57_19001(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "NECK01_104", 1);
+
+		[DialogFunction("TREASUREBOX_LV_F_ROKAS_259001")]
+		public static async Task TREASUREBOX_LV_F_ROKAS_259001(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "BRC01_122", 1);
+
+		[DialogFunction("TREASUREBOX_LV_F_ROKAS_259002")]
+		public static async Task TREASUREBOX_LV_F_ROKAS_259002(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "expCard1", 2);
+
+		[DialogFunction("TREASUREBOX_LV_F_ROKAS_259003")]
+		public static async Task TREASUREBOX_LV_F_ROKAS_259003(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "expCard1", 2);
+
+		[DialogFunction("TREASUREBOX_LV_D_PRISON_62_39001")]
+		public static async Task TREASUREBOX_LV_D_PRISON_62_39001(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "BRC02_102", 1);
+
+		[DialogFunction("TREASUREBOX_LV_F_GELE_57_29001")]
+		public static async Task TREASUREBOX_LV_F_GELE_57_29001(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "NECK02_115", 1);
+
+		[DialogFunction("TREASUREBOX_LV_F_WHITETREES_21_29001")]
+		public static async Task TREASUREBOX_LV_F_WHITETREES_21_29001(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "NECK02_117", 1);
+
+		[DialogFunction("TREASUREBOX_LV_F_ROKAS_289001")]
+		public static async Task TREASUREBOX_LV_F_ROKAS_289001(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "NECK02_119", 1);
+
+		[DialogFunction("TREASUREBOX_LV_D_PRISON_62_19001")]
+		public static async Task TREASUREBOX_LV_D_PRISON_62_19001(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "gem_circle_1", 1);
+
+		[DialogFunction("TREASUREBOX_LV_D_PRISON_62_19002")]
+		public static async Task TREASUREBOX_LV_D_PRISON_62_19002(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "gem_diamond_1", 1);
+
+		[DialogFunction("TREASUREBOX_LV_D_PRISON_62_29001")]
+		public static async Task TREASUREBOX_LV_D_PRISON_62_29001(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "gem_star_1", 1);
+
+		[DialogFunction("TREASUREBOX_LV_D_PRISON_62_39002")]
+		public static async Task TREASUREBOX_LV_D_PRISON_62_39002(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "gem_square_1", 1);
+
+		[DialogFunction("TREASUREBOX_LV_D_PRISON_62_39003")]
+		public static async Task TREASUREBOX_LV_D_PRISON_62_39003(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "gem_White_1", 1);
+
+		[DialogFunction("TREASUREBOX_LV_D_CMINE_029002")]
+		public static async Task TREASUREBOX_LV_D_CMINE_029002(Dialog dialog)
+			=> await TREASUREBOX_LV(dialog, "gem_White_1", 1);
+
 		[DialogFunction("JOB_DIEVDIRBYS2_NPC")]
 		public static async Task JOB_DIEVDIRBYS2_NPC(Dialog dialog)
 		{
@@ -2476,7 +2624,7 @@ namespace Melia.Zone.Scripting.Shared
 
 		[DialogFunction("TREASUREBOX_LV_F_SIAULIAI_WEST2035")]
 		public static async Task TREASUREBOX_LV_F_SIAULIAI_WEST2035(Dialog dialog)
-			=> await TREASUREBOX_LV(dialog, "Hat_628037", 1, "TreasureboxKey3");
+			=> await TREASUREBOX_LV(dialog, "Hat_628037", 1);
 
 		[DialogFunction("TREASUREBOX_LV_F_SIAULIAI_WEST2036")]
 		public static async Task TREASUREBOX_LV_F_SIAULIAI_WEST2036(Dialog dialog)
@@ -2593,7 +2741,7 @@ namespace Melia.Zone.Scripting.Shared
 
 		[DialogFunction("TREASUREBOX_LV_F_SIAULIAI_210023")]
 		public static async Task TREASUREBOX_LV_F_SIAULIAI_210023(Dialog dialog)
-			=> await TREASUREBOX_LV(dialog, "Hat_628032", 1, "TreasureboxKey2");
+			=> await TREASUREBOX_LV(dialog, "Hat_628032", 1);
 
 		[DialogFunction("SAUI_EAST_GUARD_01")]
 		public static async Task SAUI_EAST_GUARD_01(Dialog dialog)
@@ -2907,7 +3055,7 @@ namespace Melia.Zone.Scripting.Shared
 
 		[DialogFunction("TREASUREBOX_LV_D_CMINE_01533")]
 		public static async Task TREASUREBOX_LV_D_CMINE_01533(Dialog dialog)
-			=> await TREASUREBOX_LV(dialog, "NECK02_114", 1, "TreasureboxKey2");
+			=> await TREASUREBOX_LV(dialog, "NECK02_114", 1);
 
 		[DialogFunction("MINE_1_CRYSTAL_4")]
 		public static async Task MINE_1_CRYSTAL_4(Dialog dialog)
@@ -3095,10 +3243,6 @@ namespace Melia.Zone.Scripting.Shared
 			await COMMON_QUEST_HANDLER(dialog);
 		}
 
-
-		[DialogFunction("TREASUREBOX_LV_D_CMINE_6530")]
-		public static async Task TREASUREBOX_LV_D_CMINE_6530(Dialog dialog)
-			=> await TREASUREBOX_LV(dialog, "emoticonItem_1", 1);
 
 		[DialogFunction("MINE_3_RESIENT1")]
 		public static async Task MINE_3_RESIENT1(Dialog dialog)
@@ -3321,7 +3465,7 @@ namespace Melia.Zone.Scripting.Shared
 
 		[DialogFunction("TREASUREBOX_LV_F_GELE_57_2150")]
 		public static async Task TREASUREBOX_LV_F_GELE_57_2150(Dialog dialog)
-			=> await TREASUREBOX_LV(dialog, "Hat_628099", 1, "TreasureboxKey4");
+			=> await TREASUREBOX_LV(dialog, "Hat_628099", 1);
 
 		[DialogFunction("TREASUREBOX_LV_F_GELE_57_2153")]
 		public static async Task TREASUREBOX_LV_F_GELE_57_2153(Dialog dialog)
@@ -3477,7 +3621,7 @@ namespace Melia.Zone.Scripting.Shared
 
 		[DialogFunction("TREASUREBOX_LV_F_GELE_57_451")]
 		public static async Task TREASUREBOX_LV_F_GELE_57_451(Dialog dialog)
-			=> await TREASUREBOX_LV(dialog, "R_Hat_628043", 1, "TreasureboxKey2");
+			=> await TREASUREBOX_LV(dialog, "R_Hat_628043", 1);
 
 		[DialogFunction("UPPER_WARNING_F_GELE_57_4")]
 		public static async Task UPPER_WARNING_F_GELE_57_4(Dialog dialog)
@@ -4230,7 +4374,7 @@ namespace Melia.Zone.Scripting.Shared
 
 		[DialogFunction("TREASUREBOX_LV_D_CMINE_81078")]
 		public static async Task TREASUREBOX_LV_D_CMINE_81078(Dialog dialog)
-			=> await TREASUREBOX_LV(dialog, "R_Hat_628060", 1, "TreasureboxKey3");
+			=> await TREASUREBOX_LV(dialog, "R_Hat_628060", 1);
 
 		[DialogFunction("CRYSTAL_MACHINE")]
 		public static async Task CRYSTAL_MACHINE(Dialog dialog)
@@ -4264,7 +4408,7 @@ namespace Melia.Zone.Scripting.Shared
 
 		[DialogFunction("TREASUREBOX_LV_D_CMINE_81109")]
 		public static async Task TREASUREBOX_LV_D_CMINE_81109(Dialog dialog)
-			=> await TREASUREBOX_LV(dialog, "R_SPR02_105", 1, "TreasureboxKey2");
+			=> await TREASUREBOX_LV(dialog, "R_SPR02_105", 1);
 
 		[DialogFunction("TREASUREBOX_LV_D_CMINE_8700")]
 		public static async Task TREASUREBOX_LV_D_CMINE_8700(Dialog dialog)
@@ -4735,10 +4879,6 @@ namespace Melia.Zone.Scripting.Shared
 			await COMMON_QUEST_HANDLER(dialog);
 		}
 
-		[DialogFunction("TREASUREBOX_LV_D_THORN_19682")]
-		public static async Task TREASUREBOX_LV_D_THORN_19682(Dialog dialog)
-			=> await TREASUREBOX_LV(dialog, "emoticonItem_2", 1);
-
 		[DialogFunction("THORN19_GATE01_OPEN")]
 		public static async Task THORN19_GATE01_OPEN(Dialog dialog)
 		{
@@ -4804,7 +4944,7 @@ namespace Melia.Zone.Scripting.Shared
 
 		[DialogFunction("TREASUREBOX_LV_D_THORN_20865")]
 		public static async Task TREASUREBOX_LV_D_THORN_20865(Dialog dialog)
-			=> await TREASUREBOX_LV(dialog, "Hat_628091", 1, "TreasureboxKey3");
+			=> await TREASUREBOX_LV(dialog, "Hat_628091", 1);
 
 		[DialogFunction("SAULE_PURIFICATION")]
 		public static async Task SAULE_PURIFICATION(Dialog dialog)
@@ -5592,10 +5732,6 @@ namespace Melia.Zone.Scripting.Shared
 		[DialogFunction("TREASUREBOX_LV_F_ROKAS_25679")]
 		public static async Task TREASUREBOX_LV_F_ROKAS_25679(Dialog dialog)
 			=> await TREASUREBOX_LV(dialog, "COLLECT_140", 1);
-
-		[DialogFunction("TREASUREBOX_LV_F_ROKAS_25682")]
-		public static async Task TREASUREBOX_LV_F_ROKAS_25682(Dialog dialog)
-			=> await TREASUREBOX_LV(dialog, "JOB_SHINOBI_HIDDEN_ITEM_2", 1);
 
 		[DialogFunction("ROKAS26_BIO")]
 		public static async Task ROKAS26_BIO(Dialog dialog)
@@ -7203,7 +7339,7 @@ namespace Melia.Zone.Scripting.Shared
 
 		[DialogFunction("TREASUREBOX_LV_F_REMAINS_3886")]
 		public static async Task TREASUREBOX_LV_F_REMAINS_3886(Dialog dialog)
-			=> await TREASUREBOX_LV(dialog, "expCard6", 3, "TreasureboxKey3");
+			=> await TREASUREBOX_LV(dialog, "expCard5", 1);
 
 		[DialogFunction("MASTER_FLETCHER")]
 		public static async Task MASTER_FLETCHER(Dialog dialog)
@@ -7961,7 +8097,7 @@ namespace Melia.Zone.Scripting.Shared
 
 		[DialogFunction("TREASUREBOX_LV_F_PILGRIMROAD_4652")]
 		public static async Task TREASUREBOX_LV_F_PILGRIMROAD_4652(Dialog dialog)
-			=> await TREASUREBOX_LV(dialog, "R_TSW03_101", 1, "TreasureboxKey3");
+			=> await TREASUREBOX_LV(dialog, "R_TSW03_101", 1);
 
 		[DialogFunction("JOB_2_PALADIN5_TRIGGER")]
 		public static async Task JOB_2_PALADIN5_TRIGGER(Dialog dialog)
@@ -8948,7 +9084,7 @@ namespace Melia.Zone.Scripting.Shared
 
 		[DialogFunction("TREASUREBOX_LV_F_PILGRIMROAD_5539")]
 		public static async Task TREASUREBOX_LV_F_PILGRIMROAD_5539(Dialog dialog)
-			=> await TREASUREBOX_LV(dialog, "Hat_628053", 1, "TreasureboxKey4");
+			=> await TREASUREBOX_LV(dialog, "Hat_628053", 1);
 
 		[DialogFunction("TREASUREBOX_LV_F_PILGRIMROAD_55900")]
 		public static async Task TREASUREBOX_LV_F_PILGRIMROAD_55900(Dialog dialog)
@@ -15892,7 +16028,7 @@ namespace Melia.Zone.Scripting.Shared
 
 		[DialogFunction("TREASUREBOX_LV_F_FARM_49_360")]
 		public static async Task TREASUREBOX_LV_F_FARM_49_360(Dialog dialog)
-			=> await TREASUREBOX_LV(dialog, "R_TSF02_107", 1, "TreasureboxKey2");
+			=> await TREASUREBOX_LV(dialog, "R_TSF02_107", 1);
 
 		[DialogFunction("TREASUREBOX_LV_F_FARM_49_363")]
 		public static async Task TREASUREBOX_LV_F_FARM_49_363(Dialog dialog)
@@ -24036,7 +24172,7 @@ namespace Melia.Zone.Scripting.Shared
 
 		[DialogFunction("TREASUREBOX_LV_F_FARM_47_339")]
 		public static async Task TREASUREBOX_LV_F_FARM_47_339(Dialog dialog)
-			=> await TREASUREBOX_LV(dialog, "TSW02_104", 1, "TreasureboxKey3");
+			=> await TREASUREBOX_LV(dialog, "TSW02_104", 1);
 
 		[DialogFunction("TREASUREBOX_LV_F_FARM_47_3700")]
 		public static async Task TREASUREBOX_LV_F_FARM_47_3700(Dialog dialog)
@@ -24763,10 +24899,6 @@ namespace Melia.Zone.Scripting.Shared
 		[DialogFunction("TREASUREBOX_LV_F_SIAULIAI_11_RE634")]
 		public static async Task TREASUREBOX_LV_F_SIAULIAI_11_RE634(Dialog dialog)
 			=> await TREASUREBOX_LV(dialog, "COLLECT_259", 1);
-
-		[DialogFunction("TREASUREBOX_LV_F_KATYN_1232")]
-		public static async Task TREASUREBOX_LV_F_KATYN_1232(Dialog dialog)
-			=> await TREASUREBOX_LV(dialog, "JOB_SHINOBI_HIDDEN_ITEM_2", 1);
 
 		[DialogFunction("TREASUREBOX_LV_F_KATYN_12335")]
 		public static async Task TREASUREBOX_LV_F_KATYN_12335(Dialog dialog)

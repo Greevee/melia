@@ -474,10 +474,7 @@ namespace Melia.Zone.Scripting
 					return;
 
 				if (npc.Vars.ActivateOnce($"Npc.{uniqueName}"))
-				{
-					await OpenChest(character, npc, true);
-					character.Inventory.Add(itemId, amount, InventoryAddType.PickUp);
-				}
+					await OpenChest(character, npc, true, () => character.Inventory.Add(itemId, amount, InventoryAddType.PickUp));
 			});
 
 			return chest;
@@ -528,10 +525,7 @@ namespace Melia.Zone.Scripting
 					return;
 
 				if (npc.Vars.ActivateOnce($"Npc.{uniqueName}"))
-				{
-					await OpenChest(character, npc, true);
-					character.Inventory.Add(itemId, amount, InventoryAddType.PickUp);
-				}
+					await OpenChest(character, npc, true, () => character.Inventory.Add(itemId, amount, InventoryAddType.PickUp));
 			});
 
 			mapObj.AddMonster(chest);

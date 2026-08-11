@@ -23,5 +23,9 @@ public class FWhitetrees223NpcScript : GeneralScript
 		// Lv1 Treasure Chest
 		//-------------------------------------------------------------------------
 		AddNpc(37, 147392, "Lv1 Treasure Chest", "f_whitetrees_22_3", 1737.40, 789.35, -1086.66, -45, "TREASUREBOX_LV_F_WHITETREES_22_337", "", "");
+
+		// Lv3 Treasure Chest (Campaign Hat)
+		//-------------------------------------------------------------------------
+		AddNpc(9001, 147393, "Lv3 Treasure Chest", "f_whitetrees_22_3", 519, 333, 585, 0, "TREASUREBOX_LV_F_WHITETREES_22_39001", "", "");
 	}
 }

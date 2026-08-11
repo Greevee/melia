@@ -1,4 +1,4 @@
-//--- Melia Script ----------------------------------------------------------
+﻿//--- Melia Script ----------------------------------------------------------
 // Orsha
 //--- Description -----------------------------------------------------------
 // NPCs found in and around Orsha.
@@ -173,6 +173,8 @@ public class COrshaNpcScript : GeneralScript
 			shop.AddItem(640182, amount: 1, price: 500);
 			shop.AddItem(643002, amount: 1, price: 1500);
 			shop.AddItem(645337, amount: 1, price: 20);
+			shop.AddItem(645025, amount: 1, price: 5000);
+			shop.AddItem(645026, amount: 1, price: 50000);
 		});
 	}
 
