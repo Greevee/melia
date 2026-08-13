@@ -34,7 +34,7 @@ namespace Melia.Zone.Skills.Handlers.Scouts.Scout
 			skill.IncreaseOverheat();
 			caster.SetAttackState(true);
 
-			var seconds = 10 + skill.Level * 3;
+			var seconds = (int)skill.Properties.CaptionTime.TotalSeconds;
 			var duration = TimeSpan.FromSeconds(seconds);
 			caster.StartBuff(BuffId.Cloaking_Buff, skill.Level, 0, duration, caster, skill.Id);
 

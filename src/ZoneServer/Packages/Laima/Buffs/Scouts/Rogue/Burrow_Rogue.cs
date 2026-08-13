@@ -47,7 +47,7 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Scouts.Rogue
 		{
 			var target = buff.Target;
 			var skillLevel = (int)buff.NumArg1;
-			var healRate = 0.05f + 0.005f * skillLevel;
+			var healRate = GetCaptionRatio(buff, 1) / 100f;
 
 			if (target.TryGetSkill(buff.SkillId, out var skill))
 			{

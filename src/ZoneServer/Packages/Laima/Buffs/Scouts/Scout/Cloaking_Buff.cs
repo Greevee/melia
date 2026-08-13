@@ -33,7 +33,7 @@ namespace Melia.Zone.Buffs.Handlers.Scout
 			if (!target.TryGetBuff(BuffId.Cloaking_Buff, out var buff))
 				return;
 
-			var damageReduction = 0.30f + 0.06f * skill.Level;
+			var damageReduction = GetCaptionRatio(buff, 1) / 100f;
 			var byAbility = 1f;
 			if (buff.Caster is ICombatEntity casterEntity && casterEntity.TryGetSkill(buff.SkillId, out var buffSkill))
 			{

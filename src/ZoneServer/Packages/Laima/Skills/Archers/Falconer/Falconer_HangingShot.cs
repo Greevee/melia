@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Melia.Shared.Game.Const;
@@ -39,7 +39,6 @@ namespace Melia.Zone.Skills.Handlers.Archers.Falconer
 	[SkillHandler(SkillId.Falconer_HangingShot)]
 	public class Falconer_HangingShotOverride : IGroundSkillHandler
 	{
-		private const int BuffDurationSeconds = 30;
 		private const string HangingShotAttachNode = "Dummy_hawk";
 
 		private static readonly Dictionary<string, int> HangingShotAttachOffsets = new()
@@ -78,7 +77,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Falconer
 			if (caster is not Character chr)
 				return;
 
-			var buffTimeSpan = TimeSpan.FromSeconds(BuffDurationSeconds);
+			var buffTimeSpan = TimeSpan.FromSeconds(skill.Properties.GetFloat(PropertyName.CaptionRatio));
 
 			// ===== Packet sequence matching official =====
 

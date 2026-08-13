@@ -22,37 +22,21 @@ namespace Melia.Zone.Buffs.Handlers.Archers.Hunter
 	[BuffHandler(BuffId.Praise_Atk_Buff)]
 	public class Praise_Atk_BuffOverride : BuffHandler
 	{
-		private const float FlatAtkBonus = 200f;
-		private const float BaseAtkRate = 0.20f;
-		private const float AtkRatePerLevel = 0.03f;
-		private const float BaseSrBonus = 3f;
-		private const float SrBonusPerLevel = 0.5f;
 		private const int BleedingDurationSeconds = 8;
 		private const int BleedingTickCount = 8;
 
 		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
 			var target = buff.Target;
-			var skillLevel = buff.NumArg1;
 
-			var byAbility = 1f;
-			if (buff.Caster is ICombatEntity caster && caster.TryGetSkill(buff.SkillId, out var skill))
-			{
-				var SCR_Get_AbilityReinforceRate = ScriptableFunctions.Skill.Get("SCR_Get_AbilityReinforceRate");
-				byAbility += SCR_Get_AbilityReinforceRate(skill);
-			}
+			AddPropertyModifier(buff, target, PropertyName.ATK_BM, GetCaptionRatio(buff, 1));
 
-			// +200 ATK flat bonus
-			AddPropertyModifier(buff, target, PropertyName.ATK_BM, FlatAtkBonus * byAbility);
-
-			// +20% + 3% * SkillLv attack rate bonus
-			var atkRate = BaseAtkRate + AtkRatePerLevel * skillLevel;
+			var atkRate = GetCaptionRatio(buff, 2) / 100f;
 			var currentAtk = target.Properties.GetFloat(PropertyName.ATK);
-			var atkRateBonus = currentAtk * atkRate * byAbility;
+			var atkRateBonus = currentAtk * atkRate;
 			AddPropertyModifier(buff, target, PropertyName.ATK_BM, atkRateBonus);
 
-			// +3 + SkillLv/2 AoE Attack Ratio (Splash Rate)
-			var srBonus = BaseSrBonus + skillLevel / 2f;
+			var srBonus = GetCaptionRatio(buff, 3);
 			AddPropertyModifier(buff, target, PropertyName.SR_BM, srBonus);
 		}
 
@@ -77,11 +61,10 @@ namespace Melia.Zone.Buffs.Handlers.Archers.Hunter
 			if (skillHitResult.Damage <= 0)
 				return;
 
-			var skillLevel = buff.NumArg1;
 
 			// Apply bleeding: 100% of attack damage spread over 8 ticks
 			var bleedingDamagePerTick = skillHitResult.Damage / BleedingTickCount;
-			target.StartBuff(BuffId.HeavyBleeding, skillLevel, bleedingDamagePerTick, TimeSpan.FromSeconds(BleedingDurationSeconds), attacker);
+			target.StartBuff(BuffId.HeavyBleeding, buff.NumArg1, bleedingDamagePerTick, TimeSpan.FromSeconds(BleedingDurationSeconds), attacker);
 		}
 	}
 }

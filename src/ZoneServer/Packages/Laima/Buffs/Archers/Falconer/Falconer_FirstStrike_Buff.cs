@@ -23,7 +23,6 @@ namespace Melia.Zone.Buffs.Handlers.Archers.Falconer
 	[BuffHandler(BuffId.FirstStrike_Buff)]
 	public class Falconer_FirstStrike_BuffOverride : BuffHandler
 	{
-		private const int SpDrainPerSecond = 8;
 
 		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
@@ -35,7 +34,7 @@ namespace Melia.Zone.Buffs.Handlers.Archers.Falconer
 			if (buff.Target is not Character character)
 				return;
 
-			if (!character.TrySpendSp(SpDrainPerSecond))
+			if (!character.TrySpendSp(GetCaptionRatio(buff, 1)))
 			{
 				character.StopBuff(BuffId.FirstStrike_Buff);
 				return;
@@ -73,7 +72,7 @@ namespace Melia.Zone.Buffs.Handlers.Archers.Falconer
 				return;
 
 			var skillLevel = (int)buff.NumArg1;
-			var percent = 50 + skillLevel * 5;
+			var percent = GetCaptionRatio(buff, 2);
 			if (percent > 100)
 				percent = 100;
 

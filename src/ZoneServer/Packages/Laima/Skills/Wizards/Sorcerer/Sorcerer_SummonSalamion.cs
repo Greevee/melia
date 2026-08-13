@@ -32,7 +32,6 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Sorcerer
 		/// <summary>
 		/// Salamion lifetime in seconds.
 		/// </summary>
-		private const int SummonLifetimeSeconds = 300;
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
@@ -86,7 +85,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Sorcerer
 
 			// Calculate MHP based on caster's MHP
 			var casterMHP = character.Properties.GetFloat(PropertyName.MHP) - character.Properties.GetFloat(PropertyName.MHP_BM);
-			var summonMHP = casterMHP * (2.2f + (skill.Level * 0.3f));
+			var summonMHP = casterMHP * (skill.Properties.GetFloat(PropertyName.CaptionRatio3) / 100f);
 			summon.Vars.SetFloat("SUMMON_SET_MHP_BY_CASTER", summonMHP);
 
 			// Calculate stats
@@ -99,7 +98,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Sorcerer
 			summon.InvalidateProperties();
 
 			// Add lifetime component
-			summon.Components.Add(new LifeTimeComponent(summon, TimeSpan.FromSeconds(SummonLifetimeSeconds)));
+			summon.Components.Add(new LifeTimeComponent(summon, TimeSpan.FromSeconds((int)skill.Properties.CaptionTime.TotalSeconds)));
 
 			// Activate the summon
 			summon.SetState(true);
@@ -117,7 +116,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Sorcerer
 			if (character.IsAbilityActive(AbilityId.Sorcerer17))
 			{
 				// Apply the healing buff to Salamion
-				var buffDuration = TimeSpan.FromSeconds(SummonLifetimeSeconds);
+				var buffDuration = TimeSpan.FromSeconds((int)skill.Properties.CaptionTime.TotalSeconds);
 				summon.StartBuff(BuffId.SummonSalamion_Buff, buffDuration, character);
 			}
 

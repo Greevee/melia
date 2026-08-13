@@ -16,11 +16,10 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Oracle
 	[BuffHandler(BuffId.Forecast_Buff)]
 	public class Oracle_Forecast_BuffOverride : BuffHandler
 	{
-		private const float AddDR = 100f;
 
 		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
-			AddPropertyModifier(buff, buff.Target, PropertyName.DR_BM, AddDR);
+			AddPropertyModifier(buff, buff.Target, PropertyName.DR_BM, GetCaptionRatio(buff, 1));
 		}
 
 		public override void OnEnd(Buff buff)

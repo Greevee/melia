@@ -43,6 +43,11 @@ namespace Melia.Zone.Skills
 		public TimeSpan CoolDown => TimeSpan.FromMilliseconds(this.GetFloat(PropertyName.CoolDown));
 
 		/// <summary>
+		/// Returns how long the skill's buff lasts, as a TimeSpan.
+		/// </summary>
+		public TimeSpan CaptionTime => TimeSpan.FromSeconds(this.GetFloat(PropertyName.CaptionTime));
+
+		/// <summary>
 		/// Returns the skill's Hit Count.
 		/// </summary>
 		public int HitCount => (int)this.GetFloat(PropertyName.SklHitCount);
@@ -145,10 +150,24 @@ namespace Melia.Zone.Skills
 			this.Create(new RFloatProperty(PropertyName.EnableSkillCancel, () => this.Skill.Data.CastInterruptible ? 1f : 0f));
 			this.Create(new RFloatProperty(PropertyName.CancelSkill, () => this.Skill.Data.CastInterruptible ? 1f : 0f));
 
-			this.Create(new RFloatProperty(PropertyName.CaptionTime, () => 0f)); // Needs to be calculated if used, uses lua script
-			this.Create(new RFloatProperty(PropertyName.CaptionRatio, () => 0f)); // Needs to be calculated if used, uses lua script
-			this.Create(new RFloatProperty(PropertyName.CaptionRatio2, () => 0f)); // Needs to be calculated if used, uses lua script
-			this.Create(new RFloatProperty(PropertyName.CaptionRatio3, () => 0f)); // Needs to be calculated if used, uses lua script
+			this.Create(new RFloatProperty(PropertyName.CaptionTime, () => this.Skill.Data.CaptionTime + (this.Skill.Data.CaptionTimeByLevel * this.Skill.Level)));
+			this.Create(new RFloatProperty(PropertyName.CaptionRatio, () => this.CalculateCaptionRatio(this.Skill.Data.CaptionRatio1, this.Skill.Data.CaptionRatio1ByLevel)));
+			this.Create(new RFloatProperty(PropertyName.CaptionRatio2, () => this.CalculateCaptionRatio(this.Skill.Data.CaptionRatio2, this.Skill.Data.CaptionRatio2ByLevel)));
+			this.Create(new RFloatProperty(PropertyName.CaptionRatio3, () => this.CalculateCaptionRatio(this.Skill.Data.CaptionRatio3, this.Skill.Data.CaptionRatio3ByLevel)));
+		}
+
+		/// <summary>
+		/// Resolves a caption ratio against the skill's level and reinforce
+		/// ability, the same way SCR_Get_SkillFactor resolves the factor.
+		/// </summary>
+		/// <param name="baseValue"></param>
+		/// <param name="byLevel"></param>
+		/// <returns></returns>
+		private float CalculateCaptionRatio(float baseValue, float byLevel)
+		{
+			var value = baseValue + (byLevel * this.Skill.Level);
+
+			return value + (value * ScriptableFunctions.Skill.Get("SCR_Get_AbilityReinforceRate")(this.Skill));
 		}
 
 		/// <summary>

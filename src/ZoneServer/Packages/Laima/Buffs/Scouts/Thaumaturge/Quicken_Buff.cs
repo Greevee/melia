@@ -26,7 +26,7 @@ namespace Melia.Zone.Buffs.Handlers.Scouts.Thaumaturge
 			}
 
 			var casterInt = caster.Properties.GetFloat(PropertyName.INT);
-			var atkSpdBonus = (float)Math.Floor(100 + 10 * skillLevel + 0.5f * casterInt);
+			var atkSpdBonus = (float)Math.Floor(GetCaptionRatio(buff, 1) + GetCaptionRatio(buff, 2) * casterInt);
 
 			AddPropertyModifier(buff, target, PropertyName.NormalASPD_BM, atkSpdBonus);
 

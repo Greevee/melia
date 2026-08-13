@@ -12,15 +12,10 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Scouts.Rogue
 	[BuffHandler(BuffId.Evasion_Buff)]
 	public class Evasion_BuffOverride : BuffHandler
 	{
-		private const float DodgeRateBuffRateBase = 1.00f;
-		private const float DodgeRateBuffRatePerLevel = 0.10f;
-
 		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
 			var dr = buff.Target.Properties.GetFloat(PropertyName.DR);
-			var skillLevel = buff.NumArg1;
-			var rate = DodgeRateBuffRateBase + DodgeRateBuffRatePerLevel * skillLevel;
-			var bonus = dr * rate;
+			var bonus = dr * (GetCaptionRatio(buff, 1) / 100f);
 
 			AddPropertyModifier(buff, buff.Target, PropertyName.DR_BM, bonus);
 			buff.Target.InvalidateProperties();

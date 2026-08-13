@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Melia.Shared.Packages;
@@ -40,7 +40,7 @@ namespace Melia.Zone.Skills.Handlers.Scouts.Thaumaturge
 		{
 			await skill.Wait(TimeSpan.FromMilliseconds(300));
 
-			var maxTargets = (int)(3 + skill.Level * 0.5);
+			var maxTargets = (int)skill.Properties.GetFloat(PropertyName.CaptionRatio);
 			var targetList = SkillSelectEnemiesInCircle(caster, caster.Position, 50f, maxTargets);
 			SkillTargetDamage(skill, caster, targetList);
 			SkillTargetBuff(skill, caster, targetList, BuffId.Transmute_Debuff, 1f, 0f, TimeSpan.FromMilliseconds(5000));

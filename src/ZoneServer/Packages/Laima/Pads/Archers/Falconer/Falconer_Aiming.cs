@@ -20,7 +20,6 @@ namespace Melia.Zone.Pads.Handlers
 	{
 		private const float AimingRange = 100f;
 		private const int UpdateIntervalMs = 5000;
-		private const int BuffDurationSeconds = 10;
 
 		public void Created(object sender, PadTriggerArgs args)
 		{
@@ -52,7 +51,7 @@ namespace Melia.Zone.Pads.Handlers
 			if (initiator.IsBuffActive(BuffId.Aiming_Buff))
 				return;
 
-			initiator.StartBuff(BuffId.Aiming_Buff, skill.Level, 0f, TimeSpan.FromSeconds(BuffDurationSeconds), creator, skill.Id);
+			initiator.StartBuff(BuffId.Aiming_Buff, skill.Level, 0f, skill.Properties.CaptionTime, creator, skill.Id);
 		}
 
 		public void Left(object sender, PadTriggerActorArgs args)
@@ -74,7 +73,7 @@ namespace Melia.Zone.Pads.Handlers
 				return;
 			}
 
-			var buffDuration = TimeSpan.FromSeconds(BuffDurationSeconds);
+			var buffDuration = skill.Properties.CaptionTime;
 			var enemies = pad.Trigger.GetAttackableEntities(creator);
 
 			foreach (var enemy in enemies)

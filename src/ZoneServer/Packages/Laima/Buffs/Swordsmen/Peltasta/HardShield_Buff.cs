@@ -15,8 +15,6 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Swordsman.Peltasta
 	[BuffHandler(BuffId.HardShield_Buff)]
 	public class HardShield_BuffOverride : BuffHandler
 	{
-		private const float DefMultiplierPerLevel = 0.2f;
-
 		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
 			AddPropertyModifier(buff, buff.Target, PropertyName.DEF_BM, this.GetDefBonus(buff));
@@ -30,7 +28,6 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Swordsman.Peltasta
 		private float GetDefBonus(Buff buff)
 		{
 			var shieldDef = 0f;
-			var byAbility = 1f;
 
 			if (buff.Caster.Components.TryGet<InventoryComponent>(out var inv))
 			{
@@ -39,13 +36,7 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Swordsman.Peltasta
 					shieldDef = lhItem.Data.Def;
 			}
 
-			if (buff.Caster is ICombatEntity casterEntity && casterEntity.TryGetSkill(buff.SkillId, out var skill))
-			{
-				var SCR_Get_AbilityReinforceRate = ScriptableFunctions.Skill.Get("SCR_Get_AbilityReinforceRate");
-				byAbility += SCR_Get_AbilityReinforceRate(skill);
-			}
-
-			return shieldDef * DefMultiplierPerLevel * buff.NumArg1 * byAbility;
+			return shieldDef * (GetCaptionRatio(buff, 1) / 100f);
 		}
 	}
 }

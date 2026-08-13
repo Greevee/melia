@@ -23,8 +23,6 @@ namespace Melia.Zone.Skills.Handlers.Hunter
 	{
 		private const string GrowlingEventId = "Hunter.Growling.Fear";
 		private const float GrowlingRange = 100f;
-		private const int BaseInterval = 10000;
-		private const int IntervalReductionPerLevel = 500;
 		private const int MinimumInterval = 3000;
 
 		/// <summary>
@@ -36,13 +34,13 @@ namespace Melia.Zone.Skills.Handlers.Hunter
 			if (!caster.TryGetActiveGroundCompanion(out var companion))
 				return;
 
-			this.SetupGrowlingEvent(companion, skill.Level);
+			this.SetupGrowlingEvent(companion, skill);
 		}
 
 		/// <summary>
 		/// Sets up the periodic growling event on a companion.
 		/// </summary>
-		private void SetupGrowlingEvent(Companion companion, int skillLevel)
+		private void SetupGrowlingEvent(Companion companion, Skill skill)
 		{
 			if (!companion.Components.TryGet<TimedEventComponent>(out var timedEvents))
 			{
@@ -50,7 +48,7 @@ namespace Melia.Zone.Skills.Handlers.Hunter
 				companion.Components.Add(timedEvents);
 			}
 
-			var interval = this.GetGrowlingInterval(skillLevel);
+			var interval = this.GetGrowlingInterval(skill);
 			var intervalTimeSpan = TimeSpan.FromMilliseconds(interval);
 
 			timedEvents.Remove(GrowlingEventId);
@@ -67,9 +65,9 @@ namespace Melia.Zone.Skills.Handlers.Hunter
 		/// Calculates the growling interval based on skill level.
 		/// Formula: 10 - 0.5 * SkillLevel seconds (minimum 3 seconds)
 		/// </summary>
-		private int GetGrowlingInterval(int skillLevel)
+		private int GetGrowlingInterval(Skill skill)
 		{
-			var interval = BaseInterval - (skillLevel * IntervalReductionPerLevel);
+			var interval = (int)skill.Properties.CaptionTime.TotalMilliseconds;
 			return Math.Max(MinimumInterval, interval);
 		}
 

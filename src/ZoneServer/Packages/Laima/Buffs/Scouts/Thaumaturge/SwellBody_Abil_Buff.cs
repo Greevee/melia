@@ -44,7 +44,7 @@ namespace Melia.Zone.Buffs.Handlers.Scouts.Thaumaturge
 			var skillLevel = buff.NumArg1;
 			var flatMhpFromInt = buff.NumArg2;
 
-			var mhpRateBonus = Math.Min(0.30f, (10f + skillLevel) / 100f);
+			var mhpRateBonus = Math.Min(0.30f, GetCaptionRatio(buff, 1) / 100f);
 
 			AddPropertyModifier(buff, target, PropertyName.MHP_RATE_BM, mhpRateBonus);
 			AddPropertyModifier(buff, target, PropertyName.MHP_BM, flatMhpFromInt);

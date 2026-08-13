@@ -14,8 +14,6 @@ namespace Melia.Zone.Buffs.Handlers
 	[BuffHandler(BuffId.SwiftStep_Buff)]
 	public class SwiftStep_Buff : BuffHandler
 	{
-		private const float DodgeRateBonusPerLevel = 0.01f;
-		private const float MovingShotBonusPerLevel = 0.1f;
 
 		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
@@ -41,10 +39,7 @@ namespace Melia.Zone.Buffs.Handlers
 		}
 
 		private float GetDodgeRateBonus(Buff buff)
-		{
-			var skillLevel = buff.NumArg1;
-			return 0.05f + skillLevel * DodgeRateBonusPerLevel;
-		}
+			=> GetCaptionRatio(buff, 1) / 100f;
 
 		private float GetMovingShotBonus(Buff buff)
 		{
@@ -52,7 +47,7 @@ namespace Melia.Zone.Buffs.Handlers
 			var skillLevel = buff.NumArg1;
 			var evasion = buff.Target.Properties.GetFloat(PropertyName.DR);
 
-			return Math.Max(baseValue, baseValue + (evasion / 100) * skillLevel * MovingShotBonusPerLevel);
+			return Math.Max(baseValue, baseValue + (evasion / 100) * (GetCaptionRatio(buff, 2) / 100f));
 		}
 	}
 }

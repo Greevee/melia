@@ -21,12 +21,6 @@ namespace Melia.Zone.Buffs.Handlers.Swordsmen.Cataphract
 	[BuffHandler(BuffId.AcrobaticMount_Buff)]
 	public class AcrobaticMount_BuffOverride : BuffHandler
 	{
-		private const float BaseFinalDamageRate = 0.10f;
-		private const float FinalDamageRatePerLevel = 0.01f;
-		private const float BaseBlockPenRate = 0.10f;
-		private const float BlockPenRatePerLevel = 0.01f;
-		private const float BaseBlockPenFixed = 10f;
-		private const float BlockPenFixedPerLevel = 4f;
 		private const float MovementSpeedBonus = 5f;
 
 		/// <summary>
@@ -35,13 +29,7 @@ namespace Melia.Zone.Buffs.Handlers.Swordsmen.Cataphract
 		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
 			var target = buff.Target;
-			var skillLevel = buff.NumArg1;
-
-			var blockPenFixed = BaseBlockPenFixed + BlockPenFixedPerLevel * skillLevel;
-			var blockPenRate = BaseBlockPenRate + BlockPenRatePerLevel * skillLevel;
-
-			AddPropertyModifier(buff, target, PropertyName.BLK_BREAK_BM, blockPenFixed);
-			AddPropertyModifier(buff, target, PropertyName.BLK_BREAK_RATE_BM, blockPenRate);
+			AddPairedPropertyModifier(buff, target, PropertyName.BLK_BREAK_BM, PropertyName.BLK_BREAK_RATE_BM, GetCaptionRatio(buff, 2));
 			AddPropertyModifier(buff, target, PropertyName.MSPD_BM, MovementSpeedBonus);
 		}
 
@@ -52,8 +40,7 @@ namespace Melia.Zone.Buffs.Handlers.Swordsmen.Cataphract
 		{
 			var target = buff.Target;
 
-			RemovePropertyModifier(buff, target, PropertyName.BLK_BREAK_BM);
-			RemovePropertyModifier(buff, target, PropertyName.BLK_BREAK_RATE_BM);
+			RemovePairedPropertyModifier(buff, target, PropertyName.BLK_BREAK_BM, PropertyName.BLK_BREAK_RATE_BM);
 			RemovePropertyModifier(buff, target, PropertyName.MSPD_BM);
 		}
 
@@ -67,7 +54,7 @@ namespace Melia.Zone.Buffs.Handlers.Swordsmen.Cataphract
 				return;
 
 			var skillLevel = buff.NumArg1;
-			var damageIncrease = BaseFinalDamageRate + FinalDamageRatePerLevel * skillLevel;
+			var damageIncrease = GetCaptionRatio(buff, 1) / 100f;
 
 			if (buff.Caster is ICombatEntity casterEntity && casterEntity.TryGetSkill(buff.SkillId, out var buffSkill))
 			{

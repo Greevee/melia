@@ -288,7 +288,15 @@ namespace Melia.Test.Balance.Sfr
 			// what pays a narrow skill for being narrow.
 			var weightSum = reach.Keys.Sum(s => SfrDials.ScenarioWeights[s]);
 			var weighted = reach.Sum(r => SfrDials.ScenarioWeights[r.Key] * r.Value) / weightSum;
-			var width = MathF.Pow(Math.Max(weighted, 1e-6f), SfrDials.AoeExponent);
+			var widest = SfrDials.SpreadScenarios.Where(reach.ContainsKey).Select(s => reach[s]).DefaultIfEmpty(0f).Max();
+
+			// Mostly the gathered pull, because that is the one a player sets
+			// up before pressing. Floored at the average so a skill that reaches
+			// nothing in the gathered scenarios still pays for the range it has.
+			var peakest = SfrDials.PeakScenarios.Where(reach.ContainsKey).Select(s => reach[s]).DefaultIfEmpty(0f).Max();
+			var peak = Math.Max(peakest, weighted);
+			var charged = SfrDials.WidthPeakShare * peak + (1f - SfrDials.WidthPeakShare) * weighted;
+			var width = MathF.Pow(Math.Max(charged, 1e-6f), SfrDials.AoeExponent);
 
 			var basicRate = SfrData.GenericBasicRate();
 			var baseSfr = Calibration() * cappedEfficiency * basicRate * cycle * 100f / width;
@@ -296,22 +304,16 @@ namespace Melia.Test.Balance.Sfr
 			// The spread gate is the multi-target ceiling: whatever the skill
 			// does when everything is gathered may not exceed the cap times what
 			// it does in the weighted-typical case.
-			var widest = SfrDials.SpreadScenarios.Where(reach.ContainsKey).Select(s => reach[s]).DefaultIfEmpty(0f).Max();
 			var gateSfr = widest > 0 ? baseSfr * SfrDials.SpreadCap * weighted / widest : baseSfr;
 			var sfr = Math.Min(baseSfr, gateSfr);
 
 			sfr /= SfrDials.CritAllowance;
 
-			// What advancing a circle buys beyond a later skill reaching its cap
-			// in fewer points, so the circles carry an incentive of their own.
+			// What an advanced class's circle buys over the base pool. The
+			// anchor is a base-job skill, so this raises the advanced roster
+			// against it rather than the roster's level.
 			var circlePremium = SfrData.CirclePremium(skillName);
 			sfr *= circlePremium;
-
-			// What leaving a base job buys. The anchor is a base-job skill, so
-			// this raises the advanced pool against it rather than the roster's
-			// level.
-			var advancementPremium = SfrData.AdvancementPremium(skillName);
-			sfr *= advancementPremium;
 
 			// A channel pays its SP over the hold rather than up front, and is
 			// charged SpChannelMultiplier for it; this is the other half of
@@ -326,7 +328,13 @@ namespace Melia.Test.Balance.Sfr
 			// what priced Swordman_Thrust's 33-tick bleed at 102.
 			var divisor = hits;
 
-			var factor = sfr / Math.Max(divisor, 1f) / SfrDials.LevelGrowth;
+			// The ceiling is what one hit reads at the skill's own cap; the
+			// slope share splits it between what unlocking the skill gives and
+			// what levelling it gives.
+			var ceiling = sfr / Math.Max(divisor, 1f);
+			var slopeShare = SfrData.SlopeShare(skillName);
+			var factor = ceiling * (1f - slopeShare);
+			var factorByLevel = ceiling * slopeShare / Math.Max(1, levels);
 
 			var sp = PriceSp(skillName, measured);
 
@@ -338,7 +346,6 @@ namespace Melia.Test.Balance.Sfr
 				Circle = SfrData.SkillCircle(skillName),
 				Measured = true,
 				CirclePremium = circlePremium,
-				AdvancementPremium = advancementPremium,
 				ChannelPremium = channelPremium,
 				Sp = sp,
 				Occupancy = t,
@@ -373,11 +380,12 @@ namespace Melia.Test.Balance.Sfr
 				Reach = reach,
 				Targets = targets,
 				WeightedReach = weighted,
+				ChargedReach = charged,
 				Sfr = sfr,
 				SpreadCapped = gateSfr < baseSfr,
 				RawFactor = factor,
 				Factor = (int)Math.Round(factor),
-				FactorByLevel = MathF.Round(factor / Math.Max(1, levels), 1),
+				FactorByLevel = MathF.Round(factorByLevel, 1),
 			};
 		}
 
@@ -454,10 +462,14 @@ namespace Melia.Test.Balance.Sfr
 				kinds.Add("arcane");
 			}
 
-			if (!SfrData.IsBaseJobSkill(skillName))
+			// SP rides the same circle multiplier the SFR does, so a skill that
+			// hits harder for its circle costs proportionally more to press.
+			var circleMultiplier = SfrData.CirclePremium(skillName);
+
+			if (circleMultiplier != 1f)
 			{
-				target *= SfrDials.SpAdvancementMultiplier;
-				kinds.Add("advanced");
+				target *= circleMultiplier;
+				kinds.Add($"circle {SfrData.SkillCircle(skillName)}");
 			}
 
 			var channel = IsChannel(entry);
@@ -473,6 +485,12 @@ namespace Melia.Test.Balance.Sfr
 
 			var cost = Math.Max(SfrDials.MinSpCost, (int)Math.Round(target / Math.Max(charges, SfrDials.MinSpChargeSlope)));
 
+			// SCR_Get_SpendSP reads level minus one where the factor reads the
+			// level itself, so this share is what holds SP proportional to SFR
+			// at every level rather than only at the cap.
+			var share = SfrData.SlopeShare(skillName);
+			var spGrowth = share / Math.Max(levels * (1f - share) + share, 1e-6f);
+
 			return new SfrSpPrice
 			{
 				Skill = skillName,
@@ -481,10 +499,9 @@ namespace Melia.Test.Balance.Sfr
 				Measured = measured is { SpMeasured: true },
 				Kinds = kinds.ToArray(),
 				Cost = cost,
-				// Mirrors factorByLevel: the growth is keyed on the skill's own
-				// cap, so a point buys more on a skill that reaches its cap in
-				// fewer of them.
-				CostByLevel = Math.Max(SfrDials.MinSpCost, (int)Math.Round((float)cost / Math.Max(1, levels))),
+				// Mirrors the factor split: SP tracks the same slope share, so
+				// damage per SP is flat across levels and circles.
+				CostByLevel = Math.Max(SfrDials.MinSpCost, (int)Math.Round(cost * spGrowth)),
 			};
 		}
 
@@ -995,11 +1012,6 @@ namespace Melia.Test.Balance.Sfr
 		public float CirclePremium { get; init; }
 
 		/// <summary>
-		/// What leaving a base job bought this skill.
-		/// </summary>
-		public float AdvancementPremium { get; init; }
-
-		/// <summary>
 		/// What being held rather than wound up bought this skill.
 		/// </summary>
 		public float ChannelPremium { get; init; }
@@ -1066,6 +1078,12 @@ namespace Melia.Test.Balance.Sfr
 		public Dictionary<string, float> Reach { get; init; }
 		public Dictionary<string, (float Mine, float Theirs)> Targets { get; init; }
 		public float WeightedReach { get; init; }
+
+		/// <summary>
+		/// The reach the price actually divides by, blending the best gathered
+		/// scenario with the weighted average per WidthPeakShare.
+		/// </summary>
+		public float ChargedReach { get; init; }
 		public float Sfr { get; init; }
 		public bool SpreadCapped { get; init; }
 

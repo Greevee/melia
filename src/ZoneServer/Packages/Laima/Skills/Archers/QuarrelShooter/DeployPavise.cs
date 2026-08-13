@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Melia.Shared.Packages;
@@ -19,11 +19,8 @@ namespace Melia.Zone.Skills.Handlers.Archers.QuarrelShooter
 	[SkillHandler(SkillId.QuarrelShooter_DeployPavise)]
 	public class QuarrelShooterDeployPavise : IGroundSkillHandler
 	{
-		private const float PaviseDurationSeconds = 30f;
 		private const float PaviseBaseHealth = 500f;
-		private const float PaviseHealthBonusPerLevel = 1.5f;
 		private const float PaviseBaseBlock = 100f;
-		private const float PaviseBlockBonusPerLevel = 0.5f;
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
@@ -47,7 +44,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.QuarrelShooter
 			await skill.Wait(TimeSpan.FromMilliseconds(500));
 
 			var direction = caster.Direction;
-			var time = this.GetPaviseDuration(caster);
+			var time = this.GetPaviseDuration(caster, skill);
 			var paviseHealth = this.CalculatePaviseHealth(caster, skill);
 			var paviseBlock = this.CalculatePaviseBlock(caster, skill);
 
@@ -71,9 +68,9 @@ namespace Melia.Zone.Skills.Handlers.Archers.QuarrelShooter
 			return true;
 		}
 
-		private float GetPaviseDuration(ICombatEntity caster)
+		private float GetPaviseDuration(ICombatEntity caster, Skill skill)
 		{
-			var time = PaviseDurationSeconds;
+			var time = (float)skill.Properties.CaptionTime.TotalSeconds;
 			if (caster.IsAbilityActive(AbilityId.QuarrelShooter24))
 				time *= 0.5f;
 			return time;
@@ -81,12 +78,12 @@ namespace Melia.Zone.Skills.Handlers.Archers.QuarrelShooter
 
 		private float CalculatePaviseHealth(ICombatEntity caster, Skill skill)
 		{
-			return (float)Math.Max(0, PaviseBaseHealth + (caster.Properties.GetFloat("DEF") * PaviseHealthBonusPerLevel * skill.Level));
+			return (float)Math.Max(0, PaviseBaseHealth + (caster.Properties.GetFloat("DEF") * skill.Properties.GetFloat(PropertyName.CaptionRatio)));
 		}
 
 		private float CalculatePaviseBlock(ICombatEntity caster, Skill skill)
 		{
-			return (float)Math.Max(0, PaviseBaseBlock + (caster.Properties.GetFloat("BLK") * PaviseBlockBonusPerLevel * skill.Level));
+			return (float)Math.Max(0, PaviseBaseBlock + (caster.Properties.GetFloat("BLK") * skill.Properties.GetFloat(PropertyName.CaptionRatio2)));
 		}
 
 		private void DeployPavises(ICombatEntity caster, Skill skill, Position centerPos, Direction direction, float time, float paviseHealth, float paviseBlock)

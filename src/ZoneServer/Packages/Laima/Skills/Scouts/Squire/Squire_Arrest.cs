@@ -49,7 +49,7 @@ namespace Melia.Zone.Skills.Handlers.Scouts.Squire
 		private async Task HandleSkill(ICombatEntity caster, Skill skill, Position originPos, Position farPos)
 		{
 			var targetPos = originPos.GetRelative(farPos);
-			var skillTargets = SkillSelectEnemiesInSquare(caster, targetPos, 0f, 120f, 30f, 1 + skill.Level * 1);
+			var skillTargets = SkillSelectEnemiesInSquare(caster, targetPos, 0f, 120f, 30f, (int)skill.Properties.GetFloat(PropertyName.CaptionRatio));
 			if (skillTargets == null || skillTargets.Count == 0)
 				return;
 			await skill.Wait(TimeSpan.FromMilliseconds(550));

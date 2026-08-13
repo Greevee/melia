@@ -2,7 +2,6 @@ using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
 using Melia.Zone.Buffs.Base;
 using Melia.Zone.Network;
-using Melia.Zone.Scripting;
 using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.Characters;
 
@@ -16,49 +15,18 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Swordsmen.Hoplite
 	[BuffHandler(BuffId.Finestra_Buff)]
 	public class Finestra_BuffOverride : BuffHandler
 	{
-		// Critical rate bonuses
-		private const float FlatCrtBonusBase = 15f;
-		private const float FlatCrtBonusPerLevel = 1.5f;
-		private const float CrtRateBonusBase = 0.10f;
-		private const float CrtRateBonusPerLevel = 0.01f;
-
-		// Block rate bonuses
-		private const float FlatBlkBonusBase = 25f;
-		private const float FlatBlkBonusPerLevel = 5f;
-		private const float BlkRateBonusBase = 0.20f;
-		private const float BlkRateBonusPerLevel = 0.02f;
-
 		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
 			// 1 second update time
 			buff.SetUpdateTime(1000);
 
 			var target = buff.Target;
-			var skillLevel = buff.NumArg1;
-
-			// Calculate critical bonuses
-			var flatCrtBonus = FlatCrtBonusBase + (FlatCrtBonusPerLevel * skillLevel);
-			var crtRateBonus = CrtRateBonusBase + (CrtRateBonusPerLevel * skillLevel);
-
-			if (buff.Caster is ICombatEntity casterEntity && casterEntity.TryGetSkill(buff.SkillId, out var skill))
-			{
-				var SCR_Get_AbilityReinforceRate = ScriptableFunctions.Skill.Get("SCR_Get_AbilityReinforceRate");
-				var abilityMultiplier = 1f + SCR_Get_AbilityReinforceRate(skill);
-				flatCrtBonus *= abilityMultiplier;
-				crtRateBonus *= abilityMultiplier;
-			}
-
-			// Calculate block bonuses
-			var flatBlkBonus = FlatBlkBonusBase + (FlatBlkBonusPerLevel * skillLevel);
-			var blkRateBonus = BlkRateBonusBase + (BlkRateBonusPerLevel * skillLevel);
 
 			// Apply critical bonuses
-			AddPropertyModifier(buff, target, PropertyName.CRTHR_BM, flatCrtBonus);
-			AddPropertyModifier(buff, target, PropertyName.CRTHR_RATE_BM, crtRateBonus);
+			AddPairedPropertyModifier(buff, target, PropertyName.CRTHR_BM, PropertyName.CRTHR_RATE_BM, GetCaptionRatio(buff, 1));
 
 			// Apply block bonuses
-			AddPropertyModifier(buff, target, PropertyName.BLK_BM, flatBlkBonus);
-			AddPropertyModifier(buff, target, PropertyName.BLK_RATE_BM, blkRateBonus);
+			AddPairedPropertyModifier(buff, target, PropertyName.BLK_BM, PropertyName.BLK_RATE_BM, GetCaptionRatio(buff, 2));
 
 			// Change attack animation
 			Send.ZC_NORMAL.SkillChangeAnimation(target, SkillId.Normal_Attack, "SKL_FINESTRA_ATK");
@@ -84,12 +52,10 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Swordsmen.Hoplite
 			var target = buff.Target;
 
 			// Remove critical bonuses
-			RemovePropertyModifier(buff, target, PropertyName.CRTHR_BM);
-			RemovePropertyModifier(buff, target, PropertyName.CRTHR_RATE_BM);
+			RemovePairedPropertyModifier(buff, target, PropertyName.CRTHR_BM, PropertyName.CRTHR_RATE_BM);
 
 			// Remove block bonuses
-			RemovePropertyModifier(buff, target, PropertyName.BLK_BM);
-			RemovePropertyModifier(buff, target, PropertyName.BLK_RATE_BM);
+			RemovePairedPropertyModifier(buff, target, PropertyName.BLK_BM, PropertyName.BLK_RATE_BM);
 
 			// Restore normal attack animation
 			Send.ZC_NORMAL.SkillChangeAnimation(target, SkillId.Normal_Attack);

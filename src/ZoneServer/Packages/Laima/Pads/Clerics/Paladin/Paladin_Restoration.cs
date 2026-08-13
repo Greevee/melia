@@ -15,7 +15,6 @@ namespace Melia.Zone.Pads.Handlers.Clerics.Paladin
 	[PadHandler(PadName.Cleric_Restoration)]
 	public class Paladin_RestorationOverride : ICreatePadHandler, IDestroyPadHandler, IEnterPadHandler, IUpdatePadHandler
 	{
-		private const int PadLifeTimeSeconds = 300;
 
 		public void Created(object sender, PadTriggerArgs args)
 		{
@@ -24,7 +23,7 @@ namespace Melia.Zone.Pads.Handlers.Clerics.Paladin
 
 			Send.ZC_NORMAL.PadUpdate(pad, true);
 			pad.SetRange(100f);
-			pad.Trigger.LifeTime = TimeSpan.FromSeconds(PadLifeTimeSeconds);
+			pad.Trigger.LifeTime = TimeSpan.FromSeconds((int)pad.Skill.Properties.CaptionTime.TotalSeconds);
 			pad.SetUpdateInterval(300);
 			pad.FollowsTarget(creator);
 		}

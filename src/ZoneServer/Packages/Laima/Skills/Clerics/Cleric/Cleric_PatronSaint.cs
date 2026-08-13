@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
@@ -16,7 +16,6 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Cleric
 	[SkillHandler(SkillId.Cleric_PatronSaint)]
 	public class Cleric_PatronSaintOverride : IGroundSkillHandler
 	{
-		private const int BuffDurationSeconds = 300;
 		private const float AbilityBonus = 0.005f;
 
 		/// <summary>
@@ -37,14 +36,14 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Cleric
 			skill.IncreaseOverheat();
 			caster.SetAttackState(true);
 
-			var healBonus = 0.15f + skill.Level * 0.03f;
+			var healBonus = skill.Properties.GetFloat(PropertyName.CaptionRatio) / 100f;
 
 			var byAbility = 1f;
 			if (caster.TryGetActiveAbilityLevel(AbilityId.Cleric10, out var abilityLevel))
 				byAbility += abilityLevel * AbilityBonus;
 			healBonus *= byAbility;
 
-			caster.StartBuff(BuffId.PatronSaint_Buff, skill.Level, healBonus, TimeSpan.FromSeconds(BuffDurationSeconds), caster);
+			caster.StartBuff(BuffId.PatronSaint_Buff, skill.Level, healBonus, skill.Properties.CaptionTime, caster);
 
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
 		}

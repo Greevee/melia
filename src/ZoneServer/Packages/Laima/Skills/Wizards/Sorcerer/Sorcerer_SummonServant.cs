@@ -100,7 +100,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Sorcerer
 
 			// Calculate lifetime based on ability
 			var hasQuickPads = character.IsAbilityActive(AbilityId.Sorcerer13) && skill.Level >= 3;
-			var lifetime = hasQuickPads ? 10f : 10f + (skill.Level * 5.5f);
+			var lifetime = hasQuickPads ? 10f : (float)skill.Properties.CaptionTime.TotalSeconds;
 
 			// Add lifetime component
 			summon.Components.Add(new LifeTimeComponent(summon, TimeSpan.FromSeconds(lifetime)));

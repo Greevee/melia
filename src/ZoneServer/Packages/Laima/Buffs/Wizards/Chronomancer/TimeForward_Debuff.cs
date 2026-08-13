@@ -20,13 +20,13 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Wizards.Chronomancer
 		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
 			var skillLevel = Math.Max(1, (int)buff.NumArg1);
-			var increase = 2 + (skillLevel * 0.2);
+			float increase = GetCaptionRatio(buff, 1);
 
 			var abilityLevel = (int)buff.NumArg2;
 			if (abilityLevel > 0)
-				increase *= 1 + (abilityLevel * 0.05);
+				increase *= 1 + (abilityLevel * 0.05f);
 
-			buff.Vars.SetFloat(ExtraCdVar, (float)increase);
+			buff.Vars.SetFloat(ExtraCdVar, increase);
 
 			if (buff.Target.Components.TryGet<CooldownComponent>(out var cooldowns))
 				cooldowns.ExtraCooldown += TimeSpan.FromSeconds(increase);

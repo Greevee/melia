@@ -19,7 +19,6 @@ namespace Melia.Zone.Skills.Handlers.Scouts.Thaumaturge
 	public class Thaumaturge_SwellHandsOverride : IGroundSkillHandler
 	{
 		private const float BuffRange = 300;
-		private const int BuffDurationSeconds = 300;
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
@@ -47,7 +46,7 @@ namespace Melia.Zone.Skills.Handlers.Scouts.Thaumaturge
 
 			var casterInt = caster.Properties.GetFloat(PropertyName.INT);
 
-			caster.StartBuff(BuffId.SwellHands_Buff, skill.Level, casterInt, TimeSpan.FromSeconds(BuffDurationSeconds), caster, skill.Id);
+			caster.StartBuff(BuffId.SwellHands_Buff, skill.Level, casterInt, skill.Properties.CaptionTime, caster, skill.Id);
 
 			if (caster is Character character)
 			{
@@ -59,7 +58,7 @@ namespace Melia.Zone.Skills.Handlers.Scouts.Thaumaturge
 					{
 						if (member == caster)
 							continue;
-						member.StartBuff(BuffId.SwellHands_Buff, skill.Level, casterInt, TimeSpan.FromSeconds(BuffDurationSeconds), caster, skill.Id);
+						member.StartBuff(BuffId.SwellHands_Buff, skill.Level, casterInt, skill.Properties.CaptionTime, caster, skill.Id);
 					}
 				}
 			}

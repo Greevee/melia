@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
@@ -21,7 +21,6 @@ namespace Melia.Zone.Skills.Handlers.Priest
 	public class Priest_ReviveOverride : IGroundSkillHandler, IDynamicCasted
 	{
 		private const float BuffRange = 250f;
-		private const int BuffDurationSeconds = 300;
 
 		/// <summary>
 		/// Handles the execution of the Revive skill.
@@ -39,7 +38,7 @@ namespace Melia.Zone.Skills.Handlers.Priest
 
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
 
-			var buffDuration = TimeSpan.FromSeconds(BuffDurationSeconds);
+			var buffDuration = skill.Properties.CaptionTime;
 			var healAmount = this.CalculateHealAmount(caster, caster, skill);
 
 			caster.StartBuff(BuffId.Cleric_Revival_Buff, skill.Level, healAmount, buffDuration, caster);

@@ -41,7 +41,7 @@ namespace Melia.Zone.Buffs.Handlers
 				modifier.AttackAttribute = AttributeType.Poison;
 
 			if (skill.Data.Attribute == AttributeType.Poison || modifier.AttackAttribute == AttributeType.Poison)
-				modifier.DamageMultiplier += 0.05f + buff.NumArg1 * 0.005f;
+				modifier.DamageMultiplier += GetCaptionRatio(buff, 1) / 100f;
 		}
 
 		/// <summary>
@@ -60,7 +60,7 @@ namespace Melia.Zone.Buffs.Handlers
 				return;
 
 			var skillLevel = (int)zhenduBuff.NumArg1;
-			var extraSeconds = 5 + skillLevel / 2;
+			var extraSeconds = (int)GetCaptionRatio(buff, 2);
 
 			buff.IncreaseDuration(buff.RemainingDuration + TimeSpan.FromSeconds(extraSeconds));
 		}

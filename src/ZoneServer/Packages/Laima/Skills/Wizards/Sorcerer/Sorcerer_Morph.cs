@@ -35,7 +35,6 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Sorcerer
 		/// <summary>
 		/// Morphed summon lifetime in seconds.
 		/// </summary>
-		private const int MorphLifetimeSeconds = 900;
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
@@ -152,7 +151,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Sorcerer
 
 			// Calculate MHP based on caster's MHP (same as Summoning)
 			var casterMHP = character.Properties.GetFloat(PropertyName.MHP) - character.Properties.GetFloat(PropertyName.MHP_BM);
-			var summonMHP = casterMHP * (8.5f + ((summoningSkill?.Level ?? skill.Level) * 0.5f));
+			var summonMHP = casterMHP * (skill.Properties.GetFloat(PropertyName.CaptionRatio) / 100f);
 			newSummon.Vars.SetFloat("SUMMON_SET_MHP_BY_CASTER", summonMHP);
 
 			// Calculate stats
@@ -163,7 +162,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Sorcerer
 			newSummon.Properties.SetFloat(PropertyName.RunMSPD, 160f);
 
 			// Add lifetime component
-			newSummon.Components.Add(new LifeTimeComponent(newSummon, TimeSpan.FromSeconds(MorphLifetimeSeconds)));
+			newSummon.Components.Add(new LifeTimeComponent(newSummon, TimeSpan.FromSeconds((int)skill.Properties.CaptionTime.TotalSeconds)));
 
 			// Activate the summon
 			newSummon.SetState(true);
@@ -189,7 +188,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Sorcerer
 		/// </summary>
 		private void CalculateSummonStats(Summon summon, Character caster, Skill skill, Item card)
 		{
-			var bySkillLevel = 0.05f + (skill.Level * 0.02f);
+			var bySkillLevel = skill.Properties.GetFloat(PropertyName.CaptionRatio2) / 100f;
 			var byCardLevel = card.Level * 0.05f;
 			var totalFactor = bySkillLevel + byCardLevel;
 

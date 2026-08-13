@@ -34,7 +34,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Paladin
 				attackAttribute == AttributeType.Poison)
 			{
 				// Base reduction: 15% + 1.5% * SkillLv
-				var baseReduction = 0.15f + (buff.NumArg1 * 0.015f);
+				var baseReduction = GetCaptionRatio(buff, 1) / 100f;
 
 				// Paladin37 ability: 0.5% multiplier per ability level (1.5x at level 100)
 				var abilityMultiplier = 1f;

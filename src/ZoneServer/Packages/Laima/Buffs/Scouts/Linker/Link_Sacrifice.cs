@@ -115,7 +115,7 @@ namespace Melia.Zone.Buffs.Handlers.Scouts.Linker
 				return;
 
 			var skillLevel = buff.NumArg1;
-			var baseShareRate = 0.30f + 0.03f * skillLevel;
+			var baseShareRate = GetCaptionRatio(buff, 3) / 100f;
 
 			var unbindLevel = this.GetUnbindSkillLevel(buff);
 			var unbindBonus = this.GetUnbindShareRateBonus(unbindLevel);

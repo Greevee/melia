@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Melia.Shared.Packages;
 using Melia.Shared.L10N;
 using Melia.Shared.Game.Const;
@@ -42,7 +42,7 @@ namespace Melia.Zone.Skills.Handlers.Swordsmen.Peltasta
 
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, caster.Position);
 
-			var duration = TimeSpan.FromSeconds(5 + 2 * skill.Level);
+			var duration = skill.Properties.CaptionTime;
 
 			// This buff is mentioned in the skill file, but it seems like it was tied to abilities that have been removed
 			//caster.StartBuff(BuffId.SwashBucklingReduceDamage_Buff, skill.Level, 0, duration, caster);
@@ -51,7 +51,7 @@ namespace Melia.Zone.Skills.Handlers.Swordsmen.Peltasta
 			var splashParam = skill.GetSplashParameters(caster, caster.Position, caster.Position, length: 0, width: 400, angle: 0);
 			var splashArea = skill.GetSplashArea(SplashType.Circle, splashParam);
 
-			var maxTargets = 6 + 3 * skill.Level;
+			var maxTargets = (int)skill.Properties.GetFloat(PropertyName.CaptionRatio);
 
 			var targetList = caster.Map.GetAttackableEnemiesIn(caster, splashArea)
 				.OrderBy(t => t.Position.Get2DDistance(caster.Position))
@@ -63,7 +63,7 @@ namespace Melia.Zone.Skills.Handlers.Swordsmen.Peltasta
 				if (t.IsBuffActive(BuffId.ProvocationImmunity_Debuff))
 					continue;
 
-				t.StartBuff(BuffId.SwashBuckling_Debuff, skill.Level, 0, duration, caster);
+				t.StartBuff(BuffId.SwashBuckling_Debuff, skill.Level, 0, duration, caster, skill.Id);
 				t.StartBuff(BuffId.ProvocationImmunity_Debuff, skill.Level, 0, duration, caster);
 
 				if (t.Components.TryGet<AiComponent>(out var ai))

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -58,7 +58,7 @@ namespace Melia.Zone.Skills.Handlers.Priest
 		{
 			await skill.Wait(TimeSpan.FromMilliseconds(600));
 
-			var targetCount = (skill.Level / 2) + 4;
+			var targetCount = (int)skill.Properties.GetFloat(PropertyName.CaptionRatio3);
 
 			var targetPos = caster.Position;
 

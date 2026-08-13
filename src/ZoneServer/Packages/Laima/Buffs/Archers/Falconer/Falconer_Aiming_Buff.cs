@@ -16,13 +16,11 @@ namespace Melia.Zone.Buffs.Handlers.Archers.Falconer
 	[BuffHandler(BuffId.Aiming_Buff)]
 	public class Falconer_Aiming_BuffOverride : BuffHandler
 	{
-		private const float AimingHitRadiusBonus = 10.00f;
-		private const float AimingHitRadiusBonusPerLevel = 2.0f;
 
 		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
 			var level = buff.NumArg1;
-			var bonus = AimingHitRadiusBonus + level * AimingHitRadiusBonusPerLevel;
+			var bonus = GetCaptionRatio(buff, 1);
 			buff.Target.HitRadiusBonus = bonus;
 
 			SendPreview(buff, true);

@@ -35,7 +35,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Oracle
 
 			if (!caster.IsAbilityActive(AbilityId.Oracle23))
 			{
-				var time = 20000 + skill.Level * 500;
+				var time = (int)skill.Properties.CaptionTime.TotalMilliseconds;
 				if (caster.IsAbilityActive(AbilityId.Oracle20))
 					time += caster.GetAbilityLevel(AbilityId.Oracle20) * 1000;
 				caster.StartBuff(BuffId.DivineMight_Buff, skill.Level, 0f, TimeSpan.FromMilliseconds(time), caster, skill.Id);

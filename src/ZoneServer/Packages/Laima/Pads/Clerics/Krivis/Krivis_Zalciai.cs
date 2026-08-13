@@ -17,7 +17,6 @@ namespace Melia.Zone.Pads.Handlers
 	[PadHandler(PadName.Cleric_Zalciai)]
 	public class Krivis_ZalciaiOverride : ICreatePadHandler, IDestroyPadHandler, IEnterPadHandler, IUpdatePadHandler
 	{
-		private const int BuffDurationMilliseconds = 8000;
 
 		public void Created(object sender, PadTriggerArgs args)
 		{
@@ -29,7 +28,7 @@ namespace Melia.Zone.Pads.Handlers
 			pad.SetRange(40f);
 			pad.SetUpdateInterval(1000);
 			pad.Trigger.LifeTime = TimeSpan.FromMilliseconds(30000);
-			pad.Trigger.MaxUseCount = 3 + skill.Level;
+			pad.Trigger.MaxUseCount = (int)skill.Properties.GetFloat(PropertyName.CaptionRatio);
 		}
 
 		public void Destroyed(object sender, PadTriggerArgs args)
@@ -52,7 +51,7 @@ namespace Melia.Zone.Pads.Handlers
 				return;
 
 			var amount = this.CalculateHeal(creator, initiator, skill);
-			initiator.StartBuff(BuffId.Zalciai_Buff, skill.Level, amount, TimeSpan.FromMilliseconds(BuffDurationMilliseconds), creator);
+			initiator.StartBuff(BuffId.Zalciai_Buff, skill.Level, amount, TimeSpan.FromMilliseconds((int)pad.Skill.Properties.CaptionTime.TotalMilliseconds), creator);
 
 			pad.Trigger.IncreaseUseCount();
 		}
@@ -76,7 +75,7 @@ namespace Melia.Zone.Pads.Handlers
 					continue;
 
 				var shieldHp = this.CalculateHeal(creator, target, skill);
-				target.StartBuff(BuffId.Zalciai_Buff, skill.Level, shieldHp, TimeSpan.FromMilliseconds(BuffDurationMilliseconds), creator);
+				target.StartBuff(BuffId.Zalciai_Buff, skill.Level, shieldHp, TimeSpan.FromMilliseconds((int)pad.Skill.Properties.CaptionTime.TotalMilliseconds), creator);
 
 				pad.Trigger.IncreaseUseCount();
 			}

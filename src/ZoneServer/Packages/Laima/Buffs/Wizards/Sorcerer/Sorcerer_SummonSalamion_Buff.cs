@@ -66,7 +66,7 @@ namespace Melia.Zone.Buffs.Handlers.Wizards.Sorcerer
 				return;
 
 			// Calculate heal rate: MHP * (2.5% + skillLevel * 0.5%)
-			var healRate = 0.025f + (skill.Level * 0.005f);
+			var healRate = GetCaptionRatio(buff, 2) / 100f;
 
 			// Heal Salamion
 			HealTarget(salamion, healRate);

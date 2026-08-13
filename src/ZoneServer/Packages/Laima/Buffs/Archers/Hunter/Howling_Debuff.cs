@@ -18,8 +18,6 @@ namespace Melia.Zone.Buffs.Handlers.Archers.Hunter
 	[BuffHandler(BuffId.Howling_Debuff)]
 	public class Howling_DebuffOverride : BuffHandler
 	{
-		private const float BaseRate = 0.10f;
-		private const float RatePerLevel = 0.03f;
 
 		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
@@ -32,7 +30,7 @@ namespace Melia.Zone.Buffs.Handlers.Archers.Hunter
 				byAbility += SCR_Get_AbilityReinforceRate(skill);
 			}
 
-			var rate = (BaseRate + RatePerLevel * skillLevel) * byAbility;
+			var rate = GetCaptionRatio(buff, 1) / 100f;
 
 			var reduceDR = buff.Target.Properties.GetFloat(PropertyName.DR) * rate;
 			var reduceHR = buff.Target.Properties.GetFloat(PropertyName.HR) * rate;

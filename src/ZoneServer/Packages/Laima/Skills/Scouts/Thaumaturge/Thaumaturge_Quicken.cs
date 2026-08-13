@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Melia.Shared.Packages;
@@ -18,7 +18,6 @@ namespace Melia.Zone.Skills.Handlers.Scouts.Thaumaturge
 	public class Thaumaturge_QuickenOverride : IGroundSkillHandler
 	{
 		private const float BuffRange = 300;
-		private const int BuffDurationSeconds = 300;
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
@@ -42,9 +41,9 @@ namespace Melia.Zone.Skills.Handlers.Scouts.Thaumaturge
 		{
 			await skill.Wait(TimeSpan.FromMilliseconds(500));
 
-			var duration = TimeSpan.FromSeconds(BuffDurationSeconds);
+			var duration = skill.Properties.CaptionTime;
 
-			caster.StartBuff(BuffId.Quicken_Buff, skill.Level, 0f, duration, caster);
+			caster.StartBuff(BuffId.Quicken_Buff, skill.Level, 0f, duration, caster, skill.Id);
 
 			if (caster is Character character)
 			{
@@ -56,7 +55,7 @@ namespace Melia.Zone.Skills.Handlers.Scouts.Thaumaturge
 					{
 						if (member == caster)
 							continue;
-						member.StartBuff(BuffId.Quicken_Buff, skill.Level, 0f, duration, caster);
+						member.StartBuff(BuffId.Quicken_Buff, skill.Level, 0f, duration, caster, skill.Id);
 					}
 				}
 			}

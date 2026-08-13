@@ -20,8 +20,6 @@ namespace Melia.Zone.Buffs.Handlers.Scouts.Linker
 	[BuffHandler(BuffId.Link_Physical)]
 	public class Link_PhysicalOverride : BuffHandler
 	{
-		private const float BaseDamageMultiplier = 1.30f;
-		private const float DamageReductionPerSkillLevel = 0.03f;
 		private const float MinDamageMultiplier = 0.90f;
 		private const float MaxHorizontalDistance = 250f;
 		private const int DistanceCheckIntervalMs = 500;
@@ -69,7 +67,7 @@ namespace Melia.Zone.Buffs.Handlers.Scouts.Linker
 				return;
 
 			var skillLevel = buff.NumArg1;
-			var damageMultiplier = this.CalculateDamageMultiplier(skillLevel);
+			var damageMultiplier = CalculateDamageMultiplier(buff);
 
 			var totalDamage = skillHitResult.Damage * damageMultiplier;
 
@@ -88,12 +86,12 @@ namespace Melia.Zone.Buffs.Handlers.Scouts.Linker
 		}
 
 		/// <summary>
-		/// Calculates the damage multiplier based on skill level.
-		/// Starts at 130% and decreases by 3% per level, minimum 90%.
+		/// Calculates the damage multiplier the link shares damage at.
 		/// </summary>
-		private float CalculateDamageMultiplier(float skillLevel)
+		/// <param name="buff"></param>
+		private static float CalculateDamageMultiplier(Buff buff)
 		{
-			var multiplier = BaseDamageMultiplier - (DamageReductionPerSkillLevel * skillLevel);
+			var multiplier = GetCaptionRatio(buff, 1) / 100f;
 			return Math.Max(multiplier, MinDamageMultiplier);
 		}
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
@@ -20,10 +20,6 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Swordsman.Peltasta
 	[BuffHandler(BuffId.Guardian_Buff)]
 	public class Guardian_BuffOverride : BuffHandler
 	{
-		public const float DamageReductionBase = 0.25f;
-		public const float DamageReductionPerLevel = 0.025f;
-		public const float SDRBonusBase = 2f;
-		public const float SDRBonusPerLevel = 1f;
 
 		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
@@ -42,7 +38,7 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Swordsman.Peltasta
 		/// <returns></returns>
 		private float GetSDRBonus(Buff buff)
 		{
-			return Math.Min(SDRBonusBase + buff.NumArg1 * SDRBonusPerLevel, 11);
+			return Math.Min(GetCaptionRatio(buff, 2), 11);
 		}
 
 		/// <summary>
@@ -59,8 +55,7 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Swordsman.Peltasta
 			if (!target.TryGetBuff(BuffId.Guardian_Buff, out var buff))
 				return;
 
-			var skillLevel = buff.NumArg1;
-			var multiplierReduction = DamageReductionBase + skillLevel * DamageReductionPerLevel;
+			var multiplierReduction = GetCaptionRatio(buff, 1) / 100f;
 
 			if (buff.Caster is ICombatEntity casterEntity && casterEntity.TryGetSkill(buff.SkillId, out var buffSkill))
 			{
@@ -88,8 +83,7 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Swordsman.Peltasta
 			if (!target.TryGetBuff(BuffId.Guardian_Buff, out var buff))
 				return;
 
-			var skillLevel = buff.NumArg1;
-			var multiplierReduction = DamageReductionBase + skillLevel * DamageReductionPerLevel;
+			var multiplierReduction = GetCaptionRatio(buff, 1) / 100f;
 
 			var reflectedDamage = skillHitResult.Damage * multiplierReduction;
 

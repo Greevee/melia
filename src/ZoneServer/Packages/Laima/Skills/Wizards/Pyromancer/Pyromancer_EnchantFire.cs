@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -35,8 +35,6 @@ namespace Melia.Zone.Skills.Handlers.Pyromancer
 	public class Pyromancer_EnchantFireOverride : IGroundSkillHandler, IDynamicCasted
 	{
 		private const float BuffRange = 300;
-		private const int BuffDurationSeconds = 300;
-		private const float DamageMultiplierIncreasePerLevel = 0.02f;
 
 		/// <summary>
 		/// Handle Skill Behavior
@@ -58,12 +56,12 @@ namespace Melia.Zone.Skills.Handlers.Pyromancer
 
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
 
-			var damageMultiplierIncrease = skill.Level * DamageMultiplierIncreasePerLevel;
+			var damageMultiplierIncrease = skill.Properties.GetFloat(PropertyName.CaptionRatio) / 100f;
 
 			var SCR_Get_AbilityReinforceRate = ScriptableFunctions.Skill.Get("SCR_Get_AbilityReinforceRate");
 			damageMultiplierIncrease *= 1f + SCR_Get_AbilityReinforceRate(skill);
 
-			caster.StartBuff(BuffId.EnchantFire_Buff, skill.Level, damageMultiplierIncrease, TimeSpan.FromSeconds(BuffDurationSeconds), caster);
+			caster.StartBuff(BuffId.EnchantFire_Buff, skill.Level, damageMultiplierIncrease, skill.Properties.CaptionTime, caster);
 
 			// Buff party members
 			if (caster is Character character)
@@ -76,7 +74,7 @@ namespace Melia.Zone.Skills.Handlers.Pyromancer
 					{
 						if (member == caster)
 							continue;
-						member.StartBuff(BuffId.EnchantFire_Buff, skill.Level, damageMultiplierIncrease, TimeSpan.FromSeconds(BuffDurationSeconds), caster);
+						member.StartBuff(BuffId.EnchantFire_Buff, skill.Level, damageMultiplierIncrease, skill.Properties.CaptionTime, caster);
 					}
 				}
 			}

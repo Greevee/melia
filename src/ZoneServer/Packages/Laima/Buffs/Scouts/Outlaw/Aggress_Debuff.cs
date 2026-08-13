@@ -23,7 +23,6 @@ namespace Melia.Zone.Buffs.Handlers.Scouts.OutLaw
 	[BuffHandler(BuffId.Aggress_Debuff)]
 	internal class Aggress_DebuffOverride : BuffHandler
 	{
-		private const float DRPenaltyPerLevel = 0.02f;
 		private const float HRPenaltyPerLevel = 0.03f;
 		private const float MspdBonus = 5f;
 
@@ -33,7 +32,7 @@ namespace Melia.Zone.Buffs.Handlers.Scouts.OutLaw
 		/// <param name="buff"></param>
 		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
-			var reduceDR = buff.Target.Properties.GetFloat(PropertyName.DR) * buff.NumArg1 * DRPenaltyPerLevel;
+			var reduceDR = buff.Target.Properties.GetFloat(PropertyName.DR) * (GetCaptionRatio(buff, 2) / 100f);
 
 			AddPropertyModifier(buff, buff.Target, PropertyName.DR_BM, -reduceDR);
 

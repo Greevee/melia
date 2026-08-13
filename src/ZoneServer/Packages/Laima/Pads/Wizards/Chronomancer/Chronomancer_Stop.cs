@@ -53,7 +53,7 @@ namespace Melia.Zone.Packages.Laima.Pads.Wizards.Chronomancer
 			var creator = args.Creator;
 			var skill = pad.Skill;
 
-			var buffTime = (int)((4f + 0.4f * skill.Level) * 1000);
+			var buffTime = (int)skill.Properties.CaptionTime.TotalMilliseconds;
 
 			if (creator.TryGetActiveAbilityLevel(AbilityId.Chronomancer10, out var abilLevel))
 			{

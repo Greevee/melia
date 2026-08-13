@@ -17,17 +17,13 @@ namespace Melia.Zone.Buffs.Handlers
 	[BuffHandler(BuffId.Fade_Buff)]
 	public class Fade_BuffOverride : BuffHandler
 	{
-		private const float BaseMagicDefenseRate = 0.10f;
-		private const float MagicDefenseRatePerLevel = 0.04f;
-
 		/// <summary>
 		/// Starts buff
 		/// </summary>
 		/// <param name="buff"></param>
 		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
-			var skillLevel = buff.NumArg1;
-			var rate = BaseMagicDefenseRate + MagicDefenseRatePerLevel * skillLevel;
+			var rate = GetCaptionRatio(buff, 1) / 100f;
 
 			AddPropertyModifier(buff, buff.Target, PropertyName.MDEF_RATE_BM, rate);
 		}

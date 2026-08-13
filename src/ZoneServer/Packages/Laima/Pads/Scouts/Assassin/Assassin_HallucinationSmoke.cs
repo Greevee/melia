@@ -36,7 +36,7 @@ namespace Melia.Zone.Pads.Handlers.Scouts.Assassin
 			pad.SetUpdateInterval(1000);
 			pad.Position = creator.Position;
 			pad.Trigger.MaxConcurrentUseCount = 8;
-			pad.Trigger.LifeTime = TimeSpan.FromSeconds(skill.Level + 5);
+			pad.Trigger.LifeTime = skill.Properties.CaptionTime;
 			Send.ZC_NORMAL.PadUpdate(args.Creator, args.Trigger, PadName.Assassin_HallucinationSmoke, -0.7853982f, 0, 30, true);
 		}
 

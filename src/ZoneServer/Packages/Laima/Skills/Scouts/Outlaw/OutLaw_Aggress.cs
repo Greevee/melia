@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Melia.Shared.Packages;
 using Melia.Shared.L10N;
 using Melia.Shared.Game.Const;
@@ -47,7 +47,7 @@ namespace Melia.Zone.Skills.Handlers.Scouts.OutLaw
 			var splashArea = new CircleF(caster.Position, 250f);
 
 			var targets = caster.Map.GetAttackableEnemiesIn(caster, splashArea);
-			var maxTargets = Math.Min(targets.Count, 3 * skill.Level);
+			var maxTargets = Math.Min(targets.Count, (int)skill.Properties.GetFloat(PropertyName.CaptionRatio));
 
 			var unhingeLevel = 0f;
 

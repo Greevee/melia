@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Melia.Shared.Packages;
@@ -19,7 +19,6 @@ namespace Melia.Zone.Skills.Handlers.Scouts.Thaumaturge
 	public class Thaumaturge_SwellBodyOverride : IGroundSkillHandler
 	{
 		private const float BuffRange = 300;
-		private const int BuffDurationSeconds = 300;
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
@@ -42,14 +41,14 @@ namespace Melia.Zone.Skills.Handlers.Scouts.Thaumaturge
 		private async Task HandleSkill(ICombatEntity caster, Skill skill, Position originPos, Position farPos)
 		{
 			var targetPos = GetRelativePosition(PosType.TargetRandom, caster, caster, distance: 15);
-			caster.SetTargets(SkillSelectEnemiesInCircle(caster, targetPos, 100f, (int)(3 + skill.Level * 0.5)));
+			caster.SetTargets(SkillSelectEnemiesInCircle(caster, targetPos, 100f, (int)skill.Properties.GetFloat(PropertyName.CaptionRatio3)));
 
 			var casterInt = caster.Properties.GetFloat(PropertyName.INT);
 			var flatMhpFromInt = casterInt * 4f;
 
 			await skill.Wait(TimeSpan.FromMilliseconds(100));
 
-			caster.StartBuff(BuffId.SwellBody_Abil_Buff, skill.Level, flatMhpFromInt, TimeSpan.FromSeconds(BuffDurationSeconds), caster);
+			caster.StartBuff(BuffId.SwellBody_Abil_Buff, skill.Level, flatMhpFromInt, skill.Properties.CaptionTime, caster);
 
 			if (caster is Character character)
 			{
@@ -61,7 +60,7 @@ namespace Melia.Zone.Skills.Handlers.Scouts.Thaumaturge
 					{
 						if (member == caster)
 							continue;
-						member.StartBuff(BuffId.SwellBody_Abil_Buff, skill.Level, flatMhpFromInt, TimeSpan.FromSeconds(BuffDurationSeconds), caster);
+						member.StartBuff(BuffId.SwellBody_Abil_Buff, skill.Level, flatMhpFromInt, skill.Properties.CaptionTime, caster);
 					}
 				}
 			}

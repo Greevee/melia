@@ -16,7 +16,7 @@ namespace Melia.Zone.Buffs.Handlers.Scouts.Thaumaturge
 			var target = buff.Target;
 			var skillLevel = buff.NumArg1;
 
-			var rate = Math.Min(1f, 0.40f + 0.04f * skillLevel);
+			var rate = Math.Min(1f, GetCaptionRatio(buff, 1) / 100f);
 
 			var currentStr = target.Properties.GetFloat(PropertyName.STR);
 			var currentInt = target.Properties.GetFloat(PropertyName.INT);

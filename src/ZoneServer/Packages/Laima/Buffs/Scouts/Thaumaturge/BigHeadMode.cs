@@ -25,15 +25,8 @@ namespace Melia.Zone.Buffs.Handlers.Scouts.Thaumaturge
 
 			var skillLevel = buff.NumArg1;
 
-			var byAbility = 1f;
-			if (caster.TryGetSkill(buff.SkillId, out var skill))
-			{
-				var SCR_Get_AbilityReinforceRate = ScriptableFunctions.Skill.Get("SCR_Get_AbilityReinforceRate");
-				byAbility += SCR_Get_AbilityReinforceRate(skill);
-			}
-
-			var intRatePercent = (20f + 2f * skillLevel) * byAbility;
-			var intFlat = (25f + 2.5f * skillLevel) * byAbility;
+			var intRatePercent = GetCaptionRatio(buff, 1);
+			var intFlat = GetCaptionRatio(buff, 2);
 
 			var baseInt = target.Properties.GetFloat(PropertyName.INT);
 			var intFromRate = baseInt * intRatePercent / 100f;

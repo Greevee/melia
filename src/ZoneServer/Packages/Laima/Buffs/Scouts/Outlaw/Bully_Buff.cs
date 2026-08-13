@@ -23,10 +23,6 @@ namespace Melia.Zone.Buffs.Handlers.Scouts.OutLaw
 	[BuffHandler(BuffId.Bully_Buff)]
 	public class Bully_BuffOverride : BuffHandler
 	{
-		private const float DrBuffRateBase = 0.20f;
-		private const float DrBuffRatePerLevel = 0.03f;
-		private const float BaseAttackReduction = 0.2f;
-		private const float AttackReductionPerLevel = 0.01f;
 
 		/// <summary>
 		/// Starts buff, increasing dodge rate.
@@ -36,8 +32,8 @@ namespace Melia.Zone.Buffs.Handlers.Scouts.OutLaw
 		{
 			var dr = buff.Target.Properties.GetFloat(PropertyName.DR);
 			var skillLevel = buff.NumArg1;
-			var rate = DrBuffRateBase + DrBuffRatePerLevel * skillLevel;
-			var attackReduction = BaseAttackReduction - (AttackReductionPerLevel * skillLevel);
+			var rate = GetCaptionRatio(buff, 1) / 100f;
+			var attackReduction = GetCaptionRatio(buff, 2) / 100f;
 			attackReduction = Math.Max(0, attackReduction);
 
 			var byAbility = 1f;

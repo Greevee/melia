@@ -40,7 +40,7 @@ namespace Melia.Zone.Skills.HandlersOverrides.Swordsmen.Swordsman
 			var target = caster;
 
 			// Normal duration
-			var duration = TimeSpan.FromSeconds(30 * skill.Level);
+			var duration = skill.Properties.CaptionTime;
 			var abilityFlag = 0;
 
 			if (caster.TryGetActiveAbilityLevel(AbilityId.Swordman31, out var a))

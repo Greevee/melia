@@ -33,7 +33,7 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Clerics.Dievdirbys
 				return;
 
 			// Base MSPD reduction: 10 + skillLevel
-			var mspdReduction = 10f + skill.Level;
+			var mspdReduction = GetCaptionRatio(buff, 3);
 
 			var SCR_Get_AbilityReinforceRate = ScriptableFunctions.Skill.Get("SCR_Get_AbilityReinforceRate");
 			var byAbility = 1f + SCR_Get_AbilityReinforceRate(skill);

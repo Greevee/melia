@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Melia.Shared.Packages;
@@ -20,7 +20,6 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Paladin
 	[SkillHandler(SkillId.Paladin_ResistElements)]
 	public class Paladin_ResistElementsOverride : IGroundSkillHandler, IDynamicCasted
 	{
-		private const int BuffDurationSeconds = 300;
 		private const int BuffRange = 300;
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
@@ -47,7 +46,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Paladin
 			await skill.Wait(TimeSpan.FromMilliseconds(500));
 
 			// Apply buff to caster first
-			caster.StartBuff(BuffId.ResistElements_Buff, skill.Level, 0f, TimeSpan.FromSeconds(BuffDurationSeconds), caster);
+			caster.StartBuff(BuffId.ResistElements_Buff, skill.Level, 0f, skill.Properties.CaptionTime, caster);
 
 			// Find and buff party members in range
 			if (caster is Character character)
@@ -61,7 +60,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Paladin
 					{
 						if (member == caster)
 							continue;
-						member.StartBuff(BuffId.ResistElements_Buff, skill.Level, 0f, TimeSpan.FromSeconds(BuffDurationSeconds), caster);
+						member.StartBuff(BuffId.ResistElements_Buff, skill.Level, 0f, skill.Properties.CaptionTime, caster);
 					}
 				}
 			}

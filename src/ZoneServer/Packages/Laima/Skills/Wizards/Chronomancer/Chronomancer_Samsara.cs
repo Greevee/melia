@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Melia.Shared.Game.Const;
@@ -43,7 +43,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Chronomancer
 			Send.ZC_SKILL_READY(caster, skill, skillHandle, caster.Position, farPos);
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, caster.Handle, caster.Position, caster.Direction, caster.Position);
 
-			var reincarnateChance = Math.Min(100f, 30f + 3f * skill.Level);
+			var reincarnateChance = Math.Min(100f, skill.Properties.GetFloat(PropertyName.CaptionRatio));
 			var doubleCloneChance = 0f;
 
 			if (caster is Character character)
@@ -80,7 +80,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Chronomancer
 					if (clone == null)
 						continue;
 
-					var hpRate = Math.Max(0.50f, 1f - 0.03f * skill.Level);
+					var hpRate = Math.Max(0.50f, skill.Properties.GetFloat(PropertyName.CaptionRatio2) / 100f);
 					clone.Properties.SetFloat(PropertyName.HP, (int)(clone.Properties.GetFloat(PropertyName.MHP) * hpRate));
 					clone.Vars.SetBool(VarCreatedBySamsara, true);
 

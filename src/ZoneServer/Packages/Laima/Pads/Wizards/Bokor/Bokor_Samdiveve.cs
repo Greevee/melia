@@ -16,7 +16,6 @@ namespace Melia.Zone.Pads.Handlers.Wizards.Bokor
 	{
 		private const float PadRange = 120f;
 		private const int PadLifeTimeMilliseconds = 30000;
-		private const int BuffDuration = 300000;
 		private const int UpdateIntervalMs = 1000;
 
 		/// <summary>
@@ -51,7 +50,7 @@ namespace Melia.Zone.Pads.Handlers.Wizards.Bokor
 				if (ally.IsDead)
 					continue;
 
-				ally.StartBuff(BuffId.Samdiveve_Buff, skill.Level, 0, TimeSpan.FromMilliseconds(BuffDuration), creator);
+				ally.StartBuff(BuffId.Samdiveve_Buff, skill.Level, 0, TimeSpan.FromMilliseconds((int)pad.Skill.Properties.CaptionTime.TotalMilliseconds), creator);
 			}
 		}
 
@@ -82,7 +81,7 @@ namespace Melia.Zone.Pads.Handlers.Wizards.Bokor
 			if (initiator.IsBuffActive(BuffId.Samdiveve_Buff))
 				return;
 
-			initiator.StartBuff(BuffId.Samdiveve_Buff, skill.Level, 0, TimeSpan.FromMilliseconds(BuffDuration), creator);
+			initiator.StartBuff(BuffId.Samdiveve_Buff, skill.Level, 0, TimeSpan.FromMilliseconds((int)pad.Skill.Properties.CaptionTime.TotalMilliseconds), creator);
 		}
 
 		/// <summary>

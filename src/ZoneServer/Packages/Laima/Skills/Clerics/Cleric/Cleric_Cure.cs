@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Melia.Shared.Packages;
 using Melia.Shared.Data.Database;
@@ -44,7 +44,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Cleric
 
 			this.RemoveDebuffs(caster, target, skill);
 
-			var buffDuration = 5000 + skill.Level * 2000;
+			var buffDuration = (int)skill.Properties.CaptionTime.TotalMilliseconds;
 
 			var SCR_Get_AbilityReinforceRate = ScriptableFunctions.Skill.Get("SCR_Get_AbilityReinforceRate");
 			buffDuration = (int)(buffDuration * (1f + SCR_Get_AbilityReinforceRate(skill)));

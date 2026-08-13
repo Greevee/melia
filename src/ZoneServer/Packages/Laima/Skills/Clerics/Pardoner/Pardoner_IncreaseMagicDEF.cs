@@ -22,7 +22,6 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Pardoner
 	[SkillHandler(SkillId.Pardoner_IncreaseMagicDEF)]
 	public class Pardoner_IncreaseMagicDEFOverride : IGroundSkillHandler
 	{
-		private const float BuffDurationMs = 1800000f; // 30 minutes
 		private const float BuffRange = 150f;
 		private const int MaxTargets = 50;
 
@@ -48,7 +47,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Pardoner
 		{
 			await skill.Wait(TimeSpan.FromMilliseconds(600));
 
-			var buffDuration = TimeSpan.FromMilliseconds(BuffDurationMs);
+			var buffDuration = TimeSpan.FromMilliseconds((float)skill.Properties.CaptionTime.TotalMilliseconds);
 
 			// NumArg1 = skill level for calculating MDEF bonus
 			// NumArg2 = caster's SPR at time of casting for buff calculation

@@ -80,6 +80,104 @@ namespace Melia.Zone.Buffs.Base
 		}
 
 		/// <summary>
+		/// Returns one of the caption ratios of the skill that granted the
+		/// buff, resolved against the buff's level and the caster's reinforce
+		/// ability.
+		/// </summary>
+		/// <remarks>
+		/// This is the magnitude the skill's description displays, so a handler
+		/// reading it can never disagree with the tooltip. The unit is whatever
+		/// the description declares - a handler feeding a rate property divides
+		/// by 100 itself.
+		/// </remarks>
+		/// <param name="buff"></param>
+		/// <param name="slot"></param>
+		/// <returns></returns>
+		protected static float GetCaptionRatio(Buff buff, int slot)
+		{
+			if (!ZoneServer.Instance.Data.SkillDb.TryFind(buff.SkillId, out var skillData))
+				return 0;
+
+			var (baseValue, byLevel) = slot switch
+			{
+				1 => (skillData.CaptionRatio1, skillData.CaptionRatio1ByLevel),
+				2 => (skillData.CaptionRatio2, skillData.CaptionRatio2ByLevel),
+				3 => (skillData.CaptionRatio3, skillData.CaptionRatio3ByLevel),
+				_ => throw new ArgumentOutOfRangeException(nameof(slot), $"No caption ratio {slot}."),
+			};
+
+			var value = baseValue + (byLevel * buff.NumArg1);
+
+			return value + (value * GetReinforceRate(buff));
+		}
+
+		/// <summary>
+		/// Applies one caption ratio to a property as both a flat bonus and a
+		/// rate, so a stat a buff raises is raised on both of its axes.
+		/// </summary>
+		/// <remarks>
+		/// One slot per stat, and the flat half is the same number the rate
+		/// half is a percentage of: a ratio of 30 grants +30% and +30 flat. A
+		/// percentage alone is worth nothing to a character whose base value in
+		/// that stat is small, which is every character at the level a buff is
+		/// first taken, and a flat bonus alone stops mattering at the level cap.
+		/// Pairing them is also what keeps a stat's whole magnitude inside one
+		/// slot, where the pricer's scalar can move all of it - the client has
+		/// three slots and no more.
+		/// </remarks>
+		/// <param name="buff"></param>
+		/// <param name="target"></param>
+		/// <param name="flatProperty"></param>
+		/// <param name="rateProperty"></param>
+		/// <param name="ratio"></param>
+		protected static void AddPairedPropertyModifier(Buff buff, ICombatEntity target, string flatProperty, string rateProperty, float ratio)
+		{
+			AddPropertyModifier(buff, target, flatProperty, ratio);
+			AddPropertyModifier(buff, target, rateProperty, ratio / 100f);
+		}
+
+		/// <summary>
+		/// Removes both halves of a paired property modifier.
+		/// </summary>
+		/// <param name="buff"></param>
+		/// <param name="target"></param>
+		/// <param name="flatProperty"></param>
+		/// <param name="rateProperty"></param>
+		protected static void RemovePairedPropertyModifier(Buff buff, ICombatEntity target, string flatProperty, string rateProperty)
+		{
+			RemovePropertyModifier(buff, target, flatProperty);
+			RemovePropertyModifier(buff, target, rateProperty);
+		}
+
+		/// <summary>
+		/// Returns how long the buff of the skill that granted this buff is
+		/// meant to last.
+		/// </summary>
+		/// <param name="buff"></param>
+		/// <returns></returns>
+		protected static TimeSpan GetCaptionTime(Buff buff)
+		{
+			if (!ZoneServer.Instance.Data.SkillDb.TryFind(buff.SkillId, out var skillData))
+				return TimeSpan.Zero;
+
+			return TimeSpan.FromSeconds(skillData.CaptionTime + (skillData.CaptionTimeByLevel * buff.NumArg1));
+		}
+
+		/// <summary>
+		/// Returns the caster's reinforce ability rate for the skill that
+		/// granted the buff, or zero if they no longer have it.
+		/// </summary>
+		/// <param name="buff"></param>
+		/// <returns></returns>
+		private static float GetReinforceRate(Buff buff)
+		{
+			if (buff.Caster is not ICombatEntity caster || !caster.TryGetSkill(buff.SkillId, out var skill))
+				return 0;
+
+			return ScriptableFunctions.Skill.Get("SCR_Get_AbilityReinforceRate")(skill);
+		}
+
+		/// <summary>
 		/// Returns the name of the variable used to store modifiers for
 		/// the given property.
 		/// </summary>

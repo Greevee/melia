@@ -27,8 +27,6 @@ namespace Melia.Zone.Skills.Handlers.Archers.Falconer
 	public class Falconer_CirclingOverride : IGroundSkillHandler
 	{
 		private const string CirclingPadVariable = "Falconer.Circling.PadHandle";
-		private const float BaseSpPerSecond = 18f;
-		private const float SpPerSecondPerLevel = 1.5f;
 		private const float MinSpPerSecond = 1f;
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
@@ -122,7 +120,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Falconer
 
 			FalconerHawkHelper.ExecuteCircling(caster, hawk, skill, hawk.Position);
 
-			var spPerSecond = Math.Max(MinSpPerSecond, BaseSpPerSecond - SpPerSecondPerLevel * skill.Level);
+			var spPerSecond = Math.Max(MinSpPerSecond, skill.Properties.GetFloat(PropertyName.CaptionRatio));
 			if (caster.IsAbilityActive(AbilityId.Falconer11))
 				spPerSecond *= 2f;
 

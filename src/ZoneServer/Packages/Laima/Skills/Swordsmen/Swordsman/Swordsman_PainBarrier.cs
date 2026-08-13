@@ -37,10 +37,10 @@ namespace Melia.Zone.Skills.HandlersOverrides.Swordsmen.Swordsman
 
 			var target = caster;
 
-			var mainDuration = TimeSpan.FromSeconds(10 + skill.Level * 4);
+			var mainDuration = skill.Properties.CaptionTime;
 			var immunityDuration = TimeSpan.FromSeconds(3);
 
-			target.StartBuff(BuffId.PainBarrier_Buff, skill.Level, 0, mainDuration, caster);
+			target.StartBuff(BuffId.PainBarrier_Buff, skill.Level, 0, mainDuration, caster, skill.Id);
 			target.StartBuff(BuffId.PainBarrierImmune_Buff, skill.Level, 0, immunityDuration, caster);
 
 			Send.ZC_SKILL_MELEE_TARGET(caster, skill, target);

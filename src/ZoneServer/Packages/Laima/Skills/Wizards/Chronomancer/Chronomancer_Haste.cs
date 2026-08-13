@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
@@ -35,7 +35,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Chronomancer
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
 
 			var skillLevel = skill.Level;
-			var buffDuration = TimeSpan.FromSeconds(30 + skillLevel * 5);
+			var buffDuration = skill.Properties.CaptionTime;
 
 			Send.ZC_SYNC_START(caster, skillHandle, 1);
 			caster.StartBuff(BuffId.Haste_Buff, skillLevel, 0, buffDuration, caster);

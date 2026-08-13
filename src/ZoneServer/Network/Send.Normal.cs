@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -4909,6 +4910,80 @@ namespace Melia.Zone.Network
 
 				character.AddonMessage("LAIMA_JOB_CIRCLES", sb.ToString(), (int)character.JobId);
 			}
+
+			/// <summary>
+			/// Sends the caption ratios and buff duration of every skill that
+			/// declares them, so skill descriptions read the server's numbers
+			/// instead of a formula written into the client per skill.
+			/// </summary>
+			/// <remarks>
+			/// The client has no column for these. SklFactor and SklFactorByLevel
+			/// are plain Number properties, so one generic script computes the
+			/// displayed factor for every skill in the game from what the server
+			/// already sends; the caption ratios are Calculated properties, whose
+			/// value the client works out for itself and whose server-sent value
+			/// it ignores. Pushing the raw fields is what puts them on the same
+			/// footing - the client keeps one generic script per slot and the
+			/// numbers arrive from the data.
+			///
+			/// Sent in chunks, because a whole roster of buffs does not fit in
+			/// one addon message and the client appends rather than replaces.
+			/// </remarks>
+			/// <param name="character"></param>
+			public static void CaptionRatios(Character character)
+			{
+				var sb = new StringBuilder();
+
+				foreach (var data in ZoneServer.Instance.Data.SkillDb.Entries.Values)
+				{
+					if (!HasCaptionData(data))
+						continue;
+
+					if (sb.Length > 0)
+						sb.Append(' ');
+
+					sb.Append((int)data.Id).Append(':')
+						.Append(Format(data.CaptionRatio1)).Append(':').Append(Format(data.CaptionRatio1ByLevel)).Append(':')
+						.Append(Format(data.CaptionRatio2)).Append(':').Append(Format(data.CaptionRatio2ByLevel)).Append(':')
+						.Append(Format(data.CaptionRatio3)).Append(':').Append(Format(data.CaptionRatio3ByLevel)).Append(':')
+						.Append(Format(data.CaptionTime)).Append(':').Append(Format(data.CaptionTimeByLevel));
+
+					if (sb.Length < CaptionChunkLength)
+						continue;
+
+					character.AddonMessage("LAIMA_CAPTION_RATIOS", sb.ToString());
+					sb.Clear();
+				}
+
+				if (sb.Length > 0)
+					character.AddonMessage("LAIMA_CAPTION_RATIOS", sb.ToString());
+			}
+
+			/// <summary>
+			/// Characters a caption ratio message is filled to before it is
+			/// sent and a new one started.
+			/// </summary>
+			private const int CaptionChunkLength = 1024;
+
+			/// <summary>
+			/// Returns whether the skill declares any caption ratio or duration
+			/// at all, which is what puts it in scope for the client push.
+			/// </summary>
+			/// <param name="data"></param>
+			private static bool HasCaptionData(SkillData data)
+				=> data.CaptionRatio1 != 0 || data.CaptionRatio1ByLevel != 0
+					|| data.CaptionRatio2 != 0 || data.CaptionRatio2ByLevel != 0
+					|| data.CaptionRatio3 != 0 || data.CaptionRatio3ByLevel != 0
+					|| data.CaptionTime != 0 || data.CaptionTimeByLevel != 0;
+
+			/// <summary>
+			/// Formats a caption value for the client, invariantly, so a
+			/// machine with a comma decimal separator does not split the
+			/// message's own fields.
+			/// </summary>
+			/// <param name="value"></param>
+			private static string Format(float value)
+				=> value.ToString("0.####", CultureInfo.InvariantCulture);
 
 			/// <summary>
 			/// Show Instance Dungeon Match Making UI

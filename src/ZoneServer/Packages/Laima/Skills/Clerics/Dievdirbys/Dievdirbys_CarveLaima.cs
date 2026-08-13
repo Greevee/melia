@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -59,7 +59,7 @@ namespace Melia.Zone.Skills.HandlersOverrides.Clerics.Dievdirbys
 
 			// Create the Laima statue monster
 			// Select the appropriate monster name based on ability
-			var laima = MonsterSkillCreateMob(skill, caster, "pcskill_wood_laima2", spawnPosition, 0, "", "", 0, 15 + skill.Level * 2, "", "!SCR_SUMMON_LAIMA#1");
+			var laima = MonsterSkillCreateMob(skill, caster, "pcskill_wood_laima2", spawnPosition, 0, "", "", 0, (int)skill.Properties.CaptionTime.TotalSeconds, "", "!SCR_SUMMON_LAIMA#1");
 
 			if (laima == null)
 			{
@@ -69,7 +69,7 @@ namespace Melia.Zone.Skills.HandlersOverrides.Clerics.Dievdirbys
 
 			// Apply property overrides to make Laima take only 1 damage per hit
 			// HPCount reduces all incoming damage to exactly 1 and sets max HP to the specified value
-			var laimaMaxHp = 20 + (3 * skill.Level);
+			var laimaMaxHp = skill.Properties.GetFloat(PropertyName.CaptionRatio2);
 			var propertyOverrides = new PropertyOverrides();
 			propertyOverrides.Add(PropertyName.HPCount, laimaMaxHp);
 			laima.ApplyOverrides(propertyOverrides);

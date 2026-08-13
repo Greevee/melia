@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Melia.Shared.Packages;
@@ -22,9 +22,6 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Sadhu
 	public class Sadhu_TransmitPranaOverride : IGroundSkillHandler, IDynamicCasted
 	{
 		private const float BuffRange = 300;
-		private const int BuffDurationSeconds = 300;
-		private const float BaseDamageMultiplierIncrease = 0.10f;
-		private const float DamageMultiplierIncreasePerLevel = 0.02f;
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
@@ -38,9 +35,9 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Sadhu
 
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos, ForceId.GetNew(), null);
 
-			var damageMultiplierIncrease = BaseDamageMultiplierIncrease + skill.Level * DamageMultiplierIncreasePerLevel;
+			var damageMultiplierIncrease = skill.Properties.GetFloat(PropertyName.CaptionRatio) / 100f;
 
-			caster.StartBuff(BuffId.TransmitPrana_Buff, skill.Level, damageMultiplierIncrease, TimeSpan.FromSeconds(BuffDurationSeconds), caster);
+			caster.StartBuff(BuffId.TransmitPrana_Buff, skill.Level, damageMultiplierIncrease, skill.Properties.CaptionTime, caster);
 
 			if (caster is Character character)
 			{
@@ -52,7 +49,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Sadhu
 					{
 						if (member == caster)
 							continue;
-						member.StartBuff(BuffId.TransmitPrana_Buff, skill.Level, damageMultiplierIncrease, TimeSpan.FromSeconds(BuffDurationSeconds), caster);
+						member.StartBuff(BuffId.TransmitPrana_Buff, skill.Level, damageMultiplierIncrease, skill.Properties.CaptionTime, caster);
 					}
 				}
 			}

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
@@ -39,7 +39,7 @@ namespace Melia.Zone.Skills.Handlers.Swordsmen.Peltasta
 			/// TODO: This needs to be immediately removed if your shield
 			///   is removed, probably need an equipment change hook.
 
-			var duration = TimeSpan.FromSeconds(300);
+			var duration = skill.Properties.CaptionTime;
 			caster.StartBuff(BuffId.HardShield_Buff, skill.Level, 0, duration, caster, skill.Id);
 
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, originPos);

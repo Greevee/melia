@@ -26,8 +26,8 @@ namespace Melia.Zone.Pads.Handlers
 			pad.SetUpdateInterval(1000);
 			pad.Trigger.LifeTime = TimeSpan.FromMilliseconds(5000);
 			pad.Trigger.MaxUseCount = 1;
-			pad.Trigger.MaxActorCount = 3 + skill.Level / 2;
-			pad.Trigger.MaxConcurrentUseCount = 3 + skill.Level / 2;
+			pad.Trigger.MaxActorCount = (int)pad.Skill.Properties.GetFloat(PropertyName.CaptionRatio);
+			pad.Trigger.MaxConcurrentUseCount = (int)pad.Skill.Properties.GetFloat(PropertyName.CaptionRatio);
 		}
 
 		public void Destroyed(object sender, PadTriggerArgs args)
@@ -47,7 +47,7 @@ namespace Melia.Zone.Pads.Handlers
 			var skill = pad.Skill;
 			if (!creator.IsEnemy(initiator)) return;
 
-			var debuffDuration = (int)((2 + skill.Level * 0.4f) * 1000);
+			var debuffDuration = (int)skill.Properties.CaptionTime.TotalMilliseconds;
 			PadTargetBuff(pad, initiator, RelationType.Enemy, 0, 0, BuffId.Bolas_Hold_Debuff, 1, 0, debuffDuration, 1, 100, false);
 		}
 

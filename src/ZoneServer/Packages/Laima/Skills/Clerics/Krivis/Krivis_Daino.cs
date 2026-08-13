@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Melia.Shared.Packages;
 using Melia.Shared.L10N;
@@ -19,7 +19,6 @@ namespace Melia.Zone.Skills.Handlers.Kriwi
 	[SkillHandler(SkillId.Kriwi_Daino)]
 	public class Krivis_DainoOverride : IGroundSkillHandler, IDynamicCasted
 	{
-		private const int BuffDurationSeconds = 300;
 		private const int BuffRange = 300;
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
@@ -41,12 +40,12 @@ namespace Melia.Zone.Skills.Handlers.Kriwi
 		{
 			await skill.Wait(TimeSpan.FromMilliseconds(590));
 
-			var healBonus = 0.30f + 0.03f * skill.Level;
+			var healBonus = skill.Properties.GetFloat(PropertyName.CaptionRatio) / 100f;
 
 			var SCR_Get_AbilityReinforceRate = ScriptableFunctions.Skill.Get("SCR_Get_AbilityReinforceRate");
 			healBonus *= 1f + SCR_Get_AbilityReinforceRate(skill);
 
-			caster.StartBuff(BuffId.Daino_Buff, skill.Level, healBonus, TimeSpan.FromSeconds(BuffDurationSeconds), caster);
+			caster.StartBuff(BuffId.Daino_Buff, skill.Level, healBonus, skill.Properties.CaptionTime, caster);
 
 			// Buff party members
 			if (caster is Character character)
@@ -60,7 +59,7 @@ namespace Melia.Zone.Skills.Handlers.Kriwi
 						if (member == caster)
 							continue;
 
-						member.StartBuff(BuffId.Daino_Buff, skill.Level, healBonus, TimeSpan.FromSeconds(BuffDurationSeconds), caster);
+						member.StartBuff(BuffId.Daino_Buff, skill.Level, healBonus, skill.Properties.CaptionTime, caster);
 					}
 				}
 			}

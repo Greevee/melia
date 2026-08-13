@@ -31,7 +31,7 @@ namespace Melia.Zone.Pads.Handlers
 			pad.SetUpdateInterval(1000);
 			pad.Trigger.LifeTime = TimeSpan.FromMilliseconds(30000);
 
-			var hitCount = 6 + skill.Level;
+			var hitCount = (int)skill.Properties.GetFloat(PropertyName.CaptionRatio);
 			pad.Variables.SetInt(HitCountVariableName, hitCount);
 		}
 

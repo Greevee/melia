@@ -27,9 +27,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Pardoner
 	[SkillHandler(SkillId.Pardoner_Indulgentia)]
 	public class Pardoner_IndulgentiaOverride : IGroundSkillHandler
 	{
-		private const float BuffDurationMs = 10000f; // 10 seconds
 		private const float TargetRange = 150f;
-		private const int MaxTargets = 10;
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
@@ -51,14 +49,14 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Pardoner
 
 		private async Task HandleSkill(ICombatEntity caster, Skill skill, Position originPos, Position farPos)
 		{
-			var buffDuration = TimeSpan.FromMilliseconds(BuffDurationMs);
+			var buffDuration = TimeSpan.FromMilliseconds((float)skill.Properties.CaptionTime.TotalMilliseconds);
 
 			// Apply buff to caster first
 			caster.StartBuff(BuffId.Indulgentia_Buff, skill.Level, 0f, buffDuration, caster);
 
 			// Get friendly targets in range
 			var targetPos = caster.Position.GetRelative(caster.Direction, TargetRange / 2);
-			var skillTargets = GetFriendlyTargetsInRange(caster, skill, targetPos, TargetRange, MaxTargets);
+			var skillTargets = GetFriendlyTargetsInRange(caster, skill, targetPos, TargetRange, (int)skill.Properties.GetFloat(PropertyName.CaptionRatio));
 
 			// Apply buff to all friendly targets
 			foreach (var target in skillTargets)

@@ -19,7 +19,7 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Wizards.Chronomancer
 		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
 			var skillLevel = Math.Max(1, (int)buff.NumArg1);
-			var castReduction = 30f + 3f * skillLevel;
+			var castReduction = GetCaptionRatio(buff, 1);
 
 			AddPropertyModifier(buff, buff.Target, PropertyName.CastingSpeed_BM, castReduction);
 		}

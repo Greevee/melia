@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Melia.Shared.Packages;
@@ -78,7 +78,7 @@ namespace Melia.Zone.Skills.HandlersOverrides.Wizards.Psychokino
 			await skill.Wait(TimeSpan.FromMilliseconds(700));
 
 			var targets2 = caster.Map.GetAttackableEnemiesInPosition(caster, targetPos, 150f);
-			var swapCount = 3 + skill.Level;
+			var swapCount = (int)skill.Properties.GetFloat(PropertyName.CaptionRatio);
 			var swappedCount = 0;
 
 			// Swaps positions with targets

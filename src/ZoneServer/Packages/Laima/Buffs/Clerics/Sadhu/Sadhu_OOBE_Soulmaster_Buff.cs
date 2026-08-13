@@ -77,7 +77,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Sadhu
 			if (buff.Target is not Character character)
 				return;
 
-			var spCost = Math.Max(5, 15 - (int)buff.NumArg1);
+			var spCost = Math.Max(5, (int)GetCaptionRatio(buff, 2));
 
 			if (character.Properties.GetFloat(PropertyName.SP) < spCost)
 			{
@@ -201,7 +201,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Sadhu
 			if (dummy == null)
 				return;
 
-			var maxDistance = 180f + buff.NumArg1 * 20f;
+			var maxDistance = GetCaptionRatio(buff, 1);
 
 			var distance = casterCharacter.Position.Get2DDistance(dummy.Position);
 			if (distance > maxDistance)

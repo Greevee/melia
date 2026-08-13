@@ -15,8 +15,6 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Pardoner
 	[BuffHandler(BuffId.Indulgentia_Buff)]
 	public class Pardoner_Indulgentia_BuffOverride : BuffHandler
 	{
-		private const float BaseHealFactor = 50f; // Base heal amount
-		private const float PerLevelHealFactor = 25f; // Additional heal per skill level
 		private const float GuardianSaintBonus = 0.10f; // 10% bonus when Guardian Saint is active
 		private const float UpdateIntervalMs = 1000f; // Heal every 1 second
 
@@ -35,7 +33,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Pardoner
 
 			// Calculate heal amount based on skill level and caster's stats
 			var skillLevel = buff.NumArg1;
-			var healAmount = BaseHealFactor + (PerLevelHealFactor * skillLevel);
+			var healAmount = GetCaptionRatio(buff, 2);
 
 			// Add scaling from caster's SPR and INT if available
 			if (caster != null)

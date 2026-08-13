@@ -23,8 +23,6 @@ namespace Melia.Zone.Buffs.Handlers.Scouts.Assassin
 	[BuffHandler(BuffId.Hasisas_Buff)]
 	public class Hasisas_BuffOverride : BuffHandler
 	{
-		private const float CritBonusRateBase = 0.3f;
-		private const float CritBonusRatePerLevel = 0.04f;
 		private const float MoveSpeedBonus = 5f;
 		private const float HpLossRate = 0.10f;
 
@@ -107,7 +105,7 @@ namespace Melia.Zone.Buffs.Handlers.Scouts.Assassin
 		/// <returns></returns>
 		private float GetCritBonus(Buff buff)
 		{
-			var bonus = CritBonusRateBase + CritBonusRatePerLevel * buff.NumArg1;
+			var bonus = GetCaptionRatio(buff, 3) / 100f;
 
 			var byAbility = 1f;
 			if (buff.Caster is ICombatEntity casterEntity && casterEntity.TryGetSkill(buff.SkillId, out var skill))

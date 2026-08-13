@@ -12,9 +12,6 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Swordsman.Peltasta
 	[BuffHandler(BuffId.SwashBuckling_Debuff)]
 	public class SwashBuckling_DebuffOverride : BuffHandler
 	{
-		private const float BlockReductionPerLevel = 0.04f;
-		private const float DodgeReductionPerLevel = 0.04f;
-
 		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
 			// The skill's description states that the block and dodge only applies
@@ -45,8 +42,7 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Swordsman.Peltasta
 		{
 			var curVal = buff.Target.Properties.GetFloat(PropertyName.BLK);
 
-			var skillLevel = buff.NumArg1;
-			var reductionRate = BlockReductionPerLevel * skillLevel;
+			var reductionRate = GetCaptionRatio(buff, 2) / 100f;
 
 			var reduction = curVal * reductionRate;
 			Math.Min(0.75f, reduction);
@@ -57,8 +53,7 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Swordsman.Peltasta
 		{
 			var curVal = buff.Target.Properties.GetFloat(PropertyName.DR);
 
-			var skillLevel = buff.NumArg1;
-			var reductionRate = DodgeReductionPerLevel * skillLevel;
+			var reductionRate = GetCaptionRatio(buff, 3) / 100f;
 
 			var reduction = curVal * reductionRate;
 			Math.Min(0.75f, reduction);

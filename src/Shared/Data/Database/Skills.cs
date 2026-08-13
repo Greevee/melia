@@ -48,6 +48,15 @@ namespace Melia.Shared.Data.Database
 		public int HitCount { get; set; }
 		public int MultiHitCount { get; set; }
 
+		public float CaptionRatio1 { get; set; }
+		public float CaptionRatio1ByLevel { get; set; }
+		public float CaptionRatio2 { get; set; }
+		public float CaptionRatio2ByLevel { get; set; }
+		public float CaptionRatio3 { get; set; }
+		public float CaptionRatio3ByLevel { get; set; }
+		public float CaptionTime { get; set; }
+		public float CaptionTimeByLevel { get; set; }
+
 		public TimeSpan DefaultHitDelay { get; set; }
 		public TimeSpan DeadHitDelay { get; set; }
 		public TimeSpan ShootTime { get; set; }
@@ -329,6 +338,15 @@ namespace Melia.Shared.Data.Database
 			data.AtkAddByLevel = entry.ReadFloat("atkAddByLevel");
 			data.HitCount = entry.ReadInt("hitCount");
 			data.MultiHitCount = entry.ReadInt("multiHitCount");
+
+			data.CaptionRatio1 = entry.ReadFloat("captionRatio1", 0);
+			data.CaptionRatio1ByLevel = entry.ReadFloat("captionRatio1ByLevel", 0);
+			data.CaptionRatio2 = entry.ReadFloat("captionRatio2", 0);
+			data.CaptionRatio2ByLevel = entry.ReadFloat("captionRatio2ByLevel", 0);
+			data.CaptionRatio3 = entry.ReadFloat("captionRatio3", 0);
+			data.CaptionRatio3ByLevel = entry.ReadFloat("captionRatio3ByLevel", 0);
+			data.CaptionTime = entry.ReadFloat("captionTime", 0);
+			data.CaptionTimeByLevel = entry.ReadFloat("captionTimeByLevel", 0);
 
 			data.DefaultHitDelay = entry.ReadTimeSpan("defaultHitDelay");
 			data.DeadHitDelay = entry.ReadTimeSpan("deadHitDelay");

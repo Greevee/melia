@@ -23,18 +23,15 @@ namespace Melia.Zone.Buffs.Handlers.Swordsman.Highlander
 	[BuffHandler(BuffId.CrossGuard_Buff)]
 	public class CrossGuard_BuffOverride : BuffHandler
 	{
-		private const float PercentageEvasionBlkBonusPerLevel = 0.05f;
 		private const float BlkBonus = 200f;
-		private const float BlkBonusPerLevel = 50f;
-		private const float DebuffDuration = 5f;
 
 		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
 			var evasion = buff.Target.Properties.GetFloat(PropertyName.DR);
 
 			var baseValue = BlkBonus;
-			var byLevel = BlkBonusPerLevel * buff.NumArg1;
-			var byEvasion = PercentageEvasionBlkBonusPerLevel * buff.NumArg1 * evasion;
+			var byLevel = GetCaptionRatio(buff, 1);
+			var byEvasion = GetCaptionRatio(buff, 2) / 100f * evasion;
 
 			var value = baseValue + byLevel + byEvasion;
 
@@ -69,7 +66,7 @@ namespace Melia.Zone.Buffs.Handlers.Swordsman.Highlander
 			if (!target.TryGetBuff(BuffId.CrossGuard_Buff, out var buff))
 				return;
 
-			target.StartBuff(BuffId.CrossGuard_Damage_Buff, buff.NumArg1, 0, TimeSpan.FromSeconds(DebuffDuration), target);
+			target.StartBuff(BuffId.CrossGuard_Damage_Buff, buff.NumArg1, 0, GetCaptionTime(buff), target);
 		}
 	}
 }

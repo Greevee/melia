@@ -41,7 +41,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Oracle
 		private async Task HandleSkill(ICombatEntity caster, Skill skill, Position originPos, Position farPos)
 		{
 			var targetPos = originPos.GetRelative(farPos);
-			var value = skill.GetPVPValue(5 + skill.Level);
+			var value = skill.GetPVPValue((int)skill.Properties.GetFloat(PropertyName.CaptionRatio2));
 			var skillTargets = SkillSelectEnemiesInSquare(caster, targetPos, 0f, 100f, 40f, value);
 			await skill.Wait(TimeSpan.FromMilliseconds(700));
 			var time = 25000;

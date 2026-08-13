@@ -38,8 +38,8 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Scouts.Rogue
 				byAbility += SCR_Get_AbilityReinforceRate(buffSkill);
 			}
 
-			modifier.BonusCritChance += (150 + (skillLevel * 15)) * byAbility;
-			modifier.MinCritChance += (0.30f + (skillLevel * 0.03f)) * byAbility;
+			modifier.BonusCritChance += GetCaptionRatio(buff, 1);
+			modifier.MinCritChance += GetCaptionRatio(buff, 2) / 100f;
 		}
 	}
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Melia.Shared.Packages;
@@ -21,11 +21,6 @@ namespace Melia.Zone.Skills.Handlers.Priest
 	public class Priest_MonstranceOverride : IGroundSkillHandler, IDynamicCasted
 	{
 		private const int DebuffRadius = 150;
-		private const int DebuffDurationMilliseconds = 20000;
-		private const int BaseTargetCount = 3;
-		private const int TargetCountPerLevel = 1;
-		private const float BaseDamageRate = 0.2f;
-		private const float DamageRatePerLevel = 0.01f;
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
 			if (!caster.TrySpendSp(skill))
@@ -56,7 +51,7 @@ namespace Melia.Zone.Skills.Handlers.Priest
 
 			// Calculate damage
 			var damageBonus = this.CalculateDamageBonus(caster, skill);
-			var targetCount = BaseTargetCount + (skill.Level * TargetCountPerLevel);
+			var targetCount = (int)skill.Properties.GetFloat(PropertyName.CaptionRatio2);
 
 			// Prioritize targets that don't have the debuff active
 			var prioritizedTargets = targetList
@@ -65,7 +60,7 @@ namespace Melia.Zone.Skills.Handlers.Priest
 
 			foreach (var target in prioritizedTargets)
 			{
-				target.StartBuff(BuffId.Monstrance_Debuff, skill.Level, damageBonus, TimeSpan.FromMilliseconds(DebuffDurationMilliseconds), caster);
+				target.StartBuff(BuffId.Monstrance_Debuff, skill.Level, damageBonus, TimeSpan.FromMilliseconds((int)skill.Properties.CaptionTime.TotalMilliseconds), caster);
 				await skill.Wait(TimeSpan.FromMilliseconds(50));
 			}
 		}
@@ -75,7 +70,7 @@ namespace Melia.Zone.Skills.Handlers.Priest
 		/// </summary>
 		private float CalculateDamageBonus(ICombatEntity caster, Skill skill)
 		{
-			var damageBonus = BaseDamageRate + (DamageRatePerLevel * skill.Level);
+			var damageBonus = skill.Properties.GetFloat(PropertyName.CaptionRatio) / 100f;
 
 			var SCR_Get_AbilityReinforceRate = ScriptableFunctions.Skill.Get("SCR_Get_AbilityReinforceRate");
 			return damageBonus * (1f + SCR_Get_AbilityReinforceRate(skill));

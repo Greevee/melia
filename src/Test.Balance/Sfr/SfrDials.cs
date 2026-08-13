@@ -46,10 +46,38 @@ namespace Melia.Test.Balance.Sfr
 		public static readonly string[] SpreadScenarios = ["S2", "S3", "S4", "S9", "S10"];
 
 		/// <summary>
+		/// The scenarios the charged width takes its peak over, which are the
+		/// gathered pulls an averaged swing actually reaches into.
+		/// </summary>
+		/// <remarks>
+		/// S4 is out on top of S5 and S6: the pack has not arrived, so an
+		/// averaged swing reaches 0.0 targets there and the yardstick falls to
+		/// MinYardstick, scoring every target reached at double. The average
+		/// dilutes that to a ninth; a max lets it decide the whole term, and it
+		/// gave Peltasta_ShieldLob a peak of 8.0 against its next-best 4.0.
+		/// </remarks>
+		public static readonly string[] PeakScenarios = ["S2", "S3", "S9", "S10"];
+
+		/// <summary>
 		/// How many times as efficient a skill may be in its best gathered
 		/// scenario as in the weighted-typical case.
 		/// </summary>
 		public const float SpreadCap = 2.5f;
+
+		/// <summary>
+		/// How much of the charged width comes from a skill's best gathered
+		/// scenario rather than its average across the matrix.
+		/// </summary>
+		/// <remarks>
+		/// A player gathers a pull before pressing, so the reach a skill is
+		/// charged for is mostly the one it gets when the pull is gathered. The
+		/// average alone charged Peltasta_ShieldLob more width than
+		/// Swordman_Bash while it hit 4 of a stacked 8 to Bash's 7, because a
+		/// hard target cap reads the same as real area once it is averaged.
+		/// Read over SpreadScenarios, so range is still paid through the
+		/// weighted term rather than through the floored S5 yardstick.
+		/// </remarks>
+		public const float WidthPeakShare = 0.75f;
 
 		/// <summary>
 		/// How much of a skill's width it is charged for.
@@ -75,16 +103,6 @@ namespace Melia.Test.Balance.Sfr
 		/// not the factor field.
 		/// </remarks>
 		public const float AnchorFactor = 96f;
-
-		/// <summary>
-		/// What a skill's SFR at its max level is worth against its factor.
-		/// </summary>
-		/// <remarks>
-		/// calc_skill.cs multiplies factorByLevel by the level itself rather
-		/// than the level minus one, so factorByLevel = factor / maxLevel lands
-		/// every skill at exactly double its factor on its last level.
-		/// </remarks>
-		public const float LevelGrowth = 2f;
 
 		/// <summary>
 		/// The longest a single press may be priced as occupying, in seconds.
@@ -278,26 +296,44 @@ namespace Melia.Test.Balance.Sfr
 		public const float MinYardstick = 0.5f;
 
 		/// <summary>
-		/// What advancing a circle buys beyond reaching a cap in fewer points.
+		/// What an advanced class's skill is worth against a base-job skill, by
+		/// the circle the skill belongs to.
 		/// </summary>
+		/// <remarks>
+		/// The five rank-1 classes take 1.00 and keep the level the anchor
+		/// sets; every advanced skill is lifted by its own circle. It is the
+		/// only premium above the base pool - advancing out of a base job and
+		/// advancing a circle are one multiplier, not two.
+		/// </remarks>
 		public static readonly Dictionary<int, float> CirclePremium = new()
 		{
-			[1] = 1.00f,
-			[2] = 1.05f,
-			[3] = 1.10f,
+			[1] = 1.20f,
+			[2] = 1.25f,
+			[3] = 1.30f,
 		};
 
 		/// <summary>
-		/// What advancing out of a base job buys, in SFR.
+		/// How much of a skill's ceiling is bought by levelling it rather than
+		/// by unlocking it, by the circle the skill belongs to.
 		/// </summary>
 		/// <remarks>
-		/// The five rank-1 classes take 1.00 and every advanced class takes
-		/// this. It is a level shift between the two pools rather than a
-		/// redistribution inside either, and the anchor is a base-job skill, so
-		/// it moves the advanced roster against Swordman_Bash and leaves the
-		/// base pool where it was.
+		/// A later circle is more front-loaded, so it arrives near the value
+		/// the previous circle's skill was already sitting at instead of at
+		/// half of it. 0.50 is the base pool's share and reproduces the
+		/// retired doubling rule exactly, which is what holds the anchor.
 		/// </remarks>
-		public const float AdvancementPremium = 1.10f;
+		public static readonly Dictionary<int, float> SlopeShare = new()
+		{
+			[1] = 0.45f,
+			[2] = 0.35f,
+			[3] = 0.27f,
+		};
+
+		/// <summary>
+		/// The slope share every base-job skill takes, whatever circle it
+		/// sits in.
+		/// </summary>
+		public const float BaseSlopeShare = 0.50f;
 
 		/// <summary>
 		/// What a channel earns for paying its SP over the hold rather than up
@@ -357,11 +393,6 @@ namespace Melia.Test.Balance.Sfr
 		/// them, and it holds them harder.
 		/// </remarks>
 		public const float SpBuffMultiplier = 1.5f;
-
-		/// <summary>
-		/// What an advanced class's press costs, against a base job's.
-		/// </summary>
-		public const float SpAdvancementMultiplier = 1.10f;
 
 		/// <summary>
 		/// What a Wizard- or Cleric-family press costs, against the rest.

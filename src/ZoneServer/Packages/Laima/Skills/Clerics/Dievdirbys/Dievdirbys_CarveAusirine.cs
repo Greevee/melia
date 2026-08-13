@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -57,7 +57,7 @@ namespace Melia.Zone.Skills.HandlersOverrides.Clerics.Dievdirbys
 
 			var spawnPosition = originPos.GetRelative(caster.Direction, 17);
 
-			var ausrine = MonsterSkillCreateMob(skill, caster, "pcskill_wood_ausrine2", spawnPosition, 0, "", "", 0, 15 + skill.Level * 2, "", "");
+			var ausrine = MonsterSkillCreateMob(skill, caster, "pcskill_wood_ausrine2", spawnPosition, 0, "", "", 0, (int)skill.Properties.GetFloat(PropertyName.CaptionRatio2), "", "");
 
 			if (ausrine == null)
 			{
@@ -67,7 +67,7 @@ namespace Melia.Zone.Skills.HandlersOverrides.Clerics.Dievdirbys
 
 			// Apply property overrides to make Ausrine take only 1 damage per hit
 			// HPCount reduces all incoming damage to exactly 1 and sets max HP to the specified value
-			var ausrineMaxHp = 20 + (3 * skill.Level);
+			var ausrineMaxHp = skill.Properties.GetFloat(PropertyName.CaptionRatio3);
 			var propertyOverrides = new PropertyOverrides();
 			propertyOverrides.Add(PropertyName.HPCount, ausrineMaxHp);
 			ausrine.ApplyOverrides(propertyOverrides);

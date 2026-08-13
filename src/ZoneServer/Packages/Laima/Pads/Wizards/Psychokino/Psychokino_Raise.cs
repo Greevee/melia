@@ -26,10 +26,10 @@ namespace Melia.Zone.Pads.HandlersOverride.Wizards.Psychokino
 			Send.ZC_NORMAL.PadUpdate(pad, true);
 			pad.SetRange(50f);
 			pad.SetUpdateInterval(1000);
-			var life = 3000f + (200f * skill.Level);
+			var life = (float)skill.Properties.CaptionTime.TotalMilliseconds;
 			pad.Trigger.LifeTime = TimeSpan.FromMilliseconds(life);
 			pad.Trigger.MaxUseCount = skill.Level;
-			pad.Trigger.MaxConcurrentUseCount = 4 + (skill.Level * 2);
+			pad.Trigger.MaxConcurrentUseCount = (int)skill.Properties.GetFloat(PropertyName.CaptionRatio);
 			var value = skill.Level;
 			pad.Trigger.MaxActorCount = value;
 			PadSelectPadKill(pad, PadName.HeavyGravity_PAD, 100f);
@@ -64,7 +64,7 @@ namespace Melia.Zone.Pads.HandlersOverride.Wizards.Psychokino
 				return;
 
 			pad.Trigger.ActivateCount++;
-			var duration = 3000 + (skill.Level * 200);
+			var duration = (int)skill.Properties.CaptionTime.TotalMilliseconds;
 			PadTargetBuff(pad, initiator, RelationType.Enemy, 0, 0, BuffId.Raise_Debuff, 1, 0, duration, 1, 100, false);
 		}
 

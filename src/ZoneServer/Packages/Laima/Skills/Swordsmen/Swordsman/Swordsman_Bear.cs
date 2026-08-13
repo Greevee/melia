@@ -36,7 +36,7 @@ namespace Melia.Zone.Skills.HandlersOverrides.Swordsmen.Swordsman
 			skill.IncreaseOverheat();
 			caster.SetAttackState(true);
 
-			var duration = TimeSpan.FromSeconds(300);
+			var duration = skill.Properties.CaptionTime;
 			caster.StartBuff(BuffId.Bear_Buff, skill.Level, 0, duration, caster, skill.Id);
 
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, originPos);

@@ -26,7 +26,7 @@ namespace Melia.Zone.Pads.Handlers
 			pad.SetRectangleRange(creator.Direction, 40, 120);
 			pad.SetUpdateInterval(100);
 			pad.Trigger.LifeTime = TimeSpan.FromMilliseconds(1200);
-			var maxTargets = 2 + skill.Level;
+			var maxTargets = (int)skill.Properties.GetFloat(PropertyName.CaptionRatio);
 			pad.Trigger.MaxUseCount = maxTargets;
 		}
 

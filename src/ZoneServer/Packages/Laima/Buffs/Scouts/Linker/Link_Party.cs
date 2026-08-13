@@ -192,7 +192,7 @@ namespace Melia.Zone.Buffs.Handlers.Scouts.Linker
 
 			var processedBuffs = buff.Vars.Get<HashSet<int>>("Melia.Link.ProcessedBuffs", new HashSet<int>());
 			var skillLevel = buff.NumArg1;
-			var durationMultiplier = 0.10f + 0.02f * skillLevel;
+			var durationMultiplier = GetCaptionRatio(buff, 1) / 100f;
 
 			var unbindLevel = this.GetUnbindSkillLevel(buff);
 			var debuffReduction = this.GetUnbindDebuffReduction(unbindLevel);

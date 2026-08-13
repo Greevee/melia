@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
@@ -18,7 +18,6 @@ namespace Melia.Zone.Skills.Handlers.Scouts.Thaumaturge
 	public class Thaumaturge_SwellBrainOverride : IGroundSkillHandler
 	{
 		private const float BuffRange = 300;
-		private const int BuffDurationSeconds = 300;
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
@@ -35,7 +34,7 @@ namespace Melia.Zone.Skills.Handlers.Scouts.Thaumaturge
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, targetHandle, originPos, originPos.GetDirection(farPos), Position.Zero);
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos, ForceId.GetNew(), null);
 
-			var duration = TimeSpan.FromSeconds(BuffDurationSeconds);
+			var duration = skill.Properties.CaptionTime;
 
 			caster.StartBuff(BuffId.BigHeadMode, skill.Level, 0, duration, caster, skill.Id);
 

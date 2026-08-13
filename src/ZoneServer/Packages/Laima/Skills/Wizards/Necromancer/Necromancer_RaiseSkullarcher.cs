@@ -51,11 +51,11 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Necromancer
 
 				var attack = RandomProvider.Get().Next((int)caster.Properties.GetFloat(PropertyName.MINMATK),
 					(int)caster.Properties.GetFloat(PropertyName.MINMATK))
-					* (.85f + (.15f * skill.Level));
-				var life = caster.Properties.GetFloat(PropertyName.MHP) * (.44f + (.12f * skill.Level));
+					* (skill.Properties.GetFloat(PropertyName.CaptionRatio) / 100f);
+				var life = caster.Properties.GetFloat(PropertyName.MHP) * (skill.Properties.GetFloat(PropertyName.CaptionRatio3) / 100f);
 				var defense = (caster.Properties.GetFloat(PropertyName.DEF)
 					+ caster.Properties.GetFloat(PropertyName.MDEF)) / 2
-					* (1.02f + (17f * skill.Level));
+					* (skill.Properties.GetFloat(PropertyName.CaptionRatio2) / 100f);
 
 				summon.Properties.SetFloat(PropertyName.FixedAttack, attack);
 				summon.Properties.SetFloat(PropertyName.FixedLife, life);

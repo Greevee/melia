@@ -24,7 +24,7 @@ namespace Melia.Zone.Pads.Handlers.Scouts.Rogue
 			Send.ZC_NORMAL.PadUpdate(pad, true);
 			pad.SetRange(50f);
 			pad.SetUpdateInterval(750);
-			pad.Trigger.LifeTime = TimeSpan.FromMilliseconds((3.5 + skill.Level * 0.5) * 1000);
+			pad.Trigger.LifeTime = skill.Properties.CaptionTime;
 			pad.Trigger.MaxConcurrentUseCount = 11;
 		}
 
@@ -48,7 +48,7 @@ namespace Melia.Zone.Pads.Handlers.Scouts.Rogue
 				return;
 
 			pad.Trigger.ActivateCount++;
-			PadTargetBuff(pad, initiator, RelationType.Enemy, 0, 0, BuffId.Lachrymator_Debuff, 1, 0, (int)((3.5 + skill.Level * 0.5) * 1000), 1, 100, false);
+			PadTargetBuff(pad, initiator, RelationType.Enemy, 0, 0, BuffId.Lachrymator_Debuff, 1, 0, (int)skill.Properties.CaptionTime.TotalMilliseconds, 1, 100, false);
 		}
 
 		public void Left(object sender, PadTriggerActorArgs args)

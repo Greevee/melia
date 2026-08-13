@@ -17,14 +17,13 @@ namespace Melia.Zone.Buffs.Handlers.Archers.Hunter
 	[BuffHandler(BuffId.Pet_Heal)]
 	public class Pet_HealOverride : BuffHandler
 	{
-		private const float HealRate = 0.02f;
 		private const string VarHealAmount = "Melia.Pet.HealAmount";
 		private static readonly TimeSpan AfterBuffDuration = TimeSpan.FromMinutes(5);
 
 		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
 			var maxHp = buff.Target.Properties.GetFloat(PropertyName.MHP);
-			var healAmount = (float)Math.Floor(maxHp * HealRate);
+			var healAmount = (float)Math.Floor(maxHp * GetCaptionRatio(buff, 1) / 100f);
 			buff.Vars.SetFloat(VarHealAmount, healAmount);
 		}
 

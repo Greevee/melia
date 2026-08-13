@@ -26,7 +26,6 @@ namespace Melia.Zone.Skills.Handlers.Archers.Falconer
 	public class Falconer_AimingOverride : IGroundSkillHandler
 	{
 		private const string AimingPadVariable = "Falconer.Aiming.PadHandle";
-		private const float SpPerSecond = 8f;
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
@@ -121,7 +120,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Falconer
 				if (pad.IsDead)
 					break;
 
-				if (!caster.TrySpendSp(SpPerSecond))
+				if (!caster.TrySpendSp(skill.Properties.GetFloat(PropertyName.CaptionRatio2)))
 					break;
 			}
 

@@ -46,7 +46,7 @@ namespace Melia.Zone.Skills.Handlers.Barbarian
 			var splashParam = skill.GetSplashParameters(caster, caster.Position, caster.Position, length: 0, width: 250, angle: 0);
 			var splashArea = skill.GetSplashArea(SplashType.Circle, splashParam);
 
-			var maxTargets = 4 + skill.Level;
+			var maxTargets = (int)skill.Properties.GetFloat(PropertyName.CaptionRatio);
 			if (caster.TryGetActiveAbilityLevel(AbilityId.Barbarian1, out var barbarian1Level))
 				maxTargets += barbarian1Level;
 

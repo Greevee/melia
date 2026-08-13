@@ -37,7 +37,6 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Sorcerer
 		/// <summary>
 		/// Summon lifetime in seconds.
 		/// </summary>
-		private const int SummonLifetimeSeconds = 900;
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
@@ -145,11 +144,11 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Sorcerer
 
 			// Calculate MHP based on caster's MHP
 			var casterMHP = character.Properties.GetFloat(PropertyName.MHP) - character.Properties.GetFloat(PropertyName.MHP_BM);
-			var summonMHP = casterMHP * (8.5f + (skill.Level * 0.5f));
+			var summonMHP = casterMHP * (skill.Properties.GetFloat(PropertyName.CaptionRatio2) / 100f);
 			summon.Vars.SetFloat("SUMMON_SET_MHP_BY_CASTER", summonMHP);
 
 			// Add lifetime component
-			summon.Components.Add(new LifeTimeComponent(summon, TimeSpan.FromSeconds(SummonLifetimeSeconds)));
+			summon.Components.Add(new LifeTimeComponent(summon, TimeSpan.FromSeconds((int)skill.Properties.CaptionTime.TotalSeconds)));
 
 			// Check for Overwork ability (Sorcerer18)
 			if (character.IsAbilityActive(AbilityId.Sorcerer18))
@@ -177,7 +176,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Sorcerer
 		private void CalculateSummonStats(Summon summon, Character caster, Skill skill, Item card)
 		{
 			// Base calculation factors
-			var bySkillLevel = 0.05f + (skill.Level * 0.02f);
+			var bySkillLevel = skill.Properties.GetFloat(PropertyName.CaptionRatio3) / 100f;
 			var byCardLevel = card.Level * 0.05f;
 			var totalFactor = bySkillLevel + byCardLevel;
 

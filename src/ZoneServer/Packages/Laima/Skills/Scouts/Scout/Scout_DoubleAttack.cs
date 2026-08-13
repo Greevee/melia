@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
@@ -37,7 +37,7 @@ namespace Melia.Zone.Skills.Handlers.Scouts.Scout
 			caster.SetAttackState(true);
 
 			var duration = TimeSpan.FromSeconds(300);
-			var doubleHitChance = 25f + skill.Level * 5f;
+			var doubleHitChance = skill.Properties.GetFloat(PropertyName.CaptionRatio2);
 
 			var SCR_Get_AbilityReinforceRate = ScriptableFunctions.Skill.Get("SCR_Get_AbilityReinforceRate");
 			doubleHitChance *= 1f + SCR_Get_AbilityReinforceRate(skill);

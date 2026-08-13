@@ -25,8 +25,6 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Clerics.Monk
 	public class Golden_Bell_Shield_BuffOverride : BuffHandler
 	{
 		private const int SpDrainPerTick = 65;
-		private const float BaseDamageReduction = 0.40f;
-		private const float DamageReductionPerLevel = 0.02f;
 		private const float MaxDamageReduction = 0.80f;
 
 		public override void OnActivate(Buff buff, ActivationType activationType)
@@ -57,7 +55,7 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Clerics.Monk
 				return;
 
 			var skillLevel = buff.NumArg1;
-			var reduction = Math.Min(BaseDamageReduction + DamageReductionPerLevel * skillLevel, MaxDamageReduction);
+			var reduction = Math.Min(GetCaptionRatio(buff, 1) / 100f, MaxDamageReduction);
 
 			skillHitResult.Damage *= 1f - reduction;
 		}

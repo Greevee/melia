@@ -20,8 +20,6 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Clerics.Paladin
 	[BuffHandler(BuffId.StoneSkin_Buff)]
 	public class StoneSkin_BuffOverride : BuffHandler
 	{
-		private const float DamageReductionBase = 0.10f;
-		private const float DamageReductionPerLevel = 0.01f;
 
 		[CombatCalcModifier(CombatCalcPhase.AfterCalc, BuffId.StoneSkin_Buff)]
 		public void OnDefenseAfterCalc(ICombatEntity attacker, ICombatEntity target, Skill skill, SkillModifier modifier, SkillHitResult skillHitResult)
@@ -34,7 +32,7 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Clerics.Paladin
 				return;
 
 			var skillLevel = buff.NumArg1;
-			var damageReduction = DamageReductionBase + (skillLevel * DamageReductionPerLevel);
+			var damageReduction = GetCaptionRatio(buff, 1) / 100f;
 
 			if (buff.Caster is ICombatEntity casterEntity && casterEntity.TryGetSkill(buff.SkillId, out var buffSkill))
 			{

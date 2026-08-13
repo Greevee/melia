@@ -33,12 +33,10 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Sorcerer
 		/// <summary>
 		/// Number of bats to summon.
 		/// </summary>
-		private const int BatCount = 5;
 
 		/// <summary>
 		/// Lifetime of the bats in seconds.
 		/// </summary>
-		private const int BatLifetimeSeconds = 60;
 
 		/// <summary>
 		/// Handle Skill Behavior
@@ -71,7 +69,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Sorcerer
 			CreateFamiliarBats(character, skill);
 
 			// Start the buff that manages bat lifecycle
-			character.StartBuff(BuffId.sorcerer_bat, TimeSpan.FromSeconds(BatLifetimeSeconds));
+			character.StartBuff(BuffId.sorcerer_bat, TimeSpan.FromSeconds((int)skill.Properties.CaptionTime.TotalSeconds));
 		}
 
 		/// <summary>
@@ -81,7 +79,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Sorcerer
 		{
 			var random = RandomProvider.Get();
 
-			for (var i = 0; i < BatCount; i++)
+			for (var i = 0; i < (int)skill.Properties.GetFloat(PropertyName.CaptionRatio); i++)
 			{
 				// Create summon
 				var summon = new Summon(character, (int)MonsterId.Familiar, RelationType.Friendly);
@@ -102,7 +100,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Sorcerer
 				summon.Vars.SetInt("SORCERER_BAT_STOP", 0);
 
 				// Add lifetime component
-				summon.Components.Add(new LifeTimeComponent(summon, TimeSpan.FromSeconds(BatLifetimeSeconds)));
+				summon.Components.Add(new LifeTimeComponent(summon, TimeSpan.FromSeconds((int)skill.Properties.CaptionTime.TotalSeconds)));
 
 				// Activate summon with special AI for bats
 				summon.SetState(true);

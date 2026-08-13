@@ -30,7 +30,6 @@ namespace Melia.Zone.Skills.Handlers.Bokor
 	[SkillHandler(SkillId.Bokor_Zombify)]
 	public class Bokor_ZombifyOverride : IGroundSkillHandler, IDynamicCasted
 	{
-		private const int LifetimeSeconds = 300;
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
@@ -103,7 +102,6 @@ namespace Melia.Zone.Skills.Handlers.Bokor
 		private const int MaxWheelchairZombies = 4;
 		private const int MaxGiantZombies = 2;
 
-		private const int LifetimeSeconds = 300;
 
 		/// <summary>
 		/// Determines the zombie type based on the caster's active abilities.
@@ -133,7 +131,7 @@ namespace Melia.Zone.Skills.Handlers.Bokor
 				var spawnRadius = 35f;
 				var spawnPosition = caster.Position.GetRelative(new Direction(randomAngle), spawnRadius);
 
-				var zombie = MonsterSkillCreateMob(skill, caster, info.ClassName, spawnPosition, 0, info.Name, "None", 0, LifetimeSeconds, "PC_Summon", "Faction#Summon#!SCR_USE_ZOMBIFY#1");
+				var zombie = MonsterSkillCreateMob(skill, caster, info.ClassName, spawnPosition, 0, info.Name, "None", 0, (int)skill.Properties.CaptionTime.TotalSeconds, "PC_Summon", "Faction#Summon#!SCR_USE_ZOMBIFY#1");
 
 				if (zombie == null)
 					continue;
@@ -151,7 +149,7 @@ namespace Melia.Zone.Skills.Handlers.Bokor
 		/// </summary>
 		public static bool SummonZombieAt(Skill skill, ICombatEntity caster, ZombieInfo info, Position position)
 		{
-			var zombie = MonsterSkillCreateMob(skill, caster, info.ClassName, position, 0, info.Name, "None", 0, LifetimeSeconds, "PC_Summon", "Faction#Summon#!SCR_USE_ZOMBIFY#1");
+			var zombie = MonsterSkillCreateMob(skill, caster, info.ClassName, position, 0, info.Name, "None", 0, (int)skill.Properties.CaptionTime.TotalSeconds, "PC_Summon", "Faction#Summon#!SCR_USE_ZOMBIFY#1");
 
 			if (zombie == null)
 				return false;
@@ -205,7 +203,7 @@ namespace Melia.Zone.Skills.Handlers.Bokor
 
 			if (zombieClass == GiantZombieClass)
 			{
-				zombiePATK = casterMATK * (1.20f + (0.12f * skill.Level));
+				zombiePATK = casterMATK * (skill.Properties.GetFloat(PropertyName.CaptionRatio) / 100f);
 				zombieHP = 2000f + (200f * casterMNA) + (casterLevel * 10f);
 				zombieDEF = 20f + (5f * casterMNA) + casterLevel;
 
@@ -217,7 +215,7 @@ namespace Melia.Zone.Skills.Handlers.Bokor
 			}
 			else if (zombieClass == WheelchairZombieClass)
 			{
-				zombiePATK = casterMATK * (0.70f + (0.07f * skill.Level));
+				zombiePATK = casterMATK * (skill.Properties.GetFloat(PropertyName.CaptionRatio2) / 100f);
 				zombieHP = 1000f + (100f * casterMNA) + (casterLevel * 10f);
 				zombieDEF = 20f + (2f * casterMNA + casterLevel);
 
@@ -226,7 +224,7 @@ namespace Melia.Zone.Skills.Handlers.Bokor
 			}
 			else
 			{
-				zombiePATK = casterMATK * (0.90f + (0.09f * skill.Level));
+				zombiePATK = casterMATK * (skill.Properties.GetFloat(PropertyName.CaptionRatio3) / 100f);
 				zombieHP = 1500f + (150f * casterMNA) + (casterLevel * 10f);
 				zombieDEF = 20f + (3f * casterMNA) + casterLevel;
 

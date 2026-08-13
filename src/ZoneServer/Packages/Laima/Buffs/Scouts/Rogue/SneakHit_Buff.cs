@@ -18,9 +18,6 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Scouts.Rogue
 	[BuffHandler(BuffId.SneakHit_Buff)]
 	public class SneakHit_BuffOverride : BuffHandler
 	{
-		private const float BaseDamageRate = 0.50f;
-		private const float DamageRatePerLevel = 0.05f;
-
 		[CombatCalcModifier(CombatCalcPhase.BeforeBonuses, BuffId.SneakHit_Buff)]
 		public void OnAttackBeforeBonuses(ICombatEntity attacker, ICombatEntity target, Skill skill, SkillModifier modifier, SkillHitResult skillHitResult)
 		{
@@ -30,8 +27,7 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Scouts.Rogue
 			if (!attacker.IsBehind(target) && !modifier.ForcedBackAttack)
 				return;
 
-			var skillLevel = buff.NumArg1;
-			var damageIncrease = BaseDamageRate + DamageRatePerLevel * skillLevel;
+			var damageIncrease = GetCaptionRatio(buff, 1) / 100f;
 
 			skillHitResult.Damage *= 1f + damageIncrease;
 		}

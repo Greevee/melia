@@ -44,7 +44,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Oracle
 
 		private float SCR_GET_ArcaneEnergy_Bufftime(Skill skill)
 		{
-			var value = skill.Level;
+			var value = (float)skill.Properties.CaptionTime.TotalSeconds;
 			var caster = skill.Owner;
 
 			if (caster.IsAbilityActive(AbilityId.Oracle32) && value < 5)

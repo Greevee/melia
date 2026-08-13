@@ -22,8 +22,6 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Wizard.Cryomancer
 	[BuffHandler(BuffId.Subzero_Buff)]
 	public class Subzero_BuffOverride : BuffHandler
 	{
-		private const float BaseFreezeChance = 20f;
-		private const float FreezeChancePerLevel = 6f;
 
 		[CombatCalcModifier(CombatCalcPhase.BeforeBonuses, BuffId.Subzero_Buff)]
 		public void OnAttackBeforeBonuses(ICombatEntity attacker, ICombatEntity target, Skill skill, SkillModifier modifier, SkillHitResult skillHitResult)
@@ -41,7 +39,7 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Wizard.Cryomancer
 			if (skill.Data.ClassType == SkillClassType.Magic)
 				return;
 
-			var freezeChance = BaseFreezeChance + (buff.NumArg1 * FreezeChancePerLevel);
+			var freezeChance = GetCaptionRatio(buff, 2);
 			if (RandomProvider.Get().Next(100) < freezeChance)
 			{
 				var freezeDuration = buff.NumArg2;
@@ -52,7 +50,7 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Wizard.Cryomancer
 					&& buff.Target.TryGetSkill(SkillId.Cryomancer_SubzeroShield, out var subzeroSkill))
 				{
 					var counterModifier = SkillModifier.Default;
-					counterModifier.DamageMultiplier = 0.5f * abilLevel;
+					counterModifier.DamageMultiplier = GetCaptionRatio(buff, 1) * abilLevel;
 
 					var counterHitResult = SCR_SkillHit(buff.Target, attacker, subzeroSkill, counterModifier);
 					attacker.TakeDamage(counterHitResult.Damage, buff.Target);

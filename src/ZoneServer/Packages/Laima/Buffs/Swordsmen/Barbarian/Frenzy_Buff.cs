@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
 using Melia.Zone.Buffs.Base;
@@ -30,8 +30,6 @@ namespace Melia.Zone.Buffs.Handlers.Swordsman.Barbarian
 		public const string LastStackGainTimeKey = "FrenzyLastStackGainTime";
 		private static readonly TimeSpan StackDecayInterval = TimeSpan.FromSeconds(5);
 
-		private const float ASpdBonusBase = 150;
-		private const float ASpdBonusPerStack = 10;
 
 		/// <summary>
 		/// Called when the buff is first applied or when a stack is added.
@@ -111,7 +109,7 @@ namespace Melia.Zone.Buffs.Handlers.Swordsman.Barbarian
 			if (!attacker.TryGetBuff(BuffId.Frenzy_Buff, out var buff))
 				return;
 
-			var bonusPerStack = 0.04f;
+			var bonusPerStack = GetCaptionRatio(buff, 3) / 100f;
 			var byAbility = 1f;
 			if (buff.Caster is ICombatEntity casterEntity && casterEntity.TryGetSkill(buff.SkillId, out var buffSkill))
 			{
@@ -152,7 +150,7 @@ namespace Melia.Zone.Buffs.Handlers.Swordsman.Barbarian
 			// Attack speed bonus only applies to characters, not monsters.
 			if (buff.Target is Character)
 			{
-				var aspdBonus = ASpdBonusBase + buff.OverbuffCounter * ASpdBonusPerStack;
+				var aspdBonus = GetCaptionRatio(buff, 1) + buff.OverbuffCounter * GetCaptionRatio(buff, 2);
 				UpdatePropertyModifier(buff, buff.Target, PropertyName.NormalASPD_BM, aspdBonus);
 			}
 		}

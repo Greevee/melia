@@ -377,7 +377,7 @@ namespace Melia.Test.Balance.Sfr
 		/// </summary>
 		/// <param name="level"></param>
 		/// <param name="tolerance"></param>
-		private static MonsterData FindHostileReferenceMob(int level, int tolerance = 30)
+		internal static MonsterData FindHostileReferenceMob(int level, int tolerance = 30)
 		{
 			for (var offset = 0; offset <= tolerance; ++offset)
 			{
@@ -406,7 +406,7 @@ namespace Melia.Test.Balance.Sfr
 		/// <param name="skill"></param>
 		/// <param name="caster"></param>
 		/// <param name="target"></param>
-		private static void Dispatch(Skill skill, Character caster, Mob target)
+		internal static void Dispatch(Skill skill, Character caster, Mob target)
 		{
 			var handlers = Melia.Zone.ZoneServer.Instance.SkillHandlers;
 			var origin = caster.Position;
@@ -489,7 +489,7 @@ namespace Melia.Test.Balance.Sfr
 		/// Gives an entity enough max HP that the window runs to its end.
 		/// </summary>
 		/// <param name="entity"></param>
-		private static void Fortify(ICombatEntity entity)
+		internal static void Fortify(ICombatEntity entity)
 		{
 			entity.Properties.SetFloat(PropertyName.MHP_BM, SurvivalHp);
 			entity.Properties.Invalidate(PropertyName.MHP);
@@ -501,7 +501,7 @@ namespace Melia.Test.Balance.Sfr
 		/// the window early.
 		/// </summary>
 		/// <param name="character"></param>
-		private static void Refill(Character character)
+		internal static void Refill(Character character)
 		{
 			character.Properties.SetFloat(PropertyName.HP, character.Properties.GetFloat(PropertyName.MHP));
 			character.Properties.SetFloat(PropertyName.SP, character.Properties.GetFloat(PropertyName.MSP));

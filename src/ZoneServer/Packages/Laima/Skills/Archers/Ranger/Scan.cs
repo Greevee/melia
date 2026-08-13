@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection.Emit;
 using Melia.Shared.Packages;
@@ -20,12 +20,10 @@ namespace Melia.Zone.Skills.Handlers.Archers.Ranger
 	[SkillHandler(SkillId.Ranger_Scan)]
 	public class Ranger_ScanOverride : IGroundSkillHandler
 	{
-		private const float BaseCritResistReduce = 20f;
 
 		// How much accuracy is converted to crit resist multiplier reduction
 		// per skill level.
 		// At skill level 10, reduces crit resist by 50% of caster's accuracy.
-		private const float CritResistMultiplierPerLevel = 0.05f;
 
 		private const float SpreadRadius = 50f;
 		private const int MaxTargets = 5;
@@ -58,7 +56,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Ranger
 
 			var duration = TimeSpan.FromSeconds(60);
 			var accuracy = caster.Properties.GetFloat(PropertyName.HR);
-			var critResistReduce = BaseCritResistReduce + (accuracy * skill.Level * CritResistMultiplierPerLevel);
+			var critResistReduce = skill.Properties.GetFloat(PropertyName.CaptionRatio) + accuracy * (skill.Properties.GetFloat(PropertyName.CaptionRatio2) / 100f);
 
 			var SCR_Get_AbilityReinforceRate = ScriptableFunctions.Skill.Get("SCR_Get_AbilityReinforceRate");
 			critResistReduce *= 1f + SCR_Get_AbilityReinforceRate(skill);

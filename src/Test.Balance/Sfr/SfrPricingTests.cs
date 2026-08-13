@@ -90,6 +90,12 @@ namespace Melia.Test.Balance.Sfr
 		[Fact]
 		public void AnchorHoldsItsFactor()
 		{
+			if (!BalanceSuites.SfrEnabled)
+			{
+				_output.WriteLine(BalanceSuites.SkipMessage(BalanceSuites.SfrVariable));
+				return;
+			}
+
 			using var pool = new ArenaPool(SfrDials.ExplainPoolSize);
 
 			var press = SkillPressProbe.MeasureAll(SfrDials.AnchorSkill, measureDefense: false, pool: pool);
@@ -113,12 +119,21 @@ namespace Melia.Test.Balance.Sfr
 		[Fact]
 		public void ScenarioWeightsMatchTheMatrix()
 		{
+			if (!BalanceSuites.SfrEnabled)
+			{
+				_output.WriteLine(BalanceSuites.SkipMessage(BalanceSuites.SfrVariable));
+				return;
+			}
+
 			var matrix = ScenarioMatrix.All.Select(s => s.Id).ToHashSet();
 
 			foreach (var id in SfrDials.ScenarioWeights.Keys)
 				Assert.Contains(id, matrix);
 
 			foreach (var id in SfrDials.SpreadScenarios)
+				Assert.Contains(id, SfrDials.ScenarioWeights.Keys);
+
+			foreach (var id in SfrDials.PeakScenarios)
 				Assert.Contains(id, SfrDials.ScenarioWeights.Keys);
 
 			Assert.Equal(SfrDials.ScenarioWeights.Count, SfrGeometry.PricedScenarios.Count());
@@ -130,6 +145,12 @@ namespace Melia.Test.Balance.Sfr
 		[Fact]
 		public void PriceRoster()
 		{
+			if (!BalanceSuites.SfrEnabled)
+			{
+				_output.WriteLine(BalanceSuites.SkipMessage(BalanceSuites.SfrVariable));
+				return;
+			}
+
 			var single = Environment.GetEnvironmentVariable(SkillVariable);
 
 			if (!string.IsNullOrEmpty(single))
@@ -147,16 +168,18 @@ namespace Melia.Test.Balance.Sfr
 				$"({SfrPricer.LastPoolBuildTime.TotalSeconds:0}s building {SfrDials.ArenaPoolSize} arenas, " +
 				$"{SfrPricer.LastMeasureTime.TotalSeconds:0}s measuring on {SfrDials.SkillWorkers} workers)");
 			Write("");
-			Write($"{"circle",-8}{"count",6}{"cap",8}{"premium",9}  median factor");
+			Write($"{"circle",-8}{"count",6}{"cap",8}{"premium",9}{"slope",9}  median factor");
 
 			foreach (var circle in result.Changes.Keys.Select(SfrData.SkillCircle).Distinct().OrderBy(c => c))
 			{
 				var named = result.Changes.Keys.Where(n => SfrData.SkillCircle(n) == circle).ToArray();
 				var caps = named.Select(SfrData.SkillMaxLevel).Distinct().OrderBy(v => v);
 				var factors = named.Select(n => result.Changes[n].Factor).OrderBy(f => f).ToArray();
-				var premium = SfrDials.CirclePremium.TryGetValue(circle, out var p) ? p : 1f;
+				var premiums = named.Select(SfrData.CirclePremium).Distinct().OrderBy(v => v);
+				var shares = named.Select(SfrData.SlopeShare).Distinct().OrderBy(v => v);
 
-				Write($"{circle,-8}{named.Length,6}{string.Join("/", caps),8}{premium,9:0.00}  {factors[factors.Length / 2]}");
+				Write($"{circle,-8}{named.Length,6}{string.Join("/", caps),8}{string.Join("/", premiums.Select(v => v.ToString("0.00"))),9}"
+					+ $"{string.Join("/", shares.Select(v => v.ToString("0.00"))),9}  {factors[factors.Length / 2]}");
 			}
 
 			var untreed = result.Changes.Keys.Where(n => !SfrData.HasTreeRow(n)).OrderBy(n => n).ToArray();
@@ -186,7 +209,8 @@ namespace Melia.Test.Balance.Sfr
 				Write("");
 				Write($"SP costs: median {costs[costs.Length / 2]}, range {costs[0]}-{costs[^1]}"
 					+ $"  (anchor {SfrDials.SpAnchorCost:0}, arcane x{SfrDials.SpArcaneMultiplier:0.00},"
-					+ $" advanced x{SfrDials.SpAdvancementMultiplier:0.00}, buff x{SfrDials.SpBuffMultiplier:0.0},"
+					+ $" circle x{string.Join("/", SfrDials.CirclePremium.OrderBy(p => p.Key).Select(p => p.Value.ToString("0.00")))},"
+					+ $" buff x{SfrDials.SpBuffMultiplier:0.0},"
 					+ $" channel x{SfrDials.SpChannelMultiplier:0.00})");
 				Write("largest SP raises:");
 
@@ -355,7 +379,7 @@ namespace Melia.Test.Balance.Sfr
 			}
 
 			Write($"{r.Skill}  ({r.Class}, circle {r.Circle}, max level {r.Levels}, circle premium x{r.CirclePremium:0.00}, "
-				+ $"advancement x{r.AdvancementPremium:0.00}, channel x{r.ChannelPremium:0.00})");
+				+ $"slope share {SfrData.SlopeShare(r.Skill):0.00}, channel x{r.ChannelPremium:0.00})");
 			Write($"  occupancy t   {r.Occupancy:0.00} s      cycle T {r.Cycle:0.00} s      u {r.Utilization:0.00}");
 			Write($"  hits/press   {r.Hits:0.0}      basic swings/s {r.BasicRate:0.00}");
 			Write($"  damage span  {r.DamageSpan:0.0} s   burst {r.BurstFraction:0.00} of total   divisor {r.Divisor:0.0}");
@@ -366,7 +390,8 @@ namespace Melia.Test.Balance.Sfr
 			Write($"  cast premium  x{r.CastPremium:0.00}  ({(r.CastPremiumKinds.Length > 0 ? string.Join(", ", r.CastPremiumKinds) : "none")})");
 			Write("  targets       " + string.Join("  ", r.Targets.OrderBy(t => t.Key.Length).ThenBy(t => t.Key)
 				.Select(t => $"{t.Key} {t.Value.Mine:0.0}/{t.Value.Theirs:0.0}")));
-			Write($"  weighted reach {r.WeightedReach:0.00}  charged as {MathF.Pow(Math.Max(r.WeightedReach, 1e-6f), SfrDials.AoeExponent):0.00}"
+			Write($"  weighted reach {r.WeightedReach:0.00}  peak-blended {r.ChargedReach:0.00}"
+				+ $"  charged as {MathF.Pow(Math.Max(r.ChargedReach, 1e-6f), SfrDials.AoeExponent):0.00}"
 				+ (r.SpreadCapped ? "   SPREAD-CAPPED" : ""));
 			Write("");
 			Write($"  total SFR at max level   {r.Sfr:0}%");

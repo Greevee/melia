@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Melia.Shared.Packages;
 using Melia.Shared.L10N;
@@ -21,7 +21,6 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Bokor
 	[SkillHandler(SkillId.Bokor_Hexing)]
 	public class Bokor_HexingOverride : IGroundSkillHandler, IDynamicCasted
 	{
-		private const int DebuffDurationMilliseconds = 20000;
 
 		/// <summary>
 		/// Handles skill behavior
@@ -59,7 +58,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Bokor
 			var character = caster as Character;
 			var summons = character?.Summons.GetSummons();
 
-			var targetCount = 2 + skill.Level;
+			var targetCount = (int)skill.Properties.GetFloat(PropertyName.CaptionRatio2);
 			foreach (var currentTarget in targets)
 			{
 				if (targetCount == 0)
@@ -69,7 +68,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Bokor
 
 				await skill.Wait(TimeSpan.FromMilliseconds(150));
 
-				currentTarget.StartBuff(BuffId.CurseOfWeakness_Debuff, skill.Level, 0, TimeSpan.FromMilliseconds(DebuffDurationMilliseconds), caster);
+				currentTarget.StartBuff(BuffId.CurseOfWeakness_Debuff, skill.Level, 0, TimeSpan.FromMilliseconds((int)skill.Properties.CaptionTime.TotalMilliseconds), caster);
 
 				if (summons != null)
 				{

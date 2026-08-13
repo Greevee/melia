@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -57,7 +57,7 @@ namespace Melia.Zone.Skills.HandlersOverrides.Clerics.Dievdirbys
 
 			var spawnPosition = originPos.GetRelative(caster.Direction, 17);
 
-			var zemina = MonsterSkillCreateMob(skill, caster, "pcskill_wood_zemina2", spawnPosition, 0, "", "", 0, 15 + skill.Level * 2, "", "!SCR_SUMMON_ZEMINA#1");
+			var zemina = MonsterSkillCreateMob(skill, caster, "pcskill_wood_zemina2", spawnPosition, 0, "", "", 0, (int)skill.Properties.GetFloat(PropertyName.CaptionRatio2), "", "!SCR_SUMMON_ZEMINA#1");
 
 			if (zemina == null)
 			{
@@ -67,7 +67,7 @@ namespace Melia.Zone.Skills.HandlersOverrides.Clerics.Dievdirbys
 
 			// Apply property overrides to make Zemina take only 1 damage per hit
 			// HPCount reduces all incoming damage to exactly 1 and sets max HP to the specified value
-			var zeminaMaxHp = 20 + (3 * skill.Level);
+			var zeminaMaxHp = skill.Properties.GetFloat(PropertyName.CaptionRatio3);
 			var propertyOverrides = new PropertyOverrides();
 			propertyOverrides.Add(PropertyName.HPCount, zeminaMaxHp);
 			zemina.ApplyOverrides(propertyOverrides);

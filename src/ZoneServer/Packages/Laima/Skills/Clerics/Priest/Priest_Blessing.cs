@@ -19,7 +19,6 @@ namespace Melia.Zone.Skills.Handlers.Priest
 	[SkillHandler(SkillId.Priest_Blessing)]
 	public class Priest_BlessingOverride : IGroundSkillHandler, IDynamicCasted
 	{
-		private const int BuffDurationSeconds = 300;
 		private const int BuffRange = 300;
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
@@ -45,7 +44,7 @@ namespace Melia.Zone.Skills.Handlers.Priest
 		{
 			await skill.Wait(TimeSpan.FromMilliseconds(500));
 
-			caster.StartBuff(BuffId.Blessing_Buff, skill.Level, 0f, TimeSpan.FromSeconds(BuffDurationSeconds), caster, skill.Id);
+			caster.StartBuff(BuffId.Blessing_Buff, skill.Level, 0f, skill.Properties.CaptionTime, caster, skill.Id);
 
 			if (caster is Character character)
 			{
@@ -58,7 +57,7 @@ namespace Melia.Zone.Skills.Handlers.Priest
 					{
 						if (member == caster)
 							continue;
-						member.StartBuff(BuffId.Blessing_Buff, skill.Level, 0f, TimeSpan.FromSeconds(BuffDurationSeconds), caster, skill.Id);
+						member.StartBuff(BuffId.Blessing_Buff, skill.Level, 0f, skill.Properties.CaptionTime, caster, skill.Id);
 					}
 				}
 			}

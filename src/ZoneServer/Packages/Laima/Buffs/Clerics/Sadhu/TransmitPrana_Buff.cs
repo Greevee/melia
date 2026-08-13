@@ -20,12 +20,10 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Sadhu
 	[BuffHandler(BuffId.TransmitPrana_Buff)]
 	public class TransmitPrana_BuffOverride : BuffHandler
 	{
-		private const float BaseFlatSoulAtk = 50f;
-		private const float FlatSoulAtkPerLevel = 5f;
 
 		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
-			var flatSoulAtk = BaseFlatSoulAtk + FlatSoulAtkPerLevel * buff.NumArg1;
+			var flatSoulAtk = GetCaptionRatio(buff, 2);
 			AddPropertyModifier(buff, buff.Target, PropertyName.Soul_Atk_BM, flatSoulAtk);
 		}
 

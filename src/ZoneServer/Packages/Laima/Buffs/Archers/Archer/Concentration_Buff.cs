@@ -18,12 +18,9 @@ namespace Melia.Zone.Buffs.Handlers
 	[BuffHandler(BuffId.Concentration_Buff)]
 	public class Concentration_Buff : BuffHandler
 	{
-		private const float BaseBonus = 0.25f;
-		private const float BonusPerLevel = 0.05f;
-
 		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
-			var bonus = this.GetHitRateBonus(buff);
+			var bonus = GetCaptionRatio(buff, 1) / 100f;
 
 			AddPropertyModifier(buff, buff.Target, PropertyName.HR_RATE_BM, bonus);
 		}
@@ -49,14 +46,6 @@ namespace Melia.Zone.Buffs.Handlers
 			// Archer39 makes hits never miss
 			if (buff.Target.TryGetActiveAbilityLevel(AbilityId.Archer39, out _))
 				modifier.ForcedHit = true;
-		}
-
-		private float GetHitRateBonus(Buff buff)
-		{
-			var skillLevel = buff.NumArg1;
-			var bonus = BaseBonus + skillLevel * BonusPerLevel;
-
-			return bonus;
 		}
 	}
 }

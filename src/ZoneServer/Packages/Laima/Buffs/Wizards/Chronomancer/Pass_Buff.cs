@@ -14,8 +14,6 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Wizards.Chronomancer
 	[BuffHandler(BuffId.Pass_Buff)]
 	public class Pass_BuffOverride : BuffHandler
 	{
-		private const float BaseReduction = 0.30f;
-		private const float ReductionPerLevel = 0.03f;
 		private const float MaxReduction = 0.80f;
 
 		public override void OnActivate(Buff buff, ActivationType activationType)
@@ -30,7 +28,7 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Wizards.Chronomancer
 			if (cooldownComponent == null)
 				return;
 
-			var reductionRate = BaseReduction + ReductionPerLevel * skillLevel;
+			var reductionRate = (float)GetCaptionTime(buff).TotalSeconds / 100f;
 
 			if (buff.NumArg2 == 1)
 				reductionRate *= 1.5f;

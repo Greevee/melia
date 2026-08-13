@@ -20,7 +20,6 @@ namespace Melia.Zone.Skills.Handlers.Archers.Wugushi
 	public class Wugushi_ZhenduOverride : ISelfSkillHandler
 	{
 		private const float BuffRange = 300f;
-		private const int BuffDurationSeconds = 300;
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Direction dir)
 		{
@@ -37,7 +36,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Wugushi
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, 0, originPos, dir, Position.Zero);
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, Position.Zero, ForceId.GetNew(), null);
 
-			caster.StartBuff(BuffId.Zhendu_Buff, skill.Level, 0f, TimeSpan.FromSeconds(BuffDurationSeconds), caster);
+			caster.StartBuff(BuffId.Zhendu_Buff, skill.Level, 0f, skill.Properties.CaptionTime, caster);
 
 			if (caster is Character character)
 			{
@@ -49,7 +48,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Wugushi
 					{
 						if (member == caster)
 							continue;
-						member.StartBuff(BuffId.Zhendu_Buff, skill.Level, 0f, TimeSpan.FromSeconds(BuffDurationSeconds), caster);
+						member.StartBuff(BuffId.Zhendu_Buff, skill.Level, 0f, skill.Properties.CaptionTime, caster);
 					}
 				}
 			}

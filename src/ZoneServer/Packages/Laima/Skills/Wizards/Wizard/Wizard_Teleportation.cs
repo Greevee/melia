@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
@@ -71,7 +71,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Wizard
 
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
 
-			var teleportationDistance = 80 + 24 * skill.Level;
+			var teleportationDistance = (int)skill.Properties.GetFloat(PropertyName.CaptionRatio);
 			teleportationDistance = Math.Min(248, teleportationDistance);
 
 			Position targetPos;

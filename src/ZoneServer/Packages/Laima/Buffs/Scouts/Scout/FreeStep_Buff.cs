@@ -12,12 +12,9 @@ namespace Melia.Zone.Buffs.Handlers.Scout
 	[BuffHandler(BuffId.FreeStep_Buff)]
 	public class FreeStep_BuffOverride : BuffHandler
 	{
-		private const float DodgeRateBaseBonus = 0.05f;
-		private const float DodgeRateBonusPerLevel = 0.03f;
-
 		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
-			var bonus = this.GetEvasionBonus(buff);
+			var bonus = GetCaptionRatio(buff, 1) / 100f;
 
 			AddPropertyModifier(buff, buff.Target, PropertyName.DR_RATE_BM, bonus);
 		}
@@ -25,14 +22,6 @@ namespace Melia.Zone.Buffs.Handlers.Scout
 		public override void OnEnd(Buff buff)
 		{
 			RemovePropertyModifier(buff, buff.Target, PropertyName.DR_RATE_BM);
-		}
-
-		private float GetEvasionBonus(Buff buff)
-		{
-			var skillLevel = buff.NumArg1;
-			var bonus = DodgeRateBaseBonus + (skillLevel * DodgeRateBonusPerLevel);
-
-			return bonus;
 		}
 	}
 }

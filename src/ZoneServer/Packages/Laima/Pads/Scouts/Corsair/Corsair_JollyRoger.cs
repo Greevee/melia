@@ -22,7 +22,6 @@ namespace Melia.Zone.Pads.HandlersOverride.Scouts.Corsair
 	{
 		private const float PadRange = 150f;
 		private const int UpdateIntervalMs = 100;
-		private const int PadLifetimeMs = 30000;
 
 		public void Created(object sender, PadTriggerArgs args)
 		{
@@ -33,7 +32,7 @@ namespace Melia.Zone.Pads.HandlersOverride.Scouts.Corsair
 			pad.SetRange(PadRange);
 			pad.SetUpdateInterval(UpdateIntervalMs);
 			this.CreateFlagMonster(pad);
-			pad.Trigger.LifeTime = TimeSpan.FromMilliseconds(PadLifetimeMs);
+			pad.Trigger.LifeTime = TimeSpan.FromMilliseconds((int)pad.Skill.Properties.CaptionTime.TotalMilliseconds);
 		}
 
 		private void CreateFlagMonster(Pad pad)

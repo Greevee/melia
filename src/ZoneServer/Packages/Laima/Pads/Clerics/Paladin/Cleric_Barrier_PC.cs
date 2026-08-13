@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
@@ -34,7 +34,7 @@ namespace Melia.Zone.Pads.Handlers.Clerics.Paladin
 			pad.SetRange(80f);
 			pad.SetUpdateInterval(200);
 			pad.Trigger.Area = new Circle(pad.Position, 80f);
-			var value = 10000 + skill.Level * 3000;
+			var value = (int)pad.Skill.Properties.CaptionTime.TotalMilliseconds;
 			pad.Trigger.LifeTime = TimeSpan.FromMilliseconds(value);
 			pad.Trigger.MaxUseCount = 1;
 

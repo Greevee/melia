@@ -26,7 +26,6 @@ namespace Melia.Zone.Skills.Handlers.Archers.Falconer
 	[SkillHandler(SkillId.Falconer_BuildRoost)]
 	public class Falconer_BuildRoostOverride : IGroundSkillHandler, IDynamicCasted
 	{
-		private const int RoostDurationSeconds = 120;
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
@@ -64,7 +63,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Falconer
 			await skill.Wait(TimeSpan.FromMilliseconds(400));
 
 			// Spawn roost structure
-			var roost = MonsterSkillCreateMob(skill, caster, "pcskill_falconer_roost", targetPos, 0f, "", "", 0, RoostDurationSeconds, "None", "");
+			var roost = MonsterSkillCreateMob(skill, caster, "pcskill_falconer_roost", targetPos, 0f, "", "", 0, (int)skill.Properties.GetFloat(PropertyName.CaptionRatio), "None", "");
 
 			if (roost == null)
 				return;
@@ -90,11 +89,11 @@ namespace Melia.Zone.Skills.Handlers.Archers.Falconer
 		/// </summary>
 		private async Task CheckRoostAutoDestroy(Skill skill, ICombatEntity caster, Mob roost)
 		{
-			var resetThresholdSeconds = Math.Max(2f, 5f - 0.3f * skill.Level);
+			var resetThresholdSeconds = Math.Max(2f, (float)skill.Properties.CaptionTime.TotalSeconds);
 			var timeOnRoost = 0f;
 			var cooldownsReset = false;
 
-			for (int i = 0; i < RoostDurationSeconds; i++)
+			for (int i = 0; i < (int)skill.Properties.GetFloat(PropertyName.CaptionRatio); i++)
 			{
 				if (caster == null || caster.IsDead)
 				{

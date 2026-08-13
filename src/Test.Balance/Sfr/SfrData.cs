@@ -185,6 +185,7 @@ namespace Melia.Test.Balance.Sfr
 		public static string MatrixPath => Path.Combine(Root, "logs", "balance", "skill-matrix.csv");
 
 		private static Dictionary<string, float> _baseFactors;
+		private static Dictionary<string, float> _baseFactorsByLevel;
 
 		/// <summary>
 		/// Each skill's factor as the base data carries it, before any
@@ -214,6 +215,7 @@ namespace Melia.Test.Balance.Sfr
 						return _baseFactors;
 
 					_baseFactors = new Dictionary<string, float>();
+					_baseFactorsByLevel = new Dictionary<string, float>();
 
 					foreach (var line in File.ReadLines(SkillsPath))
 					{
@@ -225,6 +227,11 @@ namespace Melia.Test.Balance.Sfr
 
 						if (factor.Success)
 							_baseFactors[name.Groups[1].Value] = ParseFloat(factor.Groups[1].Value);
+
+						var byLevel = Regex.Match(line, @"\bfactorByLevel: ([0-9.]+)");
+
+						if (byLevel.Success)
+							_baseFactorsByLevel[name.Groups[1].Value] = ParseFloat(byLevel.Groups[1].Value);
 					}
 
 					return _baseFactors;
@@ -238,6 +245,58 @@ namespace Melia.Test.Balance.Sfr
 		/// <param name="skillName"></param>
 		public static bool DealsDamage(string skillName)
 			=> BaseFactors.TryGetValue(skillName, out var factor) && factor > 0;
+
+		/// <summary>
+		/// Each skill's factorByLevel as the base data carries it, before any
+		/// override.
+		/// </summary>
+		public static IReadOnlyDictionary<string, float> BaseFactorsByLevel
+		{
+			get
+			{
+				lock (_syncLock)
+				{
+					_ = BaseFactors;
+
+					return _baseFactorsByLevel;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Returns whether the base data marks this skill as a press that
+		/// carries no SFR of its own.
+		/// </summary>
+		/// <remarks>
+		/// Two markers, both from skills.txt and never from the overrides the
+		/// pricers write. A factor of zero is the plain one. A factor of
+		/// exactly 100 with no growth is the base data's inert placeholder,
+		/// which sits on a great many pure buffs - Hoplite_Finestra,
+		/// Peltasta_HighGuard, Thaumaturge_SwellHands - and reading it as
+		/// damage would drop half the buff roster. Anything else grows with
+		/// level or was authored deliberately, and its magnitudes are the
+		/// factor's job.
+		/// </remarks>
+		/// <param name="skillName"></param>
+		public static bool IsUtilityPress(string skillName)
+		{
+			// A custom skill has no base row at all - Chronomancer_Haste and
+			// Chronomancer_Quicken exist only in the overrides - so there the
+			// override is the base data rather than this pass's own output.
+			if (!BaseFactors.TryGetValue(skillName, out var factor))
+			{
+				if (!Skills.TryGetValue(skillName, out var entry))
+					return false;
+
+				return entry.Num("factor", 0) == 0
+					|| (entry.Num("factor", 0) == 100 && entry.Num("factorByLevel", 0) == 0);
+			}
+
+			if (factor == 0)
+				return true;
+
+			return factor == 100 && BaseFactorsByLevel.GetValueOrDefault(skillName, 0) == 0;
+		}
 
 		/// <summary>
 		/// Every skill entry, with the overrides winning field by field.
@@ -411,22 +470,36 @@ namespace Melia.Test.Balance.Sfr
 		/// <summary>
 		/// Returns what advancing to this skill's circle is worth in SFR.
 		/// </summary>
-		/// <param name="skillName"></param>
-		public static float CirclePremium(string skillName)
-			=> SfrDials.CirclePremium.TryGetValue(SkillCircle(skillName), out var v) ? v : 1f;
-
-		/// <summary>
-		/// Returns what advancing out of a base job is worth in SFR for this
-		/// skill.
-		/// </summary>
 		/// <remarks>
-		/// The five rank-1 classes take 1.00, every advanced class takes the
-		/// premium. The anchor is a base-job skill, so this raises the advanced
-		/// pool against it rather than moving the roster's level.
+		/// Base-job skills take 1.00 whatever circle they sit in, so the anchor
+		/// and the base pool hold the level the calibration sets and the whole
+		/// premium falls on the advanced pool.
 		/// </remarks>
 		/// <param name="skillName"></param>
-		public static float AdvancementPremium(string skillName)
-			=> BaseClasses.Contains(ClassOf(skillName)) ? 1f : SfrDials.AdvancementPremium;
+		public static float CirclePremium(string skillName)
+		{
+			if (BaseClasses.Contains(ClassOf(skillName)))
+				return 1f;
+
+			return SfrDials.CirclePremium.TryGetValue(SkillCircle(skillName), out var v) ? v : 1f;
+		}
+
+		/// <summary>
+		/// Returns how much of the skill's ceiling levelling it buys, against
+		/// what unlocking it buys.
+		/// </summary>
+		/// <remarks>
+		/// Base-job skills take BaseSlopeShare whatever circle they sit in, so
+		/// the base pool keeps the retired doubling rule and the anchor holds.
+		/// </remarks>
+		/// <param name="skillName"></param>
+		public static float SlopeShare(string skillName)
+		{
+			if (BaseClasses.Contains(ClassOf(skillName)))
+				return SfrDials.BaseSlopeShare;
+
+			return SfrDials.SlopeShare.TryGetValue(SkillCircle(skillName), out var v) ? v : SfrDials.BaseSlopeShare;
+		}
 
 		/// <summary>
 		/// Returns whether a skill belongs to a base job rather than an

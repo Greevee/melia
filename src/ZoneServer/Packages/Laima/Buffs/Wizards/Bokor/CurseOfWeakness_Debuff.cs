@@ -25,7 +25,7 @@ namespace Melia.Zone.Buffs.Handlers.Wizards.Bokor
 			var skillLevel = buff.NumArg1;
 
 			// Base reduction: 20% + 2% * SkillLv
-			var baseReduction = 0.20f + (0.02f * skillLevel);
+			var baseReduction = GetCaptionRatio(buff, 1) / 100f;
 
 
 			var abilityMultiplier = 1f;

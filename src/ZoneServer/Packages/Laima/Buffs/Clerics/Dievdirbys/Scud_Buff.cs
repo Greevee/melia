@@ -17,7 +17,7 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Clerics.Dievdirbys
 		{
 			// Movement speed increase: 5 + SkillLv
 			var skillLevel = buff.NumArg1;
-			var movementBonus = 5 + skillLevel;
+			var movementBonus = GetCaptionRatio(buff, 1);
 
 			AddPropertyModifier(buff, buff.Target, PropertyName.MSPD_BM, movementBonus);
 

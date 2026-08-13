@@ -36,7 +36,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Ranger
 
 			Send.ZC_SKILL_MELEE_TARGET(caster, skill, caster);
 
-			var criticalRateMultiplier = 0.1f + 0.02f * skill.Level;
+			var criticalRateMultiplier = skill.Properties.GetFloat(PropertyName.CaptionRatio) / 100f;
 
 			var SCR_Get_AbilityReinforceRate = ScriptableFunctions.Skill.Get("SCR_Get_AbilityReinforceRate");
 			criticalRateMultiplier *= 1f + SCR_Get_AbilityReinforceRate(skill);

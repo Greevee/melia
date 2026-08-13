@@ -15,21 +15,11 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Monk
 	[BuffHandler(BuffId.Ironskin_Buff)]
 	public class Ironskin_BuffOverride : BuffHandler, IBuffBeforeKnockbackHandler, IBuffBeforeKnockdownHandler
 	{
-		private const float BaseDef = 100f;
-		private const float DefPerLevel = 10f;
-		private const float BaseDefRate = 0.5f;
-		private const float DefRatePerLevel = 0.05f;
 		private const int KnockPreventSpCost = 80;
 
 		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
-			var skillLevel = buff.NumArg1;
-
-			var flatDef = BaseDef + DefPerLevel * skillLevel;
-			var defRate = BaseDefRate + DefRatePerLevel * skillLevel;
-
-			AddPropertyModifier(buff, buff.Target, PropertyName.DEF_BM, flatDef);
-			AddPropertyModifier(buff, buff.Target, PropertyName.DEF_RATE_BM, defRate);
+			AddPairedPropertyModifier(buff, buff.Target, PropertyName.DEF_BM, PropertyName.DEF_RATE_BM, GetCaptionRatio(buff, 1));
 
 			buff.SetUpdateTime(1000);
 		}
@@ -60,8 +50,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Monk
 
 		public override void OnEnd(Buff buff)
 		{
-			RemovePropertyModifier(buff, buff.Target, PropertyName.DEF_BM);
-			RemovePropertyModifier(buff, buff.Target, PropertyName.DEF_RATE_BM);
+			RemovePairedPropertyModifier(buff, buff.Target, PropertyName.DEF_BM, PropertyName.DEF_RATE_BM);
 		}
 
 		public KnockResult OnBeforeKnockback(Buff buff, ICombatEntity attacker, ICombatEntity target)

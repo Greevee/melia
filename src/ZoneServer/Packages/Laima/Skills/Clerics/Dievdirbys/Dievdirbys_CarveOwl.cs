@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -66,7 +66,7 @@ namespace Melia.Zone.Skills.HandlersOverrides.Clerics.Dievdirbys
 			var position = originPos.GetRelative(farPos, distance: 17f);
 
 			// Create the Owl statue monster - no AI needed since we handle attacks in OwlAttackLoop
-			var owl = MonsterSkillCreateMob(skill, caster, "pcskill_wood_owl2", position, 0, "", "None", 0, 15 + skill.Level * 2, "None", "Faction#Trap#!SCR_SUMMON_OWL#1");
+			var owl = MonsterSkillCreateMob(skill, caster, "pcskill_wood_owl2", position, 0, "", "None", 0, (int)skill.Properties.CaptionTime.TotalSeconds, "None", "Faction#Trap#!SCR_SUMMON_OWL#1");
 
 			if (owl == null)
 			{
@@ -76,7 +76,7 @@ namespace Melia.Zone.Skills.HandlersOverrides.Clerics.Dievdirbys
 
 			// Apply property overrides to make Owl take only 1 damage per hit
 			// HPCount reduces all incoming damage to exactly 1 and sets max HP to the specified value
-			var owlMaxHp = 20 + (3 * skill.Level);
+			var owlMaxHp = skill.Properties.GetFloat(PropertyName.CaptionRatio3);
 
 			// Calculate owl's attack based on caster's MATK and skill factor
 			var casterMATK = (caster.Properties.GetFloat(PropertyName.MINMATK) + caster.Properties.GetFloat(PropertyName.MAXMATK)) / 2f;

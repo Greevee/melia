@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -78,7 +78,7 @@ namespace Melia.Zone.Skills.Handlers.Scouts.Corsair
 
 		private void MakeHook(ICombatEntity caster, Skill skill, Position targetPos)
 		{
-			var maxTargets = (int)Math.Ceiling(skill.Level / 2f);
+			var maxTargets = (int)Math.Ceiling(skill.Properties.GetFloat(PropertyName.CaptionRatio2));
 			var targets = caster.Map.GetAttackableEnemiesInPosition(caster, targetPos, HookTargetRadius)
 				.Where(t => t.EffectiveSize != SizeType.XL)
 				.Where(t => t.MoveType != MoveType.Holding)
@@ -86,7 +86,7 @@ namespace Melia.Zone.Skills.Handlers.Scouts.Corsair
 				.Take(maxTargets)
 				.ToList();
 
-			var time = 3000 + skill.Level * 200;
+			var time = (int)(skill.Properties.GetFloat(PropertyName.CaptionRatio) * 1000);
 
 			if (targets.Count == 0)
 			{

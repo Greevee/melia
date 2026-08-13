@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Melia.Shared.Packages;
@@ -19,7 +19,6 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Paladin
 	[SkillHandler(SkillId.Paladin_StoneSkin)]
 	public class Paladin_StoneSkinOverride : IGroundSkillHandler, IDynamicCasted
 	{
-		private const int BuffDurationSeconds = 300;
 		private const int BuffRange = 300;
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
@@ -45,7 +44,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Paladin
 		{
 			await skill.Wait(TimeSpan.FromMilliseconds(500));
 
-			caster.StartBuff(BuffId.StoneSkin_Buff, skill.Level, 0f, TimeSpan.FromSeconds(BuffDurationSeconds), caster, skill.Id);
+			caster.StartBuff(BuffId.StoneSkin_Buff, skill.Level, 0f, skill.Properties.CaptionTime, caster, skill.Id);
 
 			if (caster is Character character)
 			{
@@ -58,7 +57,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Paladin
 					{
 						if (member == caster)
 							continue;
-						member.StartBuff(BuffId.StoneSkin_Buff, skill.Level, 0f, TimeSpan.FromSeconds(BuffDurationSeconds), caster, skill.Id);
+						member.StartBuff(BuffId.StoneSkin_Buff, skill.Level, 0f, skill.Properties.CaptionTime, caster, skill.Id);
 					}
 				}
 			}

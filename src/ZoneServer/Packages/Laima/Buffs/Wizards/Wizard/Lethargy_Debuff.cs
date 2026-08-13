@@ -19,9 +19,7 @@ namespace Melia.Zone.Buffs.Handlers
 	[BuffHandler(BuffId.Lethargy_Debuff)]
 	public class Lethargy_DebuffOverride : BuffHandler
 	{
-		private const float AtkReductionRatePerLevel = 3f;
 		private const float MaxAtkReductionRate = 80f;
-		private const float MovementReductionPerLevel = 4f;
 		private const float MaxMovementReduction = 30f;
 
 		public override void OnActivate(Buff buff, ActivationType activationType)
@@ -29,7 +27,7 @@ namespace Melia.Zone.Buffs.Handlers
 			var byAbility = 1f + (buff.NumArg2 * 0.005f);
 			var skillLevel = buff.NumArg1;
 
-			var atkRate = skillLevel * AtkReductionRatePerLevel * byAbility;
+			var atkRate = GetCaptionRatio(buff, 1);
 			atkRate = Math.Min(MaxAtkReductionRate, atkRate) / 100f;
 
 			var minPAtk = buff.Target.Properties.GetFloat(PropertyName.MINPATK);
@@ -40,7 +38,7 @@ namespace Melia.Zone.Buffs.Handlers
 			var maxMAtk = buff.Target.Properties.GetFloat(PropertyName.MAXMATK);
 			var matkDebuff = (minMAtk + maxMAtk) / 2f * atkRate;
 
-			var movementReduction = skillLevel * MovementReductionPerLevel * byAbility;
+			var movementReduction = GetCaptionRatio(buff, 2);
 			movementReduction = Math.Min(MaxMovementReduction, movementReduction);
 
 			AddPropertyModifier(buff, buff.Target, PropertyName.PATK_BM, -patkDebuff);

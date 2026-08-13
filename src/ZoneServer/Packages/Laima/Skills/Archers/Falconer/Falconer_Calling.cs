@@ -23,7 +23,6 @@ namespace Melia.Zone.Skills.Handlers.Archers.Falconer
 	[SkillHandler(SkillId.Falconer_Calling)]
 	public class Falconer_CallingOverride : IGroundSkillHandler
 	{
-		private const int BaseBuffDurationSeconds = 15;
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
@@ -52,7 +51,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Falconer
 			caster.PlaySound("skill_archer_calling", "skill_archer_calling");
 
 			// Calculate buff duration
-			var buffDuration = TimeSpan.FromSeconds(BaseBuffDurationSeconds + (skill.Level * 2));
+			var buffDuration = skill.Properties.CaptionTime;
 
 			// Apply Calling buff - increases attack speed and accuracy
 			// caster.StartBuff(BuffId.Calling_Buff, skill.Level, 0, buffDuration, caster);
