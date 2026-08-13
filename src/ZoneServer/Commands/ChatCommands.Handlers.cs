@@ -186,8 +186,8 @@ namespace Melia.Zone.Commands
 			this.Add("killmonsters", "<handle>", "Official GM Command for killing all monster on the map.", this.HandleKillMonsters);
 			this.Add("items", "", "Spawns all the items.", this.HandleGetAllItems);
 			this.Add("dungeon", "<id>", "", this.HandleDungeonMatchMaking);
-			this.Add("equipset", "[set name] [grade=Legend] [refine=15]", "Gives equipment matching set name. No args = Savinose Dysnai.", this.HandleEquipSet);
-			this.Add("allabilities", "", "Learns all abilities for character's jobs at max level.", this.HandleMaxAbilities);
+			this.Add("equipset", "[set name] [grade=Legend] [refine=15]", "Gives equipment matching set name, with grade/refine in any order. No args = Savinose Dysnai.", this.HandleEquipSet);
+			this.Add("allabilities", "[level]", "Learns all abilities for character's jobs at the given level, or their max level if omitted.", this.HandleMaxAbilities);
 			this.Add("allskills", "", "Learns all skills for character's jobs at max level.", this.HandleAllSkills);
 
 			// Dev
@@ -246,6 +246,7 @@ namespace Melia.Zone.Commands
 			this.AddAlias("jump", "setpos");
 			this.AddAlias("resetstats", "statsreset");
 			this.AddAlias("resetabilities", "resetattributes");
+			this.AddAlias("allabilities", "allattributes");
 			this.AddAlias("savelocation", "sl");
 			this.AddAlias("killmonsters", "killmons");
 			this.AddAlias("resetquest", "resetquests");
@@ -3670,6 +3671,20 @@ namespace Melia.Zone.Commands
 			else
 				target.Jobs.ChangeCircle(jobId, circle);
 
+			// ChangeJob/ChangeCircle only ever grant the single skill point
+			// for reaching the new circle, so a direct jump skips the points
+			// that would've been earned leveling through the circles in
+			// between. Top the total up to what a character reaching this
+			// circle normally would have.
+			if (ZoneServer.Instance.Conf.World.ClassCircleSystem)
+			{
+				var newJob = target.Jobs.Get(jobId);
+				var expectedSkillPoints = (int)circle * newJob.MaxLevel;
+
+				if (newJob.SkillPoints < expectedSkillPoints)
+					newJob.SetSkillPoints(expectedSkillPoints);
+			}
+
 			sender.ServerMessage(Localization.Get("Job '{0}' was added at circle '{1}'."), jobId, (int)circle);
 			if (sender != target)
 				target.ServerMessage(Localization.Get("Job '{0}' was added to your character at circle '{1}' by {2}."), jobId, (int)circle, sender.TeamName);
@@ -6387,16 +6402,65 @@ namespace Melia.Zone.Commands
 		/// </summary>
 		private CommandResult HandleEquipSet(Character sender, Character target, string message, string command, Arguments args)
 		{
+			// Parses a grade name, accepting "legendary" as an alias for
+			// ItemGrade.Legend.
+			static bool TryParseItemGrade(string token, out ItemGrade grade)
+			{
+				if (Enum.TryParse(token, true, out grade))
+					return true;
+
+				if (string.Equals(token, "legendary", StringComparison.OrdinalIgnoreCase))
+				{
+					grade = ItemGrade.Legend;
+					return true;
+				}
+
+				return false;
+			}
+
 			var itemDb = ZoneServer.Instance.Data.ItemDb;
 			var grade = ItemGrade.Legend;
 			var refine = 15;
 
 			string[] setNames;
+			var useDefaultSet = args.IndexedCount == 0;
+			var firstTokenIndex = 0;
 
-			if (args.IndexedCount == 0)
+			// A leading token that isn't a grade or refine value is the set
+			// name; if it is one of those, no name was given and the
+			// default set is used instead.
+			if (!useDefaultSet && !TryParseItemGrade(args.Get(0), out _) && !int.TryParse(args.Get(0), out _))
 			{
+				setNames = new[] { args.Get(0) };
+				firstTokenIndex = 1;
+			}
+			else
+			{
+				useDefaultSet = true;
 				setNames = new[] { "Raffye", "Blint" };
+			}
 
+			for (var i = firstTokenIndex; i < args.IndexedCount; i++)
+			{
+				var token = args.Get(i);
+
+				if (TryParseItemGrade(token, out var parsedGrade))
+				{
+					grade = parsedGrade;
+				}
+				else if (int.TryParse(token, out var parsedRefine) && parsedRefine >= 0 && parsedRefine <= 40)
+				{
+					refine = parsedRefine;
+				}
+				else
+				{
+					sender.ServerMessage(Localization.Get("Invalid grade or refine level '{0}'. Use: Normal/Magic/Rare/Unique/Legend/Goddess or 0-40."), token);
+					return CommandResult.Okay;
+				}
+			}
+
+			if (useDefaultSet)
+			{
 				target.Inventory.Add(new Item(640003, 100), InventoryAddType.PickUp);
 				target.Inventory.Add(new Item(640006, 100), InventoryAddType.PickUp);
 				target.Inventory.Add(new Item(640009, 100), InventoryAddType.PickUp);
@@ -6404,7 +6468,7 @@ namespace Melia.Zone.Commands
 				for (var trinketId = 694005; trinketId <= 695003; trinketId++)
 				{
 					var trinketData = itemDb.Find(trinketId);
-					if (trinketData == null)
+					if (trinketData == null || trinketData.EquipType1 != EquipType.Trinket)
 						continue;
 
 					var trinket = new Item(trinketData.Id, 1);
@@ -6422,28 +6486,6 @@ namespace Melia.Zone.Commands
 						trinket.CreateSocket(i);
 
 					target.Inventory.Add(trinket, InventoryAddType.PickUp);
-				}
-			}
-			else
-			{
-				setNames = new[] { args.Get(0) };
-
-				if (args.IndexedCount >= 2)
-				{
-					if (!Enum.TryParse(args.Get(1), true, out grade))
-					{
-						sender.ServerMessage(Localization.Get("Invalid grade. Use: Normal/Magic/Rare/Unique/Legend/Goddess"));
-						return CommandResult.Okay;
-					}
-				}
-
-				if (args.IndexedCount >= 3)
-				{
-					if (!int.TryParse(args.Get(2), out refine) || refine < 0 || refine > 40)
-					{
-						sender.ServerMessage(Localization.Get("Invalid refine level. Use 0-40."));
-						return CommandResult.Okay;
-					}
 				}
 			}
 
@@ -6494,10 +6536,18 @@ namespace Melia.Zone.Commands
 		}
 
 		/// <summary>
-		/// Sets all abilities of all character jobs to their max level.
+		/// Sets all abilities of all character jobs to the given level,
+		/// or their max level if no level was given or it exceeds the cap.
 		/// </summary>
 		private CommandResult HandleMaxAbilities(Character sender, Character target, string message, string command, Arguments args)
 		{
+			var targetLevel = -1;
+			if (args.Count > 0 && (!int.TryParse(args.Get(0), out targetLevel) || targetLevel <= 0))
+			{
+				sender.ServerMessage(Localization.Get("Invalid level '{0}'."), args.Get(0));
+				return CommandResult.Okay;
+			}
+
 			var abilityTreeDb = ZoneServer.Instance.Data.AbilityTreeDb;
 			var jobs = target.Jobs.GetList();
 			var learnedCount = 0;
@@ -6511,16 +6561,27 @@ namespace Melia.Zone.Commands
 					if (abilityData.MaxLevel <= 0)
 						continue;
 
-					target.Abilities.Learn(abilityData.AbilityId, abilityData.MaxLevel);
+					var level = targetLevel <= 0 ? abilityData.MaxLevel : Math.Min(targetLevel, abilityData.MaxLevel);
+
+					target.Abilities.Learn(abilityData.AbilityId, level);
 					learnedCount++;
 				}
 			}
 
 			if (learnedCount > 0)
 			{
-				sender.ServerMessage(Localization.Get("Set {0} abilities to max level."), learnedCount);
-				if (sender != target)
-					target.ServerMessage(Localization.Get("All {0} abilities set to max level."), learnedCount);
+				if (targetLevel <= 0)
+				{
+					sender.ServerMessage(Localization.Get("Set {0} abilities to max level."), learnedCount);
+					if (sender != target)
+						target.ServerMessage(Localization.Get("All {0} abilities set to max level."), learnedCount);
+				}
+				else
+				{
+					sender.ServerMessage(Localization.Get("Set {0} abilities to level {1} (or their cap)."), learnedCount, targetLevel);
+					if (sender != target)
+						target.ServerMessage(Localization.Get("All {0} abilities set to level {1} (or their cap)."), learnedCount, targetLevel);
+				}
 			}
 			else
 			{

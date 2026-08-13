@@ -4,6 +4,7 @@
 // NPCs found in and around Fedimian.
 //---------------------------------------------------------------------------
 
+using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Zone.Scripting;
 using Yggdrasil.Util;
@@ -17,6 +18,8 @@ public class CFedimianNpcScript : GeneralScript
 		CreateArmorShop();
 		CreateAccessoryShop();
 		CreateMiscItemShop();
+		CreateDorasCompanionFoodShop();
+		CreateDorasCompanionShop();
 
 		// Statue of Goddess Vakarine
 		//-------------------------------------------------------------------------
@@ -24,7 +27,7 @@ public class CFedimianNpcScript : GeneralScript
 
 		// [Item Merchant] Muras
 		//-------------------------------------------------------------------------
-		AddNpc(20055, L("[Item Merchant] Muras"), "Muras", "c_fedimian", -631.32, -174.9, 0, async dialog =>
+		var muras = AddNpc(20055, L("[Item Merchant] Muras"), "Muras", "c_fedimian", -631.32, -174.9, 0, async dialog =>
 		{
 			dialog.SetTitle(L("Muras"));
 			dialog.SetPortrait("Dlg_port_Muras");
@@ -36,6 +39,9 @@ public class CFedimianNpcScript : GeneralScript
 
 			await dialog.OpenShop("FedimianMiscItems");
 		});
+
+		muras.AssociatedShopName = "FedimianMiscItems";
+		muras.ShopType = ShopType.Potion;
 
 		// [Storage Keeper] Zadan
 		//-------------------------------------------------------------------------
@@ -64,7 +70,7 @@ public class CFedimianNpcScript : GeneralScript
 
 		// [Equipment Merchant] Yorgis
 		//-------------------------------------------------------------------------
-		AddNpc(151035, L("[Equipment Merchant] Yorgis"), "Yorgis", "c_fedimian", -219.15, -558.35, 90, async dialog =>
+		var yorgis = AddNpc(151035, L("[Equipment Merchant] Yorgis"), "Yorgis", "c_fedimian", -219.15, -558.35, 90, async dialog =>
 		{
 			dialog.SetTitle(L("Dunkel"));
 			dialog.SetPortrait("Dlg_port_Yorgis");
@@ -81,13 +87,16 @@ public class CFedimianNpcScript : GeneralScript
 				await dialog.OpenShop("FedimianArmors");
 		});
 
+		yorgis.AssociatedShopName = "FedimianWeapons";
+		yorgis.ShopType = ShopType.Weapon;
+
 		// [Blacksmith] Anna
 		//-------------------------------------------------------------------------
 		AddNpc(126, 151036, L("[Blacksmith]{nl}Anna"), "c_fedimian", 120, 160, -504, 75, "FEDIMIAN_BLACKSMITH", "TUTO_REPAIR_NPC", "");
 
 		// [Accessory Merchant] Joana
 		//-------------------------------------------------------------------------
-		AddNpc(151038, L("[Accessory Merchant] Joana"), "Joana", "c_fedimian", -130.2, -496.14, 0, async dialog =>
+		var joana = AddNpc(151038, L("[Accessory Merchant] Joana"), "Joana", "c_fedimian", -130.2, -496.14, 0, async dialog =>
 		{
 			dialog.SetTitle(L("Joana"));
 			dialog.SetPortrait("Dlg_port_Yoana");
@@ -99,6 +108,48 @@ public class CFedimianNpcScript : GeneralScript
 
 			await dialog.OpenShop("FedimianAccessories");
 		});
+
+		joana.AssociatedShopName = "FedimianAccessories";
+		joana.ShopType = ShopType.Accessory;
+
+		// [Companion Trader] Doras
+		//-------------------------------------------------------------------------
+		var doras = AddNpc(20058, L("[Companion Trader] Doras"), "Doras", "c_fedimian", -74, 99, 0, async dialog =>
+		{
+			var character = dialog.Player;
+
+			dialog.SetTitle(L("Doras"));
+			dialog.SetPortrait("Dlg_port_npc_tonus");
+
+			var options = dialog.CreateOptions(
+				Option(L("Adopt Companion"), "adopt"),
+				Option(L("Buy Pet Food"), "food"),
+				Option(ScpArgMsg("shop_companion_learnabil"), "learnabil", () => character.HasCompanions),
+				Option(ScpArgMsg("shop_companion_info"), "info"),
+				Option(L("Leave"), "leave")
+			);
+
+			var selectedOption = await dialog.Select(L("Hey there! My brother Toras runs a shop like this one back in Orsha, but Fedimian's where the real customers are. Looking to adopt a companion?"), options);
+
+			switch (selectedOption)
+			{
+				case "adopt":
+					await dialog.OpenCustomCompanionShop("DorasCompanions");
+					break;
+				case "learnabil":
+					dialog.OpenAddon(AddonMessage.COMPANION_UI_OPEN);
+					break;
+				case "info":
+					await dialog.Msg(L("Toras and I split up years ago. He took the war beasts, I took the clever ones. Every companion here's been raised to keep up with a scholar's pace."));
+					break;
+				case "food":
+					await dialog.OpenShop("DorasCompanionFood");
+					break;
+			}
+		});
+
+		doras.AssociatedShopName = "DorasCompanions";
+		doras.ShopType = ShopType.Potion;
 
 		// Emoticon Chest
 		//-------------------------------------------------------------------------
@@ -323,6 +374,46 @@ public class CFedimianNpcScript : GeneralScript
 			shop.AddItem(221112, amount: 1, price: 3600);
 			shop.AddItem(221105, amount: 1, price: 7280);
 			shop.AddItem(221113, amount: 1, price: 19311);
+		});
+	}
+
+	/// <summary>
+	/// Creates the companion food shop with custom prices
+	/// </summary>
+	private void CreateDorasCompanionFoodShop()
+	{
+		CreateShop("DorasCompanionFood", shop =>
+		{
+			shop.AddItem(640152, amount: 1, price: 600);
+			shop.AddItem(640231, amount: 1, price: 600);
+			shop.AddItem(640236, amount: 1, price: 600);
+			shop.AddItem(640249, amount: 1, price: 600);
+			shop.AddItem(640189, amount: 1, price: 600);
+			shop.AddItem(640188, amount: 1, price: 600);
+			shop.AddItem(640190, amount: 1, price: 600);
+		});
+	}
+
+	/// <summary>
+	/// Creates Doras's companion shop with custom prices
+	/// Fedimian mage city theme: familiars and scholarly companions
+	/// </summary>
+	private void CreateDorasCompanionShop()
+	{
+		CreateCompanionShop("DorasCompanions", shop =>
+		{
+			shop.AddCompanion("Velhider", price: 15000);
+			shop.AddCompanion("hoglan_Pet", price: 15000);
+			shop.AddCompanion("pet_hawk", price: 15000);
+
+			shop.AddCompanion("barn_owl", price: 80000);
+			shop.AddCompanion("pet_school_dodo", price: 80000);
+			shop.AddCompanion("pet_new_penguin", price: 80000);
+			shop.AddCompanion("pet_twnocelot", price: 80000);
+			shop.AddCompanion("pet_twnocelot_black", price: 80000);
+			shop.AddCompanion("pet_twnocelot_white", price: 80000);
+			shop.AddCompanion("pet_jpn3th_fox", price: 80000);
+			shop.AddCompanion("pet_nightrabbit", price: 80000);
 		});
 	}
 }

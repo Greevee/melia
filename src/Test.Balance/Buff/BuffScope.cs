@@ -33,18 +33,32 @@ namespace Melia.Test.Balance.Buff
 		public BuffId[] Buffs { get; init; }
 
 		/// <summary>
-		/// The caption ratio slots the row declares, and the magnitude each
-		/// holds at the skill's own cap.
+		/// The caption ratio slots the row declares, each seeded at
+		/// BuffDials.ProbeSeed rather than at whatever the row currently
+		/// carries.
 		/// </summary>
 		/// <remarks>
-		/// At the cap rather than at the probe's buff level, because the cap is
-		/// what the pass prices and what it writes. Reading the row anywhere
-		/// else makes the seed and the written value two different quantities,
-		/// and a written row then re-seeds at cap/ProbeBuffLevel of what it was
-		/// priced at - which is the whole of why a second pass over a written
-		/// file used to solve most of the roster back to a scale of three.
+		/// Which slots exist is read from the file - that is what "declares a
+		/// caption ratio" means. What magnitude each holds is not: seeding from
+		/// the file would make the solver preserve whatever ratio already sat
+		/// between two slots instead of solving each on its own, which is
+		/// exactly the wrong-crit-vs-block-split failure a seed-dependent pass
+		/// cannot see.
 		/// </remarks>
 		public IReadOnlyDictionary<int, float> Slots { get; init; }
+
+		/// <summary>
+		/// The magnitude each declared slot actually holds in the file right
+		/// now, at the skill's own cap.
+		/// </summary>
+		/// <remarks>
+		/// Not read by the pricer - Slots is what that solves from. This is for
+		/// the diagnostics that ask what the roster currently does: BuffValueTests
+		/// measures a row at the magnitude it is actually live at, and a pricing
+		/// pass would defeat the point of asking that by substituting its own
+		/// seed instead.
+		/// </remarks>
+		public IReadOnlyDictionary<int, float> WrittenMagnitudes { get; init; }
 
 		/// <summary>
 		/// Whether the press puts its buff on the caster's party rather than
@@ -209,16 +223,25 @@ namespace Melia.Test.Balance.Buff
 			{
 				var maxLevel = SfrData.SkillMaxLevel(skillName);
 				var slots = new Dictionary<int, float>();
+				var written = new Dictionary<int, float>();
 
 				for (var slot = 1; slot <= 3; ++slot)
 				{
 					var baseValue = entry.Num($"captionRatio{slot}", 0);
 					var byLevel = entry.Num($"captionRatio{slot}ByLevel", 0);
 
+					// Whether the row declares this slot is read from the file -
+					// that is what scope means. What the file's magnitude on it
+					// currently is is not: every declared slot solves from the
+					// same arbitrary seed, never from what it already carries.
+					// WrittenMagnitudes keeps the real number alongside it, for
+					// the diagnostics that ask what is actually live rather than
+					// what the next pass should price.
 					if (baseValue == 0 && byLevel == 0)
 						continue;
 
-					slots[slot] = baseValue + byLevel * maxLevel;
+					slots[slot] = BuffDials.ProbeSeed;
+					written[slot] = baseValue + byLevel * maxLevel;
 				}
 
 				if (slots.Count == 0)
@@ -235,6 +258,7 @@ namespace Melia.Test.Balance.Buff
 					Buffs = grants.GetValueOrDefault(skillName, []),
 					IsPartyWide = PartyWide().Contains(skillName),
 					Slots = slots,
+					WrittenMagnitudes = written,
 					MaxLevel = maxLevel,
 					DurationSeconds = entry.Num("captionTime", 0) + entry.Num("captionTimeByLevel", 0) * maxLevel,
 					CycleSeconds = CycleSeconds(entry),

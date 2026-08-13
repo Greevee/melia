@@ -81,12 +81,8 @@ namespace Melia.Test.Balance.Buff
 		/// milliseconds.
 		/// </summary>
 		/// <remarks>
-		/// Long, because it is nearly free under the virtual clock and because
-		/// the readings that matter here - crit rate, block rate, dodge - are
-		/// rolled per swing and need swings to converge. Nine times the damage
-		/// probe's press window, the same trade SfrDials.DefenseWindowMs makes.
 		/// </remarks>
-		public const int WindowMs = 600_000;
+		public const int WindowMs = 60_000;
 
 		/// <summary>
 		/// Time the mobs are given to close and start swinging before either
@@ -196,6 +192,20 @@ namespace Melia.Test.Balance.Buff
 		public const bool GrowsFromZero = true;
 
 		/// <summary>
+		/// The magnitude every declared slot starts a solve from, whatever the
+		/// row currently carries.
+		/// </summary>
+		/// <remarks>
+		/// Arbitrary and constant across every buff, the same way SfrPricer
+		/// never reads a skill's current factor before pricing it. Seeding from
+		/// the file made the solver preserve whatever ratio a slot happened to
+		/// already carry between magnitudes, rather than solving each on its
+		/// own - the pass is idempotent regardless, since Solve() finds the
+		/// scale that reaches the target from whatever seed it starts at.
+		/// </remarks>
+		public const float ProbeSeed = 1f;
+
+		/// <summary>
 		/// Second scale the solver samples, so it has two points to fit a
 		/// local power law through.
 		/// </summary>
@@ -224,7 +234,10 @@ namespace Melia.Test.Balance.Buff
 		/// <remarks>
 		/// Counted apart from SolveIterations, so clearing a threshold does not
 		/// cost the solve the measurements it needs afterwards. Three steps of
-		/// three reaches MaxSlotScale from a seed of one.
+		/// three only has to clear the noise floor, not reach MaxSlotScale -
+		/// once any escalation step reads a nonzero effect, Solve()'s power-law
+		/// fit takes over and can extrapolate to any scale in range without
+		/// further escalating.
 		/// </remarks>
 		public const int EscalationSteps = 3;
 
@@ -248,10 +261,18 @@ namespace Melia.Test.Balance.Buff
 		/// reading moves, and writing one produces a tooltip nobody believes.
 		/// Rejection, not correction, matching how SFR treats a press it
 		/// cannot price.
+		///
+		/// Wide now that scale multiplies BuffDials.ProbeSeed rather than
+		/// whatever the file already carried: a scale used to mean "how many
+		/// times the row's own already-sane magnitude", so 12x covered any
+		/// realistic move. Now it means the raw magnitude itself, and the
+		/// roster's own declared caption ratios run from under 1 up into the
+		/// thousands (a summon's per-level HP term, say), so the ceiling has to
+		/// cover that range directly rather than a multiple of it.
 		/// </remarks>
 		public const float MinSlotScale = 0.05f;
 
-		public const float MaxSlotScale = 12f;
+		public const float MaxSlotScale = 2000f;
 
 		/// <summary>
 		/// Whether a later circle's buff is allowed to be worth more than an
@@ -317,6 +338,14 @@ namespace Melia.Test.Balance.Buff
 			// no size of health pool enters. The potion the press consumes is
 			// unpriced for the same reason.
 			["Assassin_Hasisas"] = 0.6f,
+
+			// Its flat half snapshots caster INT at cast time (SwellHands_Buff.cs),
+			// and Thaumaturge_SwellBrain raises INT first in the stack a player
+			// actually presses - BuffStackingTests.StacksDoNotCompound measured the
+			// pair at 1.47x their solo product, over the 1.25x tolerance. Solo
+			// measurement cannot see this: it is a rotation-order synergy between
+			// two buffs, not a cost or a gain either axis carries alone.
+			["Thaumaturge_SwellHands"] = 0.4f,
 		};
 	}
 }

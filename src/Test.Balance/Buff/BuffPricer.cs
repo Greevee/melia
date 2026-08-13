@@ -248,9 +248,10 @@ namespace Melia.Test.Balance.Buff
 		/// roster has a level at all.
 		/// </remarks>
 		/// <param name="subject"></param>
-		public static float AnchorScale(BuffSubject subject)
+		/// <param name="seed"></param>
+		public static float AnchorScale(BuffSubject subject, IReadOnlyDictionary<int, float> seed = null)
 		{
-			var slot = subject.Slots.OrderBy(s => s.Key).First();
+			var slot = (seed ?? subject.Slots).OrderBy(s => s.Key).First();
 
 			if (slot.Value == 0)
 				throw new InvalidOperationException($"{subject.SkillClassName}: the anchor's ratio reads zero, so nothing can be scaled onto it.");
@@ -354,6 +355,72 @@ namespace Melia.Test.Balance.Buff
 			if (targetValue <= 1f)
 				throw new InvalidOperationException($"{subject.SkillClassName}: the budget prices it at or below neutral.");
 
+			// A buff with more than one slot is solved one slot at a time, each
+			// isolated against the rest and each carrying an even share of the
+			// budget, rather than as one shared scale riding whatever raw ratio
+			// the slots happened to carry - never measured, only inherited,
+			// which is what let Finestra's crit slot solve to 1% while its
+			// block slot carried the other 21%. N independent knobs, each
+			// targeted at the N-th root of the buff's target value, so their
+			// product lands back on it: this is what makes Finestra a critical
+			// buff and a block buff in equal measure, and it costs a same-axis
+			// multi-slot buff nothing either, since two slots that both move
+			// only offense combine the same way two that split offense and
+			// defense do.
+			if (subject.Slots.Count > 1)
+			{
+				var perSlotTarget = MathF.Pow(targetValue, 1f / subject.Slots.Count);
+				var solutions = new Dictionary<int, AxisSolution>();
+
+				foreach (var slot in subject.Slots.Keys)
+				{
+					var isolated = new Dictionary<int, float> { [slot] = subject.Slots[slot] };
+					solutions[slot] = SolveScale(subject, perSlotTarget, pool, isolated, r => r.Value);
+				}
+
+				var slots = new Dictionary<int, (float Base, float ByLevel)>();
+				var combinedSeed = new Dictionary<int, float>();
+
+				foreach (var (slot, solution) in solutions)
+				{
+					slots[slot] = SlotValues(subject, slot, solution.Scale);
+					combinedSeed[slot] = subject.Slots[slot] * solution.Scale;
+				}
+
+				var combined = Sweep(subject, 1f, pool, combinedSeed);
+
+				return Build(subject, solutions.Values.Average(s => s.Scale), combined, target, combined.Value, premium,
+					solutions.Values.Sum(s => s.Measurements), solutions.Values.All(s => s.Converged), slots);
+			}
+
+			var solved = SolveScale(subject, targetValue, pool, subject.Slots, r => r.Value);
+
+			return Build(subject, solved.Scale, solved.Reading, target, solved.Reading.Value, premium, solved.Measurements, solved.Converged);
+		}
+
+		/// <summary>
+		/// One slot's solved scale, with what it took to find it.
+		/// </summary>
+		private readonly record struct AxisSolution(float Scale, BuffLevelSweep Reading, int Measurements, bool Converged);
+
+		/// <summary>
+		/// Finds the scale that puts a group of slots' reading, per the given
+		/// selector, on the target value.
+		/// </summary>
+		/// <remarks>
+		/// The search itself: probe, escalate past the noise floor, fit a local
+		/// power law through two points and iterate. Shared by the single-slot
+		/// path and every isolated slot of a multi-slot buff, so all of them are
+		/// the same search over a different slot group and a different target.
+		/// </remarks>
+		/// <param name="subject"></param>
+		/// <param name="targetValue"></param>
+		/// <param name="pool"></param>
+		/// <param name="slots"></param>
+		/// <param name="read"></param>
+		private static AxisSolution SolveScale(BuffSubject subject, float targetValue, ArenaPool pool,
+			IReadOnlyDictionary<int, float> slots, Func<BuffLevelSweep, float> read)
+		{
 			var measurements = 0;
 			var samples = new List<(float Scale, float Excess)>();
 
@@ -366,10 +433,11 @@ namespace Melia.Test.Balance.Buff
 
 			for (var iteration = 0; iteration <= BuffDials.SolveIterations; ++iteration)
 			{
-				var reading = Sweep(subject, next, pool);
+				var reading = Sweep(subject, next, pool, slots);
 				measurements++;
 
-				var excess = reading.Value - 1f;
+				var value = read(reading);
+				var excess = value - 1f;
 
 				// A reading under the noise floor is not evidence the buff is
 				// worth nothing. Every axis here is a clamped gap - block is
@@ -390,7 +458,7 @@ namespace Melia.Test.Balance.Buff
 					continue;
 				}
 
-				var miss = Math.Abs(reading.Value - targetValue) / targetValue;
+				var miss = Math.Abs(value - targetValue) / targetValue;
 
 				if (miss < bestMiss)
 					(best, bestScale, bestMiss) = (reading, next, miss);
@@ -426,7 +494,7 @@ namespace Melia.Test.Balance.Buff
 			if (bestScale <= BuffDials.MinSlotScale || bestScale >= BuffDials.MaxSlotScale)
 				throw new InvalidOperationException($"{subject.SkillClassName}: needs a scale of x{bestScale:0.00} to reach its budget, which is outside what may be written.");
 
-			return Build(subject, bestScale, best, target, best.Value, premium, measurements, bestMiss <= BuffDials.ConvergenceTolerance);
+			return new AxisSolution(bestScale, best, measurements, bestMiss <= BuffDials.ConvergenceTolerance);
 		}
 
 		/// <summary>
@@ -450,7 +518,12 @@ namespace Melia.Test.Balance.Buff
 		/// <param name="subject"></param>
 		/// <param name="scale"></param>
 		/// <param name="pool"></param>
-		public static BuffLevelSweep Sweep(BuffSubject subject, float scale, ArenaPool pool = null)
+		/// <param name="slotsOverride">
+		/// Slot seeds to measure instead of subject.Slots, for isolating one
+		/// slot of a multi-slot buff. Any slot it omits reads zero.
+		/// </param>
+		public static BuffLevelSweep Sweep(BuffSubject subject, float scale, ArenaPool pool = null,
+			IReadOnlyDictionary<int, float> slotsOverride = null)
 		{
 			var job = JobCatalog.Entries.FirstOrDefault(e => e.SkillPrefix == subject.ClassName)
 				?? throw new InvalidOperationException($"{subject.SkillClassName}: no job entry for class '{subject.ClassName}'.");
@@ -461,7 +534,8 @@ namespace Melia.Test.Balance.Buff
 
 			BuffValueResult Read(BuffScenario scenario, int level)
 			{
-				var reading = BuffValueProbe.Measure(subject, job, scale, characterLevel: level, pool: pool, scenario: scenario);
+				var reading = BuffValueProbe.Measure(subject, job, scale, characterLevel: level, pool: pool, scenario: scenario,
+					slotsOverride: slotsOverride);
 
 				return reading.Error != null
 					? throw new InvalidOperationException($"{subject.SkillClassName}: {reading.Error}")
@@ -544,9 +618,10 @@ namespace Melia.Test.Balance.Buff
 		/// <param name="measurements"></param>
 		/// <param name="converged"></param>
 		private static BuffPrice Build(BuffSubject subject, float scale, BuffLevelSweep reading, float target, float value,
-			(float Circle, float Skill) premium, int measurements, bool converged)
+			(float Circle, float Skill) premium, int measurements, bool converged,
+			IReadOnlyDictionary<int, (float Base, float ByLevel)> slotsOverride = null)
 		{
-			var slots = subject.Slots.Keys.OrderBy(s => s)
+			var slots = slotsOverride ?? subject.Slots.Keys.OrderBy(s => s)
 				.ToDictionary(slot => slot, slot => SlotValues(subject, slot, scale));
 
 			return new BuffPrice

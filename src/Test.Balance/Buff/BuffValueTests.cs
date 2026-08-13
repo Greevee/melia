@@ -83,7 +83,8 @@ namespace Melia.Test.Balance.Buff
 			void Worker()
 			{
 				while (queue.TryDequeue(out var subject))
-					measured[subject.SkillClassName] = (subject, BuffValueProbe.Measure(subject, slotScale: 1f, pool: pool));
+					measured[subject.SkillClassName] = (subject,
+						BuffValueProbe.Measure(subject, slotScale: 1f, pool: pool, slotsOverride: subject.WrittenMagnitudes));
 			}
 
 			BuffValueProbe.RunWorkers(Worker);

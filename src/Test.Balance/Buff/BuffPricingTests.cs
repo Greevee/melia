@@ -257,7 +257,7 @@ namespace Melia.Test.Balance.Buff
 			var anchor = BuffScope.Find(BuffDials.AnchorSkill);
 
 			Assert.NotNull(anchor);
-			Assert.Equal(1f, BuffPricer.AnchorScale(anchor), 2);
+			Assert.Equal(1f, BuffPricer.AnchorScale(anchor, anchor.WrittenMagnitudes), 2);
 		}
 
 		/// <summary>

@@ -24,7 +24,7 @@ public class COrshaNpcScript : GeneralScript
 
 		// [Equipment Merchant] Jura
 		//-------------------------------------------------------------------------
-		AddNpc(20056, L("[Equipment Merchant] Jura"), "Jura", "c_orsha", 21, 154, 123.0, async dialog =>
+		var jura = AddNpc(20056, L("[Equipment Merchant] Jura"), "Jura", "c_orsha", 21, 154, 123.0, async dialog =>
 		{
 			dialog.SetTitle(L("Jura"));
 			dialog.SetPortrait("Dlg_port_Julla");
@@ -41,9 +41,12 @@ public class COrshaNpcScript : GeneralScript
 				await dialog.OpenShop("OrshaArmors");
 		});
 
+		jura.AssociatedShopName = "OrshaWeapons";
+		jura.ShopType = ShopType.Weapon;
+
 		// [Item Merchant] Alf
 		//-------------------------------------------------------------------------
-		AddNpc(20055, L("[Item Merchant] Alf"), "Alf", "c_orsha", 231, 166, 120.0, async dialog =>
+		var alf = AddNpc(20055, L("[Item Merchant] Alf"), "Alf", "c_orsha", 231, 166, 120.0, async dialog =>
 		{
 			dialog.SetTitle(L("Alf"));
 			dialog.SetPortrait("Dlg_port_Alf");
@@ -56,9 +59,12 @@ public class COrshaNpcScript : GeneralScript
 			await dialog.OpenShop("OrshaMiscItems");
 		});
 
+		alf.AssociatedShopName = "OrshaMiscItems";
+		alf.ShopType = ShopType.Potion;
+
 		// [Accessory Merchant] Jurus
 		//-------------------------------------------------------------------------
-		AddNpc(20057, L("[Accessory Merchant] Jurus"), "Jurus", "c_orsha", 462.1917, -29.93526, -11.0, async dialog =>
+		var jurus = AddNpc(20057, L("[Accessory Merchant] Jurus"), "Jurus", "c_orsha", 462.1917, -29.93526, -11.0, async dialog =>
 		{
 			dialog.SetTitle(L("Jurus"));
 			dialog.SetPortrait("Dlg_port_Yurrs");
@@ -70,6 +76,9 @@ public class COrshaNpcScript : GeneralScript
 
 			await dialog.OpenShop("OrshaAccessories");
 		});
+
+		jurus.AssociatedShopName = "OrshaAccessories";
+		jurus.ShopType = ShopType.Accessory;
 
 		// [Storage Keeper] Aisa
 		//-------------------------------------------------------------------------
@@ -379,6 +388,7 @@ public class COrshaNpcScript : GeneralScript
 			shop.AddItem(640249, amount: 1, price: 600);
 			shop.AddItem(640189, amount: 1, price: 600);
 			shop.AddItem(640188, amount: 1, price: 600);
+			shop.AddItem(640190, amount: 1, price: 600);
 		});
 	}
 
@@ -390,16 +400,18 @@ public class COrshaNpcScript : GeneralScript
 	{
 		CreateCompanionShop("TorasCompanions", shop =>
 		{
-			shop.AddCompanion("Velhider", price: 40000);
-			shop.AddCompanion("hoglan_Pet", price: 40000);
-			shop.AddCompanion("pet_hawk", price: 40000);
+			shop.AddCompanion("Velhider", price: 15000);
+			shop.AddCompanion("hoglan_Pet", price: 15000);
+			shop.AddCompanion("pet_hawk", price: 15000);
 
-			shop.AddCompanion("parrotbill", price: 110000);
-			shop.AddCompanion("Pet_Rocksodon", price: 110000);
-			shop.AddCompanion("Penguin", price: 110000);
-			shop.AddCompanion("Armadillo", price: 110000);
-			shop.AddCompanion("penguin_marine", price: 110000);
-			shop.AddCompanion("Lesser_panda_gray", price: 110000);
+			shop.AddCompanion("Toucan", price: 80000);
+			shop.AddCompanion("parrotbill", price: 80000);
+			shop.AddCompanion("pet_chick_crowtit", price: 80000);
+			shop.AddCompanion("Armadillo", price: 80000);
+			shop.AddCompanion("pet_cadet_armadillo", price: 80000);
+			shop.AddCompanion("penguin_marine", price: 80000);
+			shop.AddCompanion("pet_sparrow", price: 80000);
+			shop.AddCompanion("Pet_Rocksodon", price: 80000);
 		});
 	}
 }

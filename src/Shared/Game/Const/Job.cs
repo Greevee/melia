@@ -173,26 +173,6 @@ namespace Melia.Shared.Game.Const
 	public static class JobCircleHelper
 	{
 		/// <summary>
-		/// The number of circles an advanced job can reach.
-		/// </summary>
-		public const int MaxCircles = 3;
-
-		/// <summary>
-		/// Returns the highest rank reachable by a character that may
-		/// hold the given number of jobs. The base job never gains
-		/// circles, every advanced job contributes one rank per circle.
-		/// </summary>
-		/// <param name="maxJobs"></param>
-		/// <returns></returns>
-		public static int GetMaxRank(int maxJobs)
-		{
-			if (maxJobs < 1)
-				return 1;
-
-			return 1 + (maxJobs - 1) * MaxCircles;
-		}
-
-		/// <summary>
 		/// Returns the level a job would be on under the flat job model,
 		/// combining its circle and its level within that circle. Skill
 		/// tree unlock levels are still banded 1/16/31, so they're

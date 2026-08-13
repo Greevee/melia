@@ -89,7 +89,7 @@ namespace Melia.Test.Balance.Buff
 
 			foreach (var subject in stack)
 			{
-				var reading = BuffValueProbe.Measure(subject, pool: pool);
+				var reading = BuffValueProbe.Measure(subject, pool: pool, slotsOverride: subject.WrittenMagnitudes);
 
 				if (reading.Error != null)
 				{

@@ -382,6 +382,7 @@ public class CKlaipeNpcScript : GeneralScript
 			shop.AddItem(640249, amount: 1, price: 600);
 			shop.AddItem(640189, amount: 1, price: 600);
 			shop.AddItem(640188, amount: 1, price: 600);
+			shop.AddItem(640190, amount: 1, price: 600);
 		});
 	}
 
@@ -393,16 +394,18 @@ public class CKlaipeNpcScript : GeneralScript
 	{
 		CreateCompanionShop("ChristinaCompanions", shop =>
 		{
-			shop.AddCompanion("Velhider", price: 40000);
-			shop.AddCompanion("hoglan_Pet", price: 40000);
-			shop.AddCompanion("pet_hawk", price: 40000);
+			shop.AddCompanion("Velhider", price: 15000);
+			shop.AddCompanion("hoglan_Pet", price: 15000);
+			shop.AddCompanion("pet_hawk", price: 15000);
 
-			shop.AddCompanion("Guineapig", price: 110000);
-			shop.AddCompanion("barn_owl", price: 110000);
-			shop.AddCompanion("Lesser_panda", price: 110000);
-			shop.AddCompanion("Toucan", price: 110000);
-			shop.AddCompanion("Piggy", price: 110000);
-			shop.AddCompanion("penguin_green", price: 110000);
+			shop.AddCompanion("Guineapig", price: 80000);
+			shop.AddCompanion("guineapig_white", price: 80000);
+			shop.AddCompanion("Piggy", price: 80000);
+			shop.AddCompanion("Pet_piggy_spotted", price: 80000);
+			shop.AddCompanion("Lesser_panda", price: 80000);
+			shop.AddCompanion("Lesser_panda_gray", price: 80000);
+			shop.AddCompanion("penguin", price: 80000);
+			shop.AddCompanion("penguin_green", price: 80000);
 		});
 	}
 }

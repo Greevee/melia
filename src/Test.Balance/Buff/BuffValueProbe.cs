@@ -171,9 +171,15 @@ namespace Melia.Test.Balance.Buff
 		/// Conditions to measure under. Defaults to the first, which is the solo
 		/// all-in build against a plain enemy.
 		/// </param>
+		/// <param name="slotsOverride">
+		/// Slot seeds to install instead of subject.Slots, with any slot it
+		/// omits hard-zeroed rather than left at the subject's own. Isolates one
+		/// axis of a multi-slot buff for an independent solve.
+		/// </param>
 		public static BuffValueResult Measure(BuffSubject subject, JobEntry job = null, float slotScale = 1f,
 			int buffLevel = BuffDials.ProbeBuffLevel, int characterLevel = BuffDials.ProbeLevel, ArenaPool pool = null,
-			bool applyBuff = true, BuffScenario scenario = null, BuffSubject[] alsoHeld = null)
+			bool applyBuff = true, BuffScenario scenario = null, BuffSubject[] alsoHeld = null,
+			IReadOnlyDictionary<int, float> slotsOverride = null)
 		{
 			scenario ??= BuffScenarios.All[0];
 			job ??= JobCatalog.Entries.FirstOrDefault(e => e.SkillPrefix == subject.ClassName);
@@ -205,10 +211,10 @@ namespace Melia.Test.Balance.Buff
 					// Control and treatment stay on one thread so the seed they
 					// share is the same thread-local RandomProvider.
 					DeterministicRandom.Seed(SkillPressProbe.Seed + trial);
-					var control = RunOn(pool, m => RunWindow(job, subject, buffLevel, characterLevel, slotScale, false, m, scenario, alsoHeld));
+					var control = RunOn(pool, m => RunWindow(job, subject, buffLevel, characterLevel, slotScale, false, m, scenario, alsoHeld, slotsOverride));
 
 					DeterministicRandom.Seed(SkillPressProbe.Seed + trial);
-					var treatment = RunOn(pool, m => RunWindow(job, subject, buffLevel, characterLevel, slotScale, applyBuff, m, scenario, alsoHeld));
+					var treatment = RunOn(pool, m => RunWindow(job, subject, buffLevel, characterLevel, slotScale, applyBuff, m, scenario, alsoHeld, slotsOverride));
 
 					controlDealt[trial] = control.Dealt;
 					controlTaken[trial] = control.Taken;
@@ -385,7 +391,7 @@ namespace Melia.Test.Balance.Buff
 				throw new ArgumentException("A stack needs at least one buff.", nameof(subjects));
 
 			return Measure(subjects[0], slotScale: 1f, buffLevel: buffLevel, characterLevel: characterLevel,
-				pool: pool, alsoHeld: subjects.Skip(1).ToArray());
+				pool: pool, alsoHeld: subjects.Skip(1).ToArray(), slotsOverride: subjects[0].WrittenMagnitudes);
 		}
 
 		/// <summary>
@@ -399,8 +405,12 @@ namespace Melia.Test.Balance.Buff
 		/// <param name="slotScale"></param>
 		/// <param name="applyBuff"></param>
 		/// <param name="arena"></param>
+		/// <param name="scenario"></param>
+		/// <param name="alsoHeld"></param>
+		/// <param name="slotsOverride"></param>
 		private static WindowReading RunWindow(JobEntry job, BuffSubject subject, int buffLevel, int characterLevel, float slotScale,
-			bool applyBuff, Map arena, BuffScenario scenario, BuffSubject[] alsoHeld = null)
+			bool applyBuff, Map arena, BuffScenario scenario, BuffSubject[] alsoHeld = null,
+			IReadOnlyDictionary<int, float> slotsOverride = null)
 		{
 			alsoHeld ??= [];
 			var character = (Character)null;
@@ -497,7 +507,7 @@ namespace Melia.Test.Balance.Buff
 
 				var extraSkills = alsoHeld.Select(s => SyntheticActors.GiveSkill(character, s.SkillId, buffLevel)).ToArray();
 
-				using (var scope = new BuffCaptionScope(buffSkill, subject, slotScale))
+				using (var scope = new BuffCaptionScope(buffSkill, subject, slotScale, slotsOverride))
 				using (var recorder = new SfrPressRecorder(character, pinRolls: false, allies: allies.Cast<ICombatEntity>().ToArray()))
 				{
 					for (var elapsed = 0; elapsed < BuffDials.SettleMs; elapsed += TickMs)
@@ -753,7 +763,12 @@ namespace Melia.Test.Balance.Buff
 		/// <param name="skill"></param>
 		/// <param name="subject"></param>
 		/// <param name="scale"></param>
-		public BuffCaptionScope(Skill skill, BuffSubject subject, float scale)
+		/// <param name="slotsOverride">
+		/// Slot seeds to install instead of subject.Slots. Any of the three
+		/// slots it omits is hard-zeroed rather than left at whatever the row
+		/// already carries, so an isolated slot measures alone.
+		/// </param>
+		public BuffCaptionScope(Skill skill, BuffSubject subject, float scale, IReadOnlyDictionary<int, float> slotsOverride = null)
 		{
 			_skill = skill;
 			_rowLock = _rowLocks.GetOrAdd(subject.SkillId, _ => new object());
@@ -763,12 +778,13 @@ namespace Melia.Test.Balance.Buff
 			try
 			{
 				var data = skill.Data;
+				var slots = slotsOverride ?? subject.Slots;
 
 				_saved[0] = (data.CaptionRatio1, data.CaptionRatio1ByLevel);
 				_saved[1] = (data.CaptionRatio2, data.CaptionRatio2ByLevel);
 				_saved[2] = (data.CaptionRatio3, data.CaptionRatio3ByLevel);
 
-				Install(data, subject, scale);
+				Install(data, slots, scale);
 
 				if (ZoneServer.Instance.Data.SkillDb.TryFind(subject.SkillId, out var shared) && !ReferenceEquals(shared, data))
 				{
@@ -778,7 +794,7 @@ namespace Melia.Test.Balance.Buff
 					_savedShared[1] = (shared.CaptionRatio2, shared.CaptionRatio2ByLevel);
 					_savedShared[2] = (shared.CaptionRatio3, shared.CaptionRatio3ByLevel);
 
-					Install(shared, subject, scale);
+					Install(shared, slots, scale);
 				}
 
 				skill.Properties.InvalidateAll();
@@ -791,15 +807,19 @@ namespace Melia.Test.Balance.Buff
 		}
 
 		/// <summary>
-		/// Puts every slot the subject declares at its seed magnitude times the
-		/// given scale, whatever shape the row it replaces was in.
+		/// Puts every slot at its seed magnitude times the given scale, and
+		/// hard-zeroes whichever of the three it does not name, whatever shape
+		/// the row it replaces was in.
 		/// </summary>
 		/// <remarks>
 		/// Written flat, so the buff resolves to exactly that magnitude at every
 		/// level and the reading does not depend on which buff level the window
-		/// runs at. The seed is the row's magnitude at its cap, so a scale of one
-		/// measures the buff as it will be at cap - which is the quantity the
-		/// pricer solves and the writer writes.
+		/// runs at.
+		///
+		/// A slot the map omits is zeroed rather than left at the row's own
+		/// value, which is what makes isolating one axis of a multi-slot buff
+		/// possible: leaving an unnamed slot alone would let its original
+		/// magnitude leak into a reading that is supposed to be that slot alone.
 		///
 		/// Multiplying the saved row instead made the measurement a function of
 		/// the row's shape as well as its size: a written row carries its whole
@@ -807,18 +827,13 @@ namespace Melia.Test.Balance.Buff
 		/// level returned a fraction of what had been priced.
 		/// </remarks>
 		/// <param name="data"></param>
-		/// <param name="subject"></param>
+		/// <param name="slots"></param>
 		/// <param name="scale"></param>
-		private static void Install(SkillData data, BuffSubject subject, float scale)
+		private static void Install(SkillData data, IReadOnlyDictionary<int, float> slots, float scale)
 		{
-			if (subject.Slots.TryGetValue(1, out var first))
-				(data.CaptionRatio1, data.CaptionRatio1ByLevel) = (first * scale, 0f);
-
-			if (subject.Slots.TryGetValue(2, out var second))
-				(data.CaptionRatio2, data.CaptionRatio2ByLevel) = (second * scale, 0f);
-
-			if (subject.Slots.TryGetValue(3, out var third))
-				(data.CaptionRatio3, data.CaptionRatio3ByLevel) = (third * scale, 0f);
+			(data.CaptionRatio1, data.CaptionRatio1ByLevel) = (slots.TryGetValue(1, out var first) ? first * scale : 0f, 0f);
+			(data.CaptionRatio2, data.CaptionRatio2ByLevel) = (slots.TryGetValue(2, out var second) ? second * scale : 0f, 0f);
+			(data.CaptionRatio3, data.CaptionRatio3ByLevel) = (slots.TryGetValue(3, out var third) ? third * scale : 0f, 0f);
 		}
 
 		/// <summary>

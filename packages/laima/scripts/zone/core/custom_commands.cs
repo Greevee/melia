@@ -334,9 +334,6 @@ public class CustomCommandFunctionsScript : GeneralScript
 		// circle of one already held.
 		var maxRank = ZoneServer.Instance.Conf.World.JobMaxRank;
 
-		if (ZoneServer.Instance.Conf.World.ClassCircleSystem)
-			maxRank = JobCircleHelper.GetMaxRank(maxRank);
-
 		if (character.Jobs.GetCurrentRank() >= maxRank)
 		{
 			Log.Warning("CZ_CUSTOM_COMMAND: User '{0}' requested job change to job '{1}' at or above the max rank of {2}.", username, jobId, maxRank);
