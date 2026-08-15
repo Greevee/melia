@@ -52,7 +52,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Chronomancer
 				Send.ZC_SYNC_START(caster, skillHandle, 1);
 
 				var duration = skill.Properties.CaptionTime;
-				currentTarget.StartBuff(BuffId.TimeForward_Debuff, skill.Level, 0, duration, caster);
+				currentTarget.StartBuff(BuffId.TimeForward_Debuff, skill.Level, 0, duration, caster, skill.Id);
 
 				Send.ZC_SYNC_END(caster, skillHandle, 0);
 				Send.ZC_SYNC_EXEC_BY_SKILL_TIME(caster, skillHandle, TimeSpan.FromMilliseconds(100));

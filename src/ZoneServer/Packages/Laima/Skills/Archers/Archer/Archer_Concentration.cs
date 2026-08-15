@@ -44,7 +44,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Archer
 			// Due to the dynamic duration this skill has,
 			// we need to always remove the buff before applying it.
 			caster.RemoveBuff(BuffId.Concentration_Buff);
-			caster.StartBuff(BuffId.Concentration_Buff, skill.Level, 0, duration, caster);
+			caster.StartBuff(BuffId.Concentration_Buff, skill.Level, 0, duration, caster, skill.Id);
 
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
 		}

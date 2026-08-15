@@ -117,7 +117,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Sorcerer
 			{
 				// Apply the healing buff to Salamion
 				var buffDuration = TimeSpan.FromSeconds((int)skill.Properties.CaptionTime.TotalSeconds);
-				summon.StartBuff(BuffId.SummonSalamion_Buff, buffDuration, character);
+				summon.StartBuff(BuffId.SummonSalamion_Buff, skill.Level, 0, buffDuration, character, skill.Id);
 			}
 
 			// Play summon animation

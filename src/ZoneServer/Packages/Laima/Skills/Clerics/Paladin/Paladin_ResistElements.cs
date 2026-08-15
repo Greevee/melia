@@ -46,7 +46,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Paladin
 			await skill.Wait(TimeSpan.FromMilliseconds(500));
 
 			// Apply buff to caster first
-			caster.StartBuff(BuffId.ResistElements_Buff, skill.Level, 0f, skill.Properties.CaptionTime, caster);
+			caster.StartBuff(BuffId.ResistElements_Buff, skill.Level, 0f, skill.Properties.CaptionTime, caster, skill.Id);
 
 			// Find and buff party members in range
 			if (caster is Character character)
@@ -60,7 +60,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Paladin
 					{
 						if (member == caster)
 							continue;
-						member.StartBuff(BuffId.ResistElements_Buff, skill.Level, 0f, skill.Properties.CaptionTime, caster);
+						member.StartBuff(BuffId.ResistElements_Buff, skill.Level, 0f, skill.Properties.CaptionTime, caster, skill.Id);
 					}
 				}
 			}

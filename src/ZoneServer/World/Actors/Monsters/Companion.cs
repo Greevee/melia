@@ -402,7 +402,7 @@ namespace Melia.Zone.World.Actors.Monsters
 				return;
 
 			var duration = TimeSpan.FromSeconds(level == 1 ? 2 : 1 + level);
-			this.StartBuff(BuffId.Pet_Heal, 1, 0, duration, this.Owner);
+			this.StartBuff(BuffId.Pet_Heal, 1, 0, duration, this.Owner, SkillId.Hunter_PetComeBack);
 			this.PlayGroundEffect("F_buff_basic008_blue", 1);
 
 			_emergencyCareReadyAt = GameClock.LocalNow + TimeSpan.FromMinutes(10);

@@ -359,6 +359,7 @@ namespace Melia.Zone.World.Actors.Characters
 			Send.ZC_MAX_EXP_CHANGED(this, 0);
 			Send.ZC_PC_LEVELUP(this);
 			Send.ZC_OBJECT_PROPERTY(this);
+			Send.ZC_NORMAL.CaptionOverrides(this);
 
 			this.AddonMessage("NOTICE_Dm_levelup_base", "!@#$Auto_KaeLigTeo_LeBeli_SangSeungHayeossSeupNiDa#@!", 3);
 			this.PlayEffect("F_pc_level_up", 3);
@@ -404,6 +405,7 @@ namespace Melia.Zone.World.Actors.Characters
 			Send.ZC_MAX_EXP_CHANGED(this, 0);
 			Send.ZC_PC_LEVELUP(this);
 			Send.ZC_OBJECT_PROPERTY(this);
+			Send.ZC_NORMAL.CaptionOverrides(this);
 
 			this.AddonMessage("NOTICE_Dm_levelup_base", "!@#$Auto_KaeLigTeo_LeBeli_SangSeungHayeossSeupNiDa#@!", 3);
 			this.PlayEffect("F_pc_level_up", 3);
@@ -438,6 +440,7 @@ namespace Melia.Zone.World.Actors.Characters
 
 			this.Properties.InvalidateAll();
 			Send.ZC_OBJECT_PROPERTY(this);
+			Send.ZC_NORMAL.CaptionOverrides(this);
 			this.AddonMessage(Shared.Game.Const.AddonMessage.RESET_STAT_UP);
 		}
 		#endregion

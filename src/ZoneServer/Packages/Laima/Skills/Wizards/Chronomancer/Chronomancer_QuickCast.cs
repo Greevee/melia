@@ -33,7 +33,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Chronomancer
 
 			var duration = TimeSpan.FromSeconds(BuffDurationSeconds);
 
-			caster.StartBuff(BuffId.QuickCast_Buff, skill.Level, 0f, duration, caster);
+			caster.StartBuff(BuffId.QuickCast_Buff, skill.Level, 0f, duration, caster, skill.Id);
 
 			if (caster is Character character)
 			{
@@ -42,7 +42,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Chronomancer
 				{
 					if (member == caster)
 						continue;
-					member.StartBuff(BuffId.QuickCast_Buff, skill.Level, 0f, duration, caster);
+					member.StartBuff(BuffId.QuickCast_Buff, skill.Level, 0f, duration, caster, skill.Id);
 				}
 			}
 		}

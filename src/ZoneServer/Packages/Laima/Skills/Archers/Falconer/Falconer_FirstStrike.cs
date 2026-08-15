@@ -57,7 +57,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Falconer
 			{
 				// Apply First Strike buff - enables auto-attack behavior
 				// Buff duration is infinite (toggle), but consumes SP periodically
-				caster.StartBuff(BuffId.FirstStrike_Buff, skill.Level, 0f, TimeSpan.Zero, caster);
+				caster.StartBuff(BuffId.FirstStrike_Buff, skill.Level, 0f, TimeSpan.Zero, caster, skill.Id);
 
 				// Visual activation effect
 				caster.PlayEffect("skl_eff_whistle_4", scale: 1f, heightOffset: EffectLocation.Top);

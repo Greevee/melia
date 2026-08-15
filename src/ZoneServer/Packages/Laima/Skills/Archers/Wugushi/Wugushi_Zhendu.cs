@@ -36,7 +36,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Wugushi
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, 0, originPos, dir, Position.Zero);
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, Position.Zero, ForceId.GetNew(), null);
 
-			caster.StartBuff(BuffId.Zhendu_Buff, skill.Level, 0f, skill.Properties.CaptionTime, caster);
+			caster.StartBuff(BuffId.Zhendu_Buff, skill.Level, 0f, skill.Properties.CaptionTime, caster, skill.Id);
 
 			if (caster is Character character)
 			{
@@ -48,7 +48,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Wugushi
 					{
 						if (member == caster)
 							continue;
-						member.StartBuff(BuffId.Zhendu_Buff, skill.Level, 0f, skill.Properties.CaptionTime, caster);
+						member.StartBuff(BuffId.Zhendu_Buff, skill.Level, 0f, skill.Properties.CaptionTime, caster, skill.Id);
 					}
 				}
 			}

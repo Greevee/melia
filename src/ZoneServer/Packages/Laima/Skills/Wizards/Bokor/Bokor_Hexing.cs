@@ -68,7 +68,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Bokor
 
 				await skill.Wait(TimeSpan.FromMilliseconds(150));
 
-				currentTarget.StartBuff(BuffId.CurseOfWeakness_Debuff, skill.Level, 0, TimeSpan.FromMilliseconds((int)skill.Properties.CaptionTime.TotalMilliseconds), caster);
+				currentTarget.StartBuff(BuffId.CurseOfWeakness_Debuff, skill.Level, 0, TimeSpan.FromMilliseconds((int)skill.Properties.CaptionTime.TotalMilliseconds), caster, skill.Id);
 
 				if (summons != null)
 				{

@@ -29,7 +29,7 @@ namespace Melia.Zone.Skills.Handlers.Scouts.Thaumaturge
 				}
 
 				var buffDuration = TimeSpan.FromMinutes(5);
-				caster.StartBuff(BuffId.Transpose_Buff, skill.Level, 0f, buffDuration, caster);
+				caster.StartBuff(BuffId.Transpose_Buff, skill.Level, 0f, buffDuration, caster, SkillId.Thaumaturge_Transpose);
 			}
 
 			skill.IncreaseOverheat();

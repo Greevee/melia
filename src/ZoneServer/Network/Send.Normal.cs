@@ -17,6 +17,7 @@ using Melia.Shared.Util;
 using Melia.Shared.Versioning;
 using Melia.Shared.World;
 using Melia.Zone.Network.Helpers;
+using Melia.Zone.Scripting;
 using Melia.Zone.Skills;
 using Melia.Zone.World;
 using Melia.Zone.World.Actors;
@@ -4943,9 +4944,9 @@ namespace Melia.Zone.Network
 						sb.Append(' ');
 
 					sb.Append((int)data.Id).Append(':')
-						.Append(Format(data.CaptionRatio1)).Append(':').Append(Format(data.CaptionRatio1ByLevel)).Append(':')
-						.Append(Format(data.CaptionRatio2)).Append(':').Append(Format(data.CaptionRatio2ByLevel)).Append(':')
-						.Append(Format(data.CaptionRatio3)).Append(':').Append(Format(data.CaptionRatio3ByLevel)).Append(':')
+						.Append(Format(data.CaptionRatio1)).Append(':').Append(Format(data.CaptionRatio1ByLevel)).Append(':').Append(Format(data.CaptionRatio1Max)).Append(':')
+						.Append(Format(data.CaptionRatio2)).Append(':').Append(Format(data.CaptionRatio2ByLevel)).Append(':').Append(Format(data.CaptionRatio2Max)).Append(':')
+						.Append(Format(data.CaptionRatio3)).Append(':').Append(Format(data.CaptionRatio3ByLevel)).Append(':').Append(Format(data.CaptionRatio3Max)).Append(':')
 						.Append(Format(data.CaptionTime)).Append(':').Append(Format(data.CaptionTimeByLevel));
 
 					if (sb.Length < CaptionChunkLength)
@@ -4958,6 +4959,81 @@ namespace Melia.Zone.Network
 				if (sb.Length > 0)
 					character.AddonMessage("LAIMA_CAPTION_RATIOS", sb.ToString());
 			}
+
+			/// <summary>
+			/// Sends the resolved values of every caption ratio/time slot
+			/// that a skill overrides with a script, for the levels the
+			/// client can ever preview.
+			/// </summary>
+			/// <remarks>
+			/// A slot with no override is skill data only, and its value is
+			/// the same for every character - that's what CaptionRatios
+			/// sends. A slot with an override can depend on the caster (a
+			/// live stat, an ability), so it has to be resolved per
+			/// character instead of shipped as a formula for the client to
+			/// run. The values are computed once here rather than reread
+			/// live client-side, so they go stale exactly like every other
+			/// character stat the client displays, and need the same kind
+			/// of resend on relevant change (see character level-up/reset).
+			/// </remarks>
+			/// <param name="character"></param>
+			public static void CaptionOverrides(Character character)
+			{
+				var sb = new StringBuilder();
+
+				foreach (var data in ZoneServer.Instance.Data.SkillDb.Entries.Values)
+				{
+					for (var slot = 1; slot <= 4; ++slot)
+					{
+						if (!ScriptableFunctions.Skill.TryGet(CaptionOverrideFuncName(slot) + "_" + data.ClassName, out var overrideFunc))
+							continue;
+
+						if (sb.Length > 0)
+							sb.Append(' ');
+
+						sb.Append((int)data.Id).Append(':').Append(slot);
+
+						for (var level = 1; level <= CaptionOverrideMaxLevel; ++level)
+						{
+							var skill = new Skill(character, data.Id, level);
+							sb.Append(':').Append(Format(overrideFunc(skill)));
+						}
+
+						if (sb.Length < CaptionChunkLength)
+							continue;
+
+						character.AddonMessage("LAIMA_CAPTION_OVERRIDE", sb.ToString());
+						sb.Clear();
+					}
+				}
+
+				if (sb.Length > 0)
+					character.AddonMessage("LAIMA_CAPTION_OVERRIDE", sb.ToString());
+			}
+
+			/// <summary>
+			/// Highest skill level a caption override is resolved for, since
+			/// the client can preview a skill up to its job's highest
+			/// possible circle cap.
+			/// </summary>
+			private const int CaptionOverrideMaxLevel = 15;
+
+			/// <summary>
+			/// Returns the scriptable function name a caption override for
+			/// the given slot is looked up under, matching the convention
+			/// SkillProperties.CalculateProperty and BuffHandler.GetCaptionRatio
+			/// use.
+			/// </summary>
+			/// <param name="slot"></param>
+			private static string CaptionOverrideFuncName(int slot)
+				=> slot switch
+				{
+					1 => "SCR_Get_CaptionRatio",
+					2 => "SCR_Get_CaptionRatio2",
+					3 => "SCR_Get_CaptionRatio3",
+					4 => "SCR_Get_CaptionTime",
+					_ => throw new ArgumentOutOfRangeException(nameof(slot), $"No caption slot {slot}."),
+				};
 
 			/// <summary>
 			/// Characters a caption ratio message is filled to before it is

@@ -309,6 +309,11 @@ namespace Melia.Test.Balance.Sfr
 
 			sfr /= SfrDials.CritAllowance;
 
+			if (!SfrDials.SkillSfrMultipliers.TryGetValue(skillName, out var hardMultiplier))
+				hardMultiplier = 1f;
+
+			sfr *= hardMultiplier;
+
 			// What an advanced class's circle buys over the base pool. The
 			// anchor is a base-job skill, so this raises the advanced roster
 			// against it rather than the roster's level.
@@ -383,6 +388,7 @@ namespace Melia.Test.Balance.Sfr
 				ChargedReach = charged,
 				Sfr = sfr,
 				SpreadCapped = gateSfr < baseSfr,
+				HardMultiplier = hardMultiplier,
 				RawFactor = factor,
 				Factor = (int)Math.Round(factor),
 				FactorByLevel = MathF.Round(factorByLevel, 1),
@@ -879,6 +885,9 @@ namespace Melia.Test.Balance.Sfr
 
 				priced[skillName] = (price.Factor, price.FactorByLevel);
 
+				if (price.HardMultiplier != 1f)
+					result.HardOverrides.Add((skillName, price.HardMultiplier));
+
 				// A ratio against zero says nothing, so a skill coming off the
 				// zero marker is reported on its own rather than topping the
 				// movers list with an arbitrary number.
@@ -1088,6 +1097,12 @@ namespace Melia.Test.Balance.Sfr
 		public bool SpreadCapped { get; init; }
 
 		/// <summary>
+		/// The design-fiat multiplier SfrDials.SkillSfrMultipliers applied to
+		/// this skill, 1.0 when none did.
+		/// </summary>
+		public float HardMultiplier { get; init; }
+
+		/// <summary>
 		/// The factor before it is rounded to what the file carries, which is
 		/// what the anchor's calibration has to be taken against.
 		/// </summary>
@@ -1207,5 +1222,11 @@ namespace Melia.Test.Balance.Sfr
 		/// How many in-scope skills could not be priced at all.
 		/// </summary>
 		public int NotPriceable { get; set; }
+
+		/// <summary>
+		/// Skills SfrDials.SkillSfrMultipliers cut or boosted by design fiat,
+		/// with the multiplier applied.
+		/// </summary>
+		public List<(string Skill, float Multiplier)> HardOverrides { get; } = [];
 	}
 }

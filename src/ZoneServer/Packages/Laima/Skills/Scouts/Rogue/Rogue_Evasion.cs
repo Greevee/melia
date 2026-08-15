@@ -36,7 +36,7 @@ namespace Melia.Zone.Skills.Handlers.Scouts.Rogue
 		private async Task HandleSkill(Skill skill, ICombatEntity caster)
 		{
 			await skill.Wait(TimeSpan.FromMilliseconds(150));
-			caster.StartBuff(BuffId.Evasion_Buff, skill.Level, 0f, TimeSpan.FromSeconds(6), caster);
+			caster.StartBuff(BuffId.Evasion_Buff, skill.Level, 0f, TimeSpan.FromSeconds(6), caster, skill.Id);
 			caster.StartBuff(BuffId.Sprint_Buff, skill.Level, 0f, TimeSpan.FromSeconds(6), caster);
 		}
 	}

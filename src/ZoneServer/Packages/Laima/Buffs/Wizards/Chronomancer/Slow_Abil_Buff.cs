@@ -28,7 +28,7 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Wizards.Chronomancer
 				var rng = RandomProvider.Get().Next(100);
 
 				if (rng < applyDebuffChance)
-					target.StartBuff(BuffId.Slow_Debuff, buff.NumArg1, 0, TimeSpan.FromSeconds(10 + buff.NumArg1), attacker);
+					target.StartBuff(BuffId.Slow_Debuff, buff.NumArg1, 0, TimeSpan.FromSeconds(10 + buff.NumArg1), attacker, skill.Id);
 			}
 		}
 	}

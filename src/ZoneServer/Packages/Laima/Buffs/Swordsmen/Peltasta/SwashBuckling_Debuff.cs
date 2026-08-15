@@ -45,8 +45,7 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Swordsman.Peltasta
 			var reductionRate = GetCaptionRatio(buff, 2) / 100f;
 
 			var reduction = curVal * reductionRate;
-			Math.Min(0.75f, reduction);
-			return reduction;
+			return Math.Min(0.75f, reduction);
 		}
 
 		private float GetDodgePenalty(Buff buff)
@@ -56,8 +55,7 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Swordsman.Peltasta
 			var reductionRate = GetCaptionRatio(buff, 3) / 100f;
 
 			var reduction = curVal * reductionRate;
-			Math.Min(0.75f, reduction);
-			return reduction;
+			return Math.Min(0.75f, reduction);
 		}
 	}
 }

@@ -41,7 +41,7 @@ namespace Melia.Zone.Skills.Handlers.Cataphract
 
 			Send.ZC_SKILL_MELEE_TARGET(caster, skill, caster);
 
-			caster.StartBuff(BuffId.Trot_Buff, skill.Level, 0f, TimeSpan.FromMinutes(5), caster);
+			caster.StartBuff(BuffId.Trot_Buff, skill.Level, 0f, TimeSpan.FromMinutes(5), caster, skill.Id);
 		}
 	}
 }

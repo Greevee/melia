@@ -167,6 +167,82 @@ public class SkillCalculationsScript : GeneralScript
 	}
 
 	/// <summary>
+	/// Returns a skill's default caption ratio 1, resolved against the
+	/// skill's level and reinforce ability. Skills whose caption depends
+	/// on more than that (a live stat, an ability check, a clamp) declare
+	/// a "SCR_Get_CaptionRatio_{ClassName}" override instead, which
+	/// SkillProperties.CalculateProperty picks up automatically.
+	/// </summary>
+	/// <param name="skill"></param>
+	/// <returns></returns>
+	[ScriptableFunction]
+	public float SCR_Get_CaptionRatio(Skill skill)
+	{
+		return this.CalculateCaptionRatio(skill, skill.Data.CaptionRatio1, skill.Data.CaptionRatio1ByLevel, skill.Data.CaptionRatio1Max);
+	}
+
+	/// <summary>
+	/// Returns a skill's default caption ratio 2. See <see cref="SCR_Get_CaptionRatio"/>.
+	/// </summary>
+	/// <param name="skill"></param>
+	/// <returns></returns>
+	[ScriptableFunction]
+	public float SCR_Get_CaptionRatio2(Skill skill)
+	{
+		return this.CalculateCaptionRatio(skill, skill.Data.CaptionRatio2, skill.Data.CaptionRatio2ByLevel, skill.Data.CaptionRatio2Max);
+	}
+
+	/// <summary>
+	/// Returns a skill's default caption ratio 3. See <see cref="SCR_Get_CaptionRatio"/>.
+	/// </summary>
+	/// <param name="skill"></param>
+	/// <returns></returns>
+	[ScriptableFunction]
+	public float SCR_Get_CaptionRatio3(Skill skill)
+	{
+		return this.CalculateCaptionRatio(skill, skill.Data.CaptionRatio3, skill.Data.CaptionRatio3ByLevel, skill.Data.CaptionRatio3Max);
+	}
+
+	/// <summary>
+	/// Returns a skill's default caption ratio value, resolved against
+	/// the skill's level and reinforce ability, and capped at maxValue
+	/// if one is declared (0 means uncapped) - the data-only equivalent
+	/// of a handler clamping its own effect, e.g. a damage reduction
+	/// buff that never lets the total go above some percentage.
+	/// </summary>
+	/// <param name="skill"></param>
+	/// <param name="baseValue"></param>
+	/// <param name="byLevel"></param>
+	/// <param name="maxValue"></param>
+	/// <returns></returns>
+	private float CalculateCaptionRatio(Skill skill, float baseValue, float byLevel, float maxValue)
+	{
+		var value = baseValue + (byLevel * skill.Level);
+
+		var byReinforceRate = ScriptableFunctions.Skill.Get("SCR_Get_AbilityReinforceRate")(skill);
+		value += value * byReinforceRate;
+
+		if (maxValue != 0)
+			value = MathF.Min(maxValue, value);
+
+		return value;
+	}
+
+	/// <summary>
+	/// Returns a skill's caption duration, resolved against the skill's
+	/// level. Not reinforced: the ability makes an effect stronger, not
+	/// longer. Skills whose duration depends on more than that declare
+	/// a "SCR_Get_CaptionTime_{ClassName}" override instead.
+	/// </summary>
+	/// <param name="skill"></param>
+	/// <returns></returns>
+	[ScriptableFunction]
+	public float SCR_Get_CaptionTime(Skill skill)
+	{
+		return skill.Data.CaptionTime + (skill.Data.CaptionTimeByLevel * skill.Level);
+	}
+
+	/// <summary>
 	/// Returns skill's bonus damage.
 	/// </summary>
 	/// <example>

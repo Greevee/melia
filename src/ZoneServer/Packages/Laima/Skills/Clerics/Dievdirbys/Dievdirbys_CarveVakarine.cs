@@ -102,7 +102,7 @@ namespace Melia.Zone.Skills.HandlersOverrides.Clerics.Dievdirbys
 				// Apply or refresh Scud buff to all allies in range
 				foreach (var ally in allies)
 				{
-					ally.StartBuff(BuffId.Scud, skill.Level, 0, TimeSpan.FromMilliseconds(BuffDurationMs), caster);
+					ally.StartBuff(BuffId.Scud, skill.Level, 0, TimeSpan.FromMilliseconds(BuffDurationMs), caster, skill.Id);
 				}
 
 				// Wait for the next update

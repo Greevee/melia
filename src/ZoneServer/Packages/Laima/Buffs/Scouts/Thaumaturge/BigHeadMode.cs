@@ -37,7 +37,7 @@ namespace Melia.Zone.Buffs.Handlers.Scouts.Thaumaturge
 			if (caster.TryGetActiveAbilityLevel(AbilityId.Thaumaturge16, out var thaum16Level))
 			{
 				var quickCastDuration = TimeSpan.FromMilliseconds(thaum16Level * 3000);
-				caster.StartBuff(BuffId.QuickCast_Buff, skillLevel, 0, quickCastDuration, caster);
+				caster.StartBuff(BuffId.QuickCast_Buff, skillLevel, 0, quickCastDuration, caster, SkillId.Chronomancer_QuickCast);
 			}
 		}
 

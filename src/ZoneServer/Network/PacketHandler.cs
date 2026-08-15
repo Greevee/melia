@@ -487,6 +487,7 @@ namespace Melia.Zone.Network
 				// addons aren't up yet to receive the circles they carry.
 				Send.ZC_NORMAL.JobCircles(character);
 				Send.ZC_NORMAL.CaptionRatios(character);
+				Send.ZC_NORMAL.CaptionOverrides(character);
 			}
 			else
 			{

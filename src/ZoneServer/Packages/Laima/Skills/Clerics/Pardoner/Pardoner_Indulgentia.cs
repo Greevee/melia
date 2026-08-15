@@ -52,7 +52,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Pardoner
 			var buffDuration = TimeSpan.FromMilliseconds((float)skill.Properties.CaptionTime.TotalMilliseconds);
 
 			// Apply buff to caster first
-			caster.StartBuff(BuffId.Indulgentia_Buff, skill.Level, 0f, buffDuration, caster);
+			caster.StartBuff(BuffId.Indulgentia_Buff, skill.Level, 0f, buffDuration, caster, skill.Id);
 
 			// Get friendly targets in range
 			var targetPos = caster.Position.GetRelative(caster.Direction, TargetRange / 2);
@@ -64,7 +64,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Pardoner
 				if (target == caster)
 					continue;
 
-				target.StartBuff(BuffId.Indulgentia_Buff, skill.Level, 0f, buffDuration, caster);
+				target.StartBuff(BuffId.Indulgentia_Buff, skill.Level, 0f, buffDuration, caster, skill.Id);
 			}
 
 			await skill.Wait(TimeSpan.FromMilliseconds(110));

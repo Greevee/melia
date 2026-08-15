@@ -1,4 +1,3 @@
-using System;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
 using Melia.Zone.Buffs.Base;
@@ -15,10 +14,9 @@ namespace Melia.Zone.Buffs.Handlers.Scouts.Thaumaturge
 		public override void OnActivate(Buff buff, ActivationType activationType)
 		{
 			var target = buff.Target;
-			var casterInt = buff.NumArg2;
 
 			var percentBonus = GetCaptionRatio(buff, 1) / 100f;
-			var flatBonus = (float)Math.Floor(GetCaptionRatio(buff, 2) * casterInt);
+			var flatBonus = GetCaptionRatio(buff, 2);
 
 			AddPropertyModifier(buff, target, PropertyName.PATK_RATE_BM, percentBonus);
 			AddPropertyModifier(buff, target, PropertyName.PATK_BM, flatBonus);

@@ -57,7 +57,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Chronomancer
 				Send.ZC_SYNC_START(caster, skillHandle, 1);
 
 				var debuffDuration = skill.Properties.CaptionTime;
-				currentTarget.StartBuff(BuffId.Slow_Debuff, skill.Level, 0, debuffDuration, caster);
+				currentTarget.StartBuff(BuffId.Slow_Debuff, skill.Level, 0, debuffDuration, caster, skill.Id);
 
 				Send.ZC_SYNC_END(caster, skillHandle, 0);
 				Send.ZC_SYNC_EXEC_BY_SKILL_TIME(caster, skillHandle, TimeSpan.FromMilliseconds(100));

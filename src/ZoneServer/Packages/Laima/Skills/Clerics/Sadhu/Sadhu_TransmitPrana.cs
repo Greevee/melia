@@ -37,7 +37,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Sadhu
 
 			var damageMultiplierIncrease = skill.Properties.GetFloat(PropertyName.CaptionRatio) / 100f;
 
-			caster.StartBuff(BuffId.TransmitPrana_Buff, skill.Level, damageMultiplierIncrease, skill.Properties.CaptionTime, caster);
+			caster.StartBuff(BuffId.TransmitPrana_Buff, skill.Level, damageMultiplierIncrease, skill.Properties.CaptionTime, caster, skill.Id);
 
 			if (caster is Character character)
 			{
@@ -49,7 +49,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Sadhu
 					{
 						if (member == caster)
 							continue;
-						member.StartBuff(BuffId.TransmitPrana_Buff, skill.Level, damageMultiplierIncrease, skill.Properties.CaptionTime, caster);
+						member.StartBuff(BuffId.TransmitPrana_Buff, skill.Level, damageMultiplierIncrease, skill.Properties.CaptionTime, caster, skill.Id);
 					}
 				}
 			}

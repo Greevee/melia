@@ -50,10 +50,13 @@ namespace Melia.Shared.Data.Database
 
 		public float CaptionRatio1 { get; set; }
 		public float CaptionRatio1ByLevel { get; set; }
+		public float CaptionRatio1Max { get; set; }
 		public float CaptionRatio2 { get; set; }
 		public float CaptionRatio2ByLevel { get; set; }
+		public float CaptionRatio2Max { get; set; }
 		public float CaptionRatio3 { get; set; }
 		public float CaptionRatio3ByLevel { get; set; }
+		public float CaptionRatio3Max { get; set; }
 		public float CaptionTime { get; set; }
 		public float CaptionTimeByLevel { get; set; }
 
@@ -341,10 +344,13 @@ namespace Melia.Shared.Data.Database
 
 			data.CaptionRatio1 = entry.ReadFloat("captionRatio1", 0);
 			data.CaptionRatio1ByLevel = entry.ReadFloat("captionRatio1ByLevel", 0);
+			data.CaptionRatio1Max = entry.ReadFloat("captionRatio1Max", 0);
 			data.CaptionRatio2 = entry.ReadFloat("captionRatio2", 0);
 			data.CaptionRatio2ByLevel = entry.ReadFloat("captionRatio2ByLevel", 0);
+			data.CaptionRatio2Max = entry.ReadFloat("captionRatio2Max", 0);
 			data.CaptionRatio3 = entry.ReadFloat("captionRatio3", 0);
 			data.CaptionRatio3ByLevel = entry.ReadFloat("captionRatio3ByLevel", 0);
+			data.CaptionRatio3Max = entry.ReadFloat("captionRatio3Max", 0);
 			data.CaptionTime = entry.ReadFloat("captionTime", 0);
 			data.CaptionTimeByLevel = entry.ReadFloat("captionTimeByLevel", 0);
 

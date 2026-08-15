@@ -81,7 +81,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Sadhu
 			Send.ZC_NORMAL.SetActorColor(casterCharacter, 255, 200, 100, 150, 0.01f);
 			Send.ZC_NORMAL.Skill_DynamicCastStart(casterCharacter, SkillId.None);
 
-			casterCharacter.StartBuff(BuffId.OOBE_Soulmaster_Buff, skill.Level, dummyCharacter.Handle, TimeSpan.FromMinutes(5), casterCharacter);
+			casterCharacter.StartBuff(BuffId.OOBE_Soulmaster_Buff, skill.Level, dummyCharacter.Handle, TimeSpan.FromMinutes(5), casterCharacter, skill.Id);
 
 			this.SendAvailableSkills(casterCharacter);
 		}

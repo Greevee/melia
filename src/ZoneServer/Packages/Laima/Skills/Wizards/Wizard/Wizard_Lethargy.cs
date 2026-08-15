@@ -64,7 +64,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Wizard
 				if (caster.TryGetAbility(AbilityId.Wizard27, out var ability))
 					abilityLevel = ability.Level;
 
-				t.StartBuff(BuffId.Lethargy_Debuff, skill.Level, abilityLevel, TimeSpan.FromSeconds(10), caster);
+				t.StartBuff(BuffId.Lethargy_Debuff, skill.Level, abilityLevel, TimeSpan.FromSeconds(10), caster, skill.Id);
 			}
 		}
 	}

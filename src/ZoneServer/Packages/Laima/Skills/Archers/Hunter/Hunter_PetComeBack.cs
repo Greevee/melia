@@ -71,7 +71,7 @@ namespace Melia.Zone.Skills.Handlers.Hunter
 
 			// Hunter23: Increases Pet_Heal duration to 12 seconds
 			var healDuration = caster.IsAbilityActive(AbilityId.Hunter23) ? 12 : 8;
-			companion.StartBuff(BuffId.Pet_Heal, skill.Level, 0, TimeSpan.FromSeconds(healDuration), caster);
+			companion.StartBuff(BuffId.Pet_Heal, skill.Level, 0, TimeSpan.FromSeconds(healDuration), caster, skill.Id);
 
 			// Hunter22: Cure companion of all negative debuffs
 			if (caster.IsAbilityActive(AbilityId.Hunter22))

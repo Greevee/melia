@@ -96,19 +96,45 @@ namespace Melia.Zone.Buffs.Base
 		protected static float GetCaptionRatio(Buff buff, int slot)
 		{
 			if (!ZoneServer.Instance.Data.SkillDb.TryFind(buff.SkillId, out var skillData))
-				return 0;
-
-			var (baseValue, byLevel) = slot switch
 			{
-				1 => (skillData.CaptionRatio1, skillData.CaptionRatio1ByLevel),
-				2 => (skillData.CaptionRatio2, skillData.CaptionRatio2ByLevel),
-				3 => (skillData.CaptionRatio3, skillData.CaptionRatio3ByLevel),
+				Log.Warning($"GetCaptionRatio: Buff '{buff.Id}' has no skill data for SkillId '{buff.SkillId}', did the caller forget to pass skillId to StartBuff?");
+				return 0;
+			}
+
+			var funcName = slot switch
+			{
+				1 => "SCR_Get_CaptionRatio",
+				2 => "SCR_Get_CaptionRatio2",
+				3 => "SCR_Get_CaptionRatio3",
+				_ => throw new ArgumentOutOfRangeException(nameof(slot), $"No caption ratio {slot}."),
+			};
+
+			// A skill whose caption depends on more than level and reinforce
+			// ability - a live stat, an ability check - declares an override
+			// under this name, which SkillProperties.CalculateProperty also
+			// looks for. Reading it here too means a handler can never end
+			// up with a different number than the tooltip.
+			if (ScriptableFunctions.Skill.TryGet(funcName + "_" + skillData.ClassName, out var overrideFunc)
+				&& buff.Caster is ICombatEntity casterEntity && casterEntity.TryGetSkill(buff.SkillId, out var skill))
+			{
+				return overrideFunc(skill);
+			}
+
+			var (baseValue, byLevel, maxValue) = slot switch
+			{
+				1 => (skillData.CaptionRatio1, skillData.CaptionRatio1ByLevel, skillData.CaptionRatio1Max),
+				2 => (skillData.CaptionRatio2, skillData.CaptionRatio2ByLevel, skillData.CaptionRatio2Max),
+				3 => (skillData.CaptionRatio3, skillData.CaptionRatio3ByLevel, skillData.CaptionRatio3Max),
 				_ => throw new ArgumentOutOfRangeException(nameof(slot), $"No caption ratio {slot}."),
 			};
 
 			var value = baseValue + (byLevel * buff.NumArg1);
+			value += value * GetReinforceRate(buff);
 
-			return value + (value * GetReinforceRate(buff));
+			if (maxValue != 0)
+				value = Math.Min(maxValue, value);
+
+			return value;
 		}
 
 		/// <summary>
@@ -158,7 +184,10 @@ namespace Melia.Zone.Buffs.Base
 		protected static TimeSpan GetCaptionTime(Buff buff)
 		{
 			if (!ZoneServer.Instance.Data.SkillDb.TryFind(buff.SkillId, out var skillData))
+			{
+				Log.Warning($"GetCaptionTime: Buff '{buff.Id}' has no skill data for SkillId '{buff.SkillId}', did the caller forget to pass skillId to StartBuff?");
 				return TimeSpan.Zero;
+			}
 
 			return TimeSpan.FromSeconds(skillData.CaptionTime + (skillData.CaptionTimeByLevel * buff.NumArg1));
 		}
@@ -262,6 +291,28 @@ namespace Melia.Zone.Buffs.Base
 
 			buff.Vars.SetFloat(varName, value);
 			target.Properties.Modify(propertyName, value - oldValue);
+
+			RefreshCaptionOverridesIfRelevant(target, propertyName);
+		}
+
+		/// <summary>
+		/// Resends the target's caption overrides if the changed property is
+		/// one a caption override reads live. What counts is declared by the
+		/// overrides themselves via CaptionOverrideDependencies, not by this
+		/// method - a new override that reads a new stat needs no change
+		/// here.
+		/// </summary>
+		/// <param name="target"></param>
+		/// <param name="propertyName"></param>
+		private static void RefreshCaptionOverridesIfRelevant(ICombatEntity target, string propertyName)
+		{
+			if (target is not Character character)
+				return;
+
+			if (!CaptionOverrideDependencies.DependsOn(propertyName))
+				return;
+
+			Send.ZC_NORMAL.CaptionOverrides(character);
 		}
 
 		/// <summary>
@@ -285,6 +336,8 @@ namespace Melia.Zone.Buffs.Base
 			{
 				target.Properties.Modify(propertyName, -value);
 				buff.Vars.Remove(varName);
+
+				RefreshCaptionOverridesIfRelevant(target, propertyName);
 			}
 		}
 

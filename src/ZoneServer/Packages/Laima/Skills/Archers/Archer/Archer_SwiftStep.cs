@@ -47,7 +47,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Archer
 			caster.SetAttackState(true);
 
 			var duration = TimeSpan.FromSeconds(300);
-			caster.StartBuff(BuffId.SwiftStep_Buff, skill.Level, 0, duration, caster);
+			caster.StartBuff(BuffId.SwiftStep_Buff, skill.Level, 0, duration, caster, skill.Id);
 
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
 		}

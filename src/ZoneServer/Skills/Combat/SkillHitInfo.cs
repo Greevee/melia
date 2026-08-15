@@ -146,7 +146,7 @@ namespace Melia.Zone.Skills.Combat
 			this.HitEffect = result.Effect;
 			this.HitCount = result.HitCount;
 
-			if (skill.Data.HitType == SkillHitType.Force)
+			if (skill.Data.UseType == SkillUseType.Force)
 				this.ForceId = Melia.Zone.Skills.Combat.ForceId.GetNew();
 
 			this.RunHitInfoCreatedHooks();

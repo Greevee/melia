@@ -50,7 +50,7 @@ namespace Melia.Zone.Skills.Handlers.Cryomancer
 			if (caster.TryGetActiveAbility(AbilityId.Cryomancer7, out var abilCryomancer7))
 				freezeDuration += (int)(500 * abilCryomancer7.Level);
 
-			caster.StartBuff(BuffId.Subzero_Buff, skill.Level, freezeDuration, TimeSpan.FromSeconds(BuffDurationSeconds), caster);
+			caster.StartBuff(BuffId.Subzero_Buff, skill.Level, freezeDuration, TimeSpan.FromSeconds(BuffDurationSeconds), caster, skill.Id);
 
 			// Buff party members
 			if (caster is Character character)
@@ -63,7 +63,7 @@ namespace Melia.Zone.Skills.Handlers.Cryomancer
 					{
 						if (member == caster)
 							continue;
-						member.StartBuff(BuffId.Subzero_Buff, skill.Level, freezeDuration, TimeSpan.FromSeconds(BuffDurationSeconds), caster);
+						member.StartBuff(BuffId.Subzero_Buff, skill.Level, freezeDuration, TimeSpan.FromSeconds(BuffDurationSeconds), caster, skill.Id);
 					}
 				}
 			}

@@ -31,13 +31,13 @@
 { skillId: 10002, className: "Swordman_Bash", name: "Bash", basicSp: 8, lvUpSpendSp: 1, splashRate: 10, factor: 96, factorByLevel: 19.2, cooldownTime: 4000, overheatCount: "3" },
 { skillId: 10003, className: "Swordman_GungHo", name: "Gung Ho", basicSp: 32, lvUpSpendSp: 5, splashRate: 0, factor: 0, factorByLevel: 0, cooldownTime: 30000, overheatCount: "0", captionRatio1: 0, captionRatio1ByLevel: 3, captionTime: 300 },
 { skillId: 10005, className: "Swordman_PainBarrier", name: "Pain Barrier", basicSp: 32, lvUpSpendSp: 5, factor: 0, factorByLevel: 0, cooldownTime: 30000, overheatCount: "0", captionTime: 10, captionTimeByLevel: 4 },
-{ skillId: 10009, className: "Swordman_Bear", name: "Bear", basicSp: 32, lvUpSpendSp: 5, splashRate: 0, factor: 0, factorByLevel: 0, cooldownTime: 30000, overheatCount: "0", captionRatio1: 0, captionRatio1ByLevel: 3.6, captionTime: 300 },
+{ skillId: 10009, className: "Swordman_Bear", name: "Bear", basicSp: 32, lvUpSpendSp: 5, splashRate: 0, factor: 0, factorByLevel: 0, cooldownTime: 30000, overheatCount: "0", captionRatio1: 0, captionRatio1ByLevel: 3.6, captionRatio1Max: 80, captionTime: 300 },
 { skillId: 10010, className: "Swordman_Liberate", name: "Liberate", basicSp: 27, lvUpSpendSp: 4, splashRate: 0, factor: 100, factorByLevel: 0, cooldownGroup: "Liberate", cooldownTime: 60000, overheatCount: "0", captionRatio1: 0, captionRatio1ByLevel: 100, captionTime: 0, captionTimeByLevel: 30 },
 
 // Peltasta
 //---------------------------------------------------------------------------
 { skillId: 10102, className: "Peltasta_RimBlow", name: "Rim Blow", basicSp: 11, lvUpSpendSp: 1, splashRate: 6, factor: 50, factorByLevel: 2.7, cooldownTime: 4000, overheatCount: "2" },
-{ skillId: 10103, className: "Peltasta_SwashBuckling", name: "Swash Buckling", basicSp: 18, lvUpSpendSp: 1, splashRate: 4, factor: 100, factorByLevel: 0, atkAdd: 0, cooldownTime: 10000, overheatCount: "0", captionRatio1: 0, captionRatio1ByLevel: 2.3, captionRatio2: 0, captionRatio2ByLevel: 2.2, captionRatio3: 0, captionRatio3ByLevel: 2.2, captionTime: 5, captionTimeByLevel: 2 },
+{ skillId: 10103, className: "Peltasta_SwashBuckling", name: "Swash Buckling", basicSp: 18, lvUpSpendSp: 1, splashRate: 4, factor: 100, factorByLevel: 0, atkAdd: 0, cooldownTime: 10000, overheatCount: "0", captionRatio1: 0, captionRatio1ByLevel: 2.3, captionRatio2: 0, captionRatio2ByLevel: 2.2, captionRatio2Max: 75, captionRatio3: 0, captionRatio3ByLevel: 2.2, captionRatio3Max: 75, captionTime: 5, captionTimeByLevel: 2 },
 { skillId: 10104, className: "Peltasta_Guardian", name: "Guardian", basicSp: 28, lvUpSpendSp: 2, splashRate: 0, factor: 100, factorByLevel: 0, cooldownTime: 30000, overheatCount: "0", captionRatio1: 0, captionRatio1ByLevel: 6.2, captionRatio2: 0, captionRatio2ByLevel: 1.1, captionTime: 15 },
 { skillId: 10105, className: "Peltasta_ShieldLob", name: "Shield Lob", basicSp: 13, lvUpSpendSp: 1, splashRate: 3, factor: 27, factorByLevel: 1.5, cooldownTime: 8000, overheatCount: "2" },
 { skillId: 10106, className: "Peltasta_HighGuard", name: "High Guard", basicSp: 18, lvUpSpendSp: 1, splashRate: 0, factor: 100, factorByLevel: 0, cooldownTime: 10000, overheatCount: "0", captionRatio1: 0, captionRatio1ByLevel: 1.8, captionRatio2: 0, captionRatio2ByLevel: 2.5, captionTime: 0 },
@@ -319,7 +319,7 @@
 { skillId: 20004, className: "Wizard_ReflectShield", name: "Magic Shield", basicSp: 49, lvUpSpendSp: 8, basicCast: 3000, splashRate: 0, factor: 100.0, factorByLevel: 0.0, cooldownTime: 15000, overheatCount: "0", castInterruptible: true },
 { skillId: 20005, className: "Wizard_EarthQuake", name: "Earthquake", basicSp: 25, lvUpSpendSp: 4, basicCast: 1000, splashRate: 0, factor: 241, factorByLevel: 48.2, cooldownTime: 8000, overheatCount: "0" },
 { skillId: 20007, className: "Wizard_MagicMissile", name: "Magic Missile", basicSp: 20, lvUpSpendSp: 3, basicCast: 1200, splashRate: 0, factor: 68, factorByLevel: 13.6, cooldownTime: 8000, overheatCount: "3", castInterruptible: false },
-{ skillId: 20008, className: "Wizard_Teleportation", name: "Teleportation", basicSp: 21, lvUpSpendSp: 4, basicCast: 300, splashRate: 0, factor: 0, factorByLevel: 0, cooldownTime: 3000, overheatCount: "0", castInterruptible: true, captionRatio1: 80, captionRatio1ByLevel: 24 },
+{ skillId: 20008, className: "Wizard_Teleportation", name: "Teleportation", basicSp: 21, lvUpSpendSp: 4, basicCast: 300, splashRate: 0, factor: 0, factorByLevel: 0, cooldownTime: 3000, overheatCount: "0", castInterruptible: true, captionRatio1: 80, captionRatio1ByLevel: 24, captionRatio1Max: 248 },
 
 // Pyromancer
 //---------------------------------------------------------------------------
@@ -868,7 +868,7 @@
 { skillId: 40607, className: "Paladin_Conviction", name: "Conviction", basicSp: 13, lvUpSpendSp: 1, splashRate: 4, factor: 136, factorByLevel: 7.4, hitCount: 1, multiHitCount: 4, cooldownTime: 6000, overheatCount: "3" },
 { skillId: 40608, className: "Paladin_Sanctuary", name: "Sanctuary", basicSp: 88, lvUpSpendSp: 9, splashRate: 0, factor: 100, hitCount: 1, multiHitCount: 1, cooldownTime: 8000 },
 { skillId: 40609, className: "Paladin_Demolition", name: "Demolition", basicSp: 55, lvUpSpendSp: 3, basicCast: 4000, splashRate: 10, factor: 120, factorByLevel: 6.5, hitCount: 1, multiHitCount: 7, cooldownTime: 5000, enableCastMove: true },
-{ skillId: 40610, className: "Paladin_StoneSkin", name: "Stone Skin", basicSp: 44, lvUpSpendSp: 2, basicCast: 3000, splashRate: 1, factor: 38, factorByLevel: 25, hitCount: 1, multiHitCount: 1, cooldownTime: 5000, captionRatio1: 0, captionRatio1ByLevel: 1.2, captionTime: 300 },
+{ skillId: 40610, className: "Paladin_StoneSkin", name: "Stone Skin", basicSp: 44, lvUpSpendSp: 2, basicCast: 3000, splashRate: 1, factor: 38, factorByLevel: 25, hitCount: 1, multiHitCount: 1, cooldownTime: 5000, captionRatio1: 0, captionRatio1ByLevel: 1.2, captionRatio1Max: 90, captionTime: 300 },
 
 // Monk
 //---------------------------------------------------------------------------

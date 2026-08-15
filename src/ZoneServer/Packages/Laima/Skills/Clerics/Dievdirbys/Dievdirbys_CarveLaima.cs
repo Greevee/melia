@@ -103,7 +103,7 @@ namespace Melia.Zone.Skills.HandlersOverrides.Clerics.Dievdirbys
 
 					foreach (var enemy in enemies)
 					{
-						enemy.StartBuff(BuffId.CarveLaima_MSPD_Debuff, skill.Level, 0, TimeSpan.FromMilliseconds(BuffDurationMs), caster);
+						enemy.StartBuff(BuffId.CarveLaima_MSPD_Debuff, skill.Level, 0, TimeSpan.FromMilliseconds(BuffDurationMs), caster, skill.Id);
 					}
 				}
 				else

@@ -82,6 +82,10 @@ namespace Melia.Zone.Skills
 		{
 			this.AutoUpdate(PropertyName.Level, [PropertyName.LevelByDB, PropertyName.Level_BM, PropertyName.GemLevel_BM]);
 			this.AutoUpdate(PropertyName.SkillFactor, [PropertyName.Level]);
+			this.AutoUpdate(PropertyName.CaptionTime, [PropertyName.Level]);
+			this.AutoUpdate(PropertyName.CaptionRatio, [PropertyName.Level]);
+			this.AutoUpdate(PropertyName.CaptionRatio2, [PropertyName.Level]);
+			this.AutoUpdate(PropertyName.CaptionRatio3, [PropertyName.Level]);
 		}
 
 		/// <summary>
@@ -150,24 +154,10 @@ namespace Melia.Zone.Skills
 			this.Create(new RFloatProperty(PropertyName.EnableSkillCancel, () => this.Skill.Data.CastInterruptible ? 1f : 0f));
 			this.Create(new RFloatProperty(PropertyName.CancelSkill, () => this.Skill.Data.CastInterruptible ? 1f : 0f));
 
-			this.Create(new RFloatProperty(PropertyName.CaptionTime, () => this.Skill.Data.CaptionTime + (this.Skill.Data.CaptionTimeByLevel * this.Skill.Level)));
-			this.Create(new RFloatProperty(PropertyName.CaptionRatio, () => this.CalculateCaptionRatio(this.Skill.Data.CaptionRatio1, this.Skill.Data.CaptionRatio1ByLevel)));
-			this.Create(new RFloatProperty(PropertyName.CaptionRatio2, () => this.CalculateCaptionRatio(this.Skill.Data.CaptionRatio2, this.Skill.Data.CaptionRatio2ByLevel)));
-			this.Create(new RFloatProperty(PropertyName.CaptionRatio3, () => this.CalculateCaptionRatio(this.Skill.Data.CaptionRatio3, this.Skill.Data.CaptionRatio3ByLevel)));
-		}
-
-		/// <summary>
-		/// Resolves a caption ratio against the skill's level and reinforce
-		/// ability, the same way SCR_Get_SkillFactor resolves the factor.
-		/// </summary>
-		/// <param name="baseValue"></param>
-		/// <param name="byLevel"></param>
-		/// <returns></returns>
-		private float CalculateCaptionRatio(float baseValue, float byLevel)
-		{
-			var value = baseValue + (byLevel * this.Skill.Level);
-
-			return value + (value * ScriptableFunctions.Skill.Get("SCR_Get_AbilityReinforceRate")(this.Skill));
+			this.Create(PropertyName.CaptionTime, "SCR_Get_CaptionTime");
+			this.Create(PropertyName.CaptionRatio, "SCR_Get_CaptionRatio");
+			this.Create(PropertyName.CaptionRatio2, "SCR_Get_CaptionRatio2");
+			this.Create(PropertyName.CaptionRatio3, "SCR_Get_CaptionRatio3");
 		}
 
 		/// <summary>

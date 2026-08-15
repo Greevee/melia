@@ -35,7 +35,7 @@ namespace Melia.Zone.Skills.Handlers.Scouts.Rogue
 			if (!buff.Data.Tags.Contains(BuffTag.Cloaking))
 				return;
 
-			target.StartBuff(BuffId.SneakHit_Buff, skill.Level, 0, TimeSpan.FromSeconds(3), target);
+			target.StartBuff(BuffId.SneakHit_Buff, skill.Level, 0, TimeSpan.FromSeconds(3), target, skill.Id);
 		}
 	}
 }

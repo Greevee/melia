@@ -70,14 +70,20 @@ namespace Melia.Shared.Data.Database
 				data.CaptionRatio1 = entry.ReadFloat("captionRatio1");
 			if (entry.ContainsKey("captionRatio1ByLevel"))
 				data.CaptionRatio1ByLevel = entry.ReadFloat("captionRatio1ByLevel");
+			if (entry.ContainsKey("captionRatio1Max"))
+				data.CaptionRatio1Max = entry.ReadFloat("captionRatio1Max");
 			if (entry.ContainsKey("captionRatio2"))
 				data.CaptionRatio2 = entry.ReadFloat("captionRatio2");
 			if (entry.ContainsKey("captionRatio2ByLevel"))
 				data.CaptionRatio2ByLevel = entry.ReadFloat("captionRatio2ByLevel");
+			if (entry.ContainsKey("captionRatio2Max"))
+				data.CaptionRatio2Max = entry.ReadFloat("captionRatio2Max");
 			if (entry.ContainsKey("captionRatio3"))
 				data.CaptionRatio3 = entry.ReadFloat("captionRatio3");
 			if (entry.ContainsKey("captionRatio3ByLevel"))
 				data.CaptionRatio3ByLevel = entry.ReadFloat("captionRatio3ByLevel");
+			if (entry.ContainsKey("captionRatio3Max"))
+				data.CaptionRatio3Max = entry.ReadFloat("captionRatio3Max");
 			if (entry.ContainsKey("captionTime"))
 				data.CaptionTime = entry.ReadFloat("captionTime");
 			if (entry.ContainsKey("captionTimeByLevel"))

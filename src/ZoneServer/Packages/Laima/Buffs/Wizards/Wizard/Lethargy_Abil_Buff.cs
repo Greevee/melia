@@ -36,7 +36,7 @@ namespace Melia.Zone.Buffs.Handlers
 					enhanceAbilityLevel = enhanceAbility.Level;
 
 				if (rng < applyDebuffChance)
-					target.StartBuff(BuffId.Lethargy_Debuff, skill.Level, enhanceAbilityLevel, TimeSpan.FromSeconds(8), attacker);
+					target.StartBuff(BuffId.Lethargy_Debuff, skill.Level, enhanceAbilityLevel, TimeSpan.FromSeconds(8), attacker, skill.Id);
 			}
 		}
 	}

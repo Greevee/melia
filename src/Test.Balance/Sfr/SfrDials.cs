@@ -440,6 +440,20 @@ namespace Melia.Test.Balance.Sfr
 		public const int MinSpCost = 1;
 
 		/// <summary>
+		/// Hard SFR multiplier applied to a named skill after the model prices
+		/// it, for a cut the model itself has no term for.
+		/// </summary>
+		/// <remarks>
+		/// A design override, not a measurement - it survives a re-price of the
+		/// roster instead of being clobbered by it. 1.0 leaves a skill at what
+		/// the model priced.
+		/// </remarks>
+		public static readonly Dictionary<string, float> SkillSfrMultipliers = new()
+		{
+			["Linker_JointPenalty"] = 0.1f,
+		};
+
+		/// <summary>
 		/// Rider multipliers for the non-damage payload the direct-hit model
 		/// cannot see.
 		/// </summary>

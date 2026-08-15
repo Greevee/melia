@@ -241,6 +241,15 @@ namespace Melia.Test.Balance.Sfr
 					Write($"   {entry.Skill,-34} basicSp {entry.OldSp:0.#}");
 			}
 
+			if (result.HardOverrides.Count > 0)
+			{
+				Write("");
+				Write($"{result.HardOverrides.Count} skill(s) carry a hard SFR override (SfrDials.SkillSfrMultipliers):");
+
+				foreach (var entry in result.HardOverrides.OrderBy(o => o.Skill))
+					Write($"   {entry.Skill,-34} x{entry.Multiplier:0.00} of the model's own price");
+			}
+
 			if (result.NewlyPriced.Count > 0)
 			{
 				Write("");
@@ -394,6 +403,10 @@ namespace Melia.Test.Balance.Sfr
 				+ $"  charged as {MathF.Pow(Math.Max(r.ChargedReach, 1e-6f), SfrDials.AoeExponent):0.00}"
 				+ (r.SpreadCapped ? "   SPREAD-CAPPED" : ""));
 			Write("");
+
+			if (r.HardMultiplier != 1f)
+				Write($"  HARD SFR OVERRIDE: x{r.HardMultiplier:0.00} of the model's own price (SfrDials.SkillSfrMultipliers)");
+
 			Write($"  total SFR at max level   {r.Sfr:0}%");
 			Write($"  factor: {r.Factor}, factorByLevel: {r.FactorByLevel:0.0}");
 			Write($"  SP target {r.Sp.Target:0.0} over {r.Sp.Charges:0.0} charge(s)"
