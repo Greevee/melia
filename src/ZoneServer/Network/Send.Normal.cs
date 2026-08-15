@@ -4866,7 +4866,7 @@ namespace Melia.Zone.Network
 					packet.PutShort((short)job.Id);
 					packet.PutShort((short)job.Level);
 					packet.PutInt(0);
-					packet.PutLong(job.TotalExp);
+					packet.PutLong(job.DisplayExp);
 					packet.PutByte((byte)job.SkillPoints);
 					packet.PutShort(0);
 					packet.PutEmptyBin(5);

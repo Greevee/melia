@@ -229,12 +229,29 @@ public class WhackAMoleInstance : MinigameBase
 		}
 	}
 
+	/// <summary>
+	/// Returns whether the given spawner spawns monsters on this
+	/// minigame's map.
+	/// </summary>
+	/// <param name="spawner"></param>
+	/// <returns></returns>
+	private bool SpawnsOnMap(MonsterSpawner spawner)
+	{
+		// The spawner's Maps set is only filled once it has actually
+		// spawned, so fall back to its statically configured areas
+		if (spawner.Maps.Contains(this.Map.Id))
+			return true;
+
+		if (!ZoneServer.Instance.World.TryGetSpawnAreas(spawner.SpawnPointsIdent, out var spawnAreas))
+			return false;
+
+		return spawnAreas.GetAllOnMap(this.Map).Length > 0;
+	}
+
 	private void InitializeAvailableMonsters()
 	{
-		// Get all spawners and filter by those that spawn on this map
-		// Use spawner.Maps property instead of spawn areas to avoid issues after script reload
 		var allSpawners = ZoneServer.Instance.World.GetSpawners().OfType<MonsterSpawner>();
-		var spawners = allSpawners.Where(s => s.Maps.Contains(this.Map.Id)).ToList();
+		var spawners = allSpawners.Where(this.SpawnsOnMap).ToList();
 
 		if (spawners.Count > 0)
 		{

@@ -34,14 +34,13 @@ namespace Melia.Zone.World.Actors.Characters
 				amount = this.Job.MaxLevel - this.Job.Level;
 
 			var prevLevel = this.Job.Level;
-			var prevExp = this.Job.TotalExp;
+			var prevDisplayExp = this.Job.DisplayExp;
 
 			this.Job.TotalExp = ZoneServer.Instance.Data.ExpDb.GetNextTotalJobExp(this.Jobs.GetJobRank(this.JobId), prevLevel + amount - 1);
 
-			var expGained = (this.Job.TotalExp - prevExp);
 			var levelsGained = (this.Job.Level - prevLevel);
 
-			Send.ZC_JOB_EXP_UP(this, expGained);
+			Send.ZC_JOB_EXP_UP(this, this.Job.DisplayExp - prevDisplayExp);
 
 			if (levelsGained > 0)
 				this.FinishJobLevelChange(levelsGained);

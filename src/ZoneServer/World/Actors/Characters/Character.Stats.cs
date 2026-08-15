@@ -289,13 +289,13 @@ namespace Melia.Zone.World.Actors.Characters
 				var totalMaxExp = job.TotalMaxExp;
 
 				var prevTotalExp = job.TotalExp;
+				var prevDisplayExp = job.DisplayExp;
 				job.TotalExp = Math.Min(totalMaxExp, (job.TotalExp + jobExp));
-				var actualJobExp = job.TotalExp - prevTotalExp;
 
 				var newJobLevel = this.JobLevel;
 				var jobLevelsGained = (newJobLevel - jobLevel);
 
-				Send.ZC_JOB_EXP_UP(this, actualJobExp);
+				Send.ZC_JOB_EXP_UP(this, job.DisplayExp - prevDisplayExp);
 
 				if (jobLevelsGained > 0)
 					this.FinishJobLevelChange(jobLevelsGained);

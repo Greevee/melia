@@ -195,6 +195,25 @@ public class DefendTheTorchInstance : MinigameBase
 	}
 
 	/// <summary>
+	/// Returns whether the given spawner spawns monsters on this
+	/// minigame's map.
+	/// </summary>
+	/// <param name="spawner"></param>
+	/// <returns></returns>
+	private bool SpawnsOnMap(MonsterSpawner spawner)
+	{
+		// The spawner's Maps set is only filled once it has actually
+		// spawned, so fall back to its statically configured areas
+		if (spawner.Maps.Contains(this.Map.Id))
+			return true;
+
+		if (!ZoneServer.Instance.World.TryGetSpawnAreas(spawner.SpawnPointsIdent, out var spawnAreas))
+			return false;
+
+		return spawnAreas.GetAllOnMap(this.Map).Length > 0;
+	}
+
+	/// <summary>
 	/// Initializes the list of available monsters from spawners in the map.
 	/// Uses the same formula as SuperMonGenMob_Died to determine wave count.
 	/// Only considers spawners with average spawn count >= configured threshold to avoid rare spawns.
@@ -204,10 +223,8 @@ public class DefendTheTorchInstance : MinigameBase
 		var worldConf = ZoneServer.Instance.Conf.World;
 		var minAvgSpawnCount = 3f;
 
-		// Get all spawners and filter by those that spawn on this map
-		// Use spawner.Maps property instead of spawn areas to avoid issues after script reload
 		var allSpawners = ZoneServer.Instance.World.GetSpawners().OfType<MonsterSpawner>();
-		var spawners = allSpawners.Where(s => s.Maps.Contains(this.Map.Id)).ToList();
+		var spawners = allSpawners.Where(this.SpawnsOnMap).ToList();
 
 		if (spawners.Count > 0)
 		{

@@ -195,6 +195,11 @@ namespace Melia.Shared.Game.Const
 		public const int SkillLevelsPerCircle = 5;
 
 		/// <summary>
+		/// The highest circle an advanced job reaches.
+		/// </summary>
+		public const int MaxCircles = 3;
+
+		/// <summary>
 		/// Returns the circle a skill belongs to, derived from the 1/16/31
 		/// banding of its skill tree unlock level.
 		/// </summary>

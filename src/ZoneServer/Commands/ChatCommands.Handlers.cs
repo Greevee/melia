@@ -4488,8 +4488,19 @@ namespace Melia.Zone.Commands
 				var percent = 100f / maxExp * exp;
 
 				sb.AppendLine(" {0}", job.Id);
-				sb.AppendLine("   Rank: {0}, Level: {1}, MaxLevel: {2}, Circle: {3}, SkillPoints: {4}", job.Rank, job.Level, job.MaxLevel, job.Circle, job.SkillPoints);
+				sb.AppendLine("   Rank: {0}, Level: {1}, MaxLevel: {2}, Circle: {3}, SkillPoints: {4}", target.Jobs.GetJobRank(job.Id), job.Level, job.MaxLevel, job.Circle, job.SkillPoints);
 				sb.AppendLine("   Exp: {0} / {1} ({2:0.0}%)", exp, maxExp, percent);
+				sb.AppendLine("   Sent to client: DisplayExp {0}", job.DisplayExp);
+			}
+
+			var history = target.Jobs.GetHistory();
+
+			sb.AppendLine(Localization.Get(" Rank Breakdown ({0} spent of {1})"), target.Jobs.GetCurrentRank(), ZoneServer.Instance.Conf.World.JobMaxRank);
+
+			foreach (var entry in history)
+			{
+				sb.AppendLine("   Rank {0}: {1}, Level: {2}, TotalExp: {3}", entry.Rank, entry.Job.Id, entry.Level, entry.TotalExp);
+				sb.AppendLine("        Curve: {0} ~ {1}", entry.LevelStartExp, entry.LevelEndExp);
 			}
 
 			return CommandResult.Okay;
