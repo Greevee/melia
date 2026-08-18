@@ -48,7 +48,7 @@ public class FGele572QuestNpcsScript : GeneralScript
 						if (await dialog.YesNo(L("These monsters are scattered all over the plateau. You'll need to hunt 15 of each type. Can you handle such an extensive patrol?")))
 						{
 							character.Quests.Start(questId);
-							await dialog.Msg(L("Excellent! The Leafly tend to gather in the eastern and western regions. The Panto warriors with swords can be found in the western and eastern areas, while those fighting with their hands spawn mostly in the southeast and scattered central locations."));
+							await dialog.Msg(L("Excellent! The Leafly tend to gather in the eastern and western regions. The Panto warriors with swords can be found in the western and eastern areas, while pathfinders spawn mostly in the southeast and scattered central locations."));
 							await dialog.Msg(L("It's a vast plateau, so prepare for a lot of ground to cover. Return to me once you've completed the hunt."));
 						}
 						break;
@@ -86,9 +86,9 @@ public class FGele572QuestNpcsScript : GeneralScript
 					if (!leaflyDone)
 						await dialog.Msg(L("- Leafly in the northern and western regions"));
 					if (!swordDone)
-						await dialog.Msg(L("- Panto warriors with swords in the western and eastern areas"));
+						await dialog.Msg(L("- Panto warriors in the western and eastern areas"));
 					if (!handDone)
-						await dialog.Msg(L("- Panto warriors fighting with their hands in the southeast"));
+						await dialog.Msg(L("- Panto pathfinders in the southeast"));
 
 					await dialog.Msg(L("It's a long patrol, but I know you can do it."));
 				}
@@ -283,7 +283,7 @@ public class PlateausMenaceQuest : QuestScript
 		SetId("f_gele_57_2", 1001);
 		SetName(L("Plateau's Menace"));
 		SetType(QuestType.Sub);
-		SetDescription(L("Help Klaipeda Scout Lania thin the monster population across Srautas Gorge by hunting Leafly, Panto warriors with swords, and Panto warriors with their hands."));
+		SetDescription(L("Help Klaipeda Scout Lania thin the monster population across Srautas Gorge by hunting Leafly, Panto warriors and Panto pathfinders."));
 		SetLocation("f_gele_57_2");
 		SetAutoTracked(true);
 
@@ -295,10 +295,10 @@ public class PlateausMenaceQuest : QuestScript
 		AddObjective("killLeafly", L("Hunt Leafly"),
 			new KillObjective(15, new[] { MonsterId.Leafly }));
 
-		AddObjective("killPantoSword", L("Hunt Panto Warriors (Sword)"),
+		AddObjective("killPantoSword", L("Hunt Panto Warriors"),
 			new KillObjective(15, new[] { MonsterId.Npanto_Sword }));
 
-		AddObjective("killPantoHand", L("Hunt Panto Warriors (Hand)"),
+		AddObjective("killPantoHand", L("Hunt Panto Pathfinders"),
 			new KillObjective(15, new[] { MonsterId.Npanto_Hand }));
 
 		// Rewards

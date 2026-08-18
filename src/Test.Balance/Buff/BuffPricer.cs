@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
@@ -279,13 +279,45 @@ namespace Melia.Test.Balance.Buff
 		/// <param name="slot"></param>
 		/// <param name="scale"></param>
 		public static (float Base, float ByLevel) SlotValues(BuffSubject subject, int slot, float scale)
-		{
-			var atCap = subject.Slots[slot] * scale;
-			var cap = Math.Max(1, subject.MaxLevel);
+			=> Split(subject.Slots[slot] * scale, Math.Max(1, subject.MaxLevel));
 
+		/// <summary>
+		/// Returns the base and per-level terms one magnitude at cap is written
+		/// as.
+		/// </summary>
+		/// <param name="atCap"></param>
+		/// <param name="cap"></param>
+		private static (float Base, float ByLevel) Split(float atCap, int cap)
+		{
 			return BuffDials.GrowsFromZero
 				? (0f, Round(atCap / cap))
 				: (Round(atCap / 2f), Round(atCap / 2f / cap));
+		}
+
+		/// <summary>
+		/// Adds the rows a buff's pinned slots write to what its solve produced.
+		/// </summary>
+		/// <remarks>
+		/// Written from the dial rather than from a scale, so the row and
+		/// BuffDials.PinnedRatios cannot drift, and the pass stays idempotent
+		/// over them for the same reason: the number does not depend on the
+		/// measurement.
+		/// </remarks>
+		/// <param name="subject"></param>
+		/// <param name="slots"></param>
+		private static IReadOnlyDictionary<int, (float Base, float ByLevel)> WithPinned(BuffSubject subject,
+			IReadOnlyDictionary<int, (float Base, float ByLevel)> slots)
+		{
+			if (subject.PinnedSlots == null || subject.PinnedSlots.Count == 0)
+				return slots;
+
+			var cap = Math.Max(1, subject.MaxLevel);
+			var merged = slots.ToDictionary(s => s.Key, s => s.Value);
+
+			foreach (var (slot, atCap) in subject.PinnedSlots)
+				merged[slot] = Split(atCap, cap);
+
+			return merged;
 		}
 
 		/// <summary>
@@ -621,8 +653,8 @@ namespace Melia.Test.Balance.Buff
 			(float Circle, float Skill) premium, int measurements, bool converged,
 			IReadOnlyDictionary<int, (float Base, float ByLevel)> slotsOverride = null)
 		{
-			var slots = slotsOverride ?? subject.Slots.Keys.OrderBy(s => s)
-				.ToDictionary(slot => slot, slot => SlotValues(subject, slot, scale));
+			var slots = WithPinned(subject, slotsOverride ?? subject.Slots.Keys.OrderBy(s => s)
+				.ToDictionary(slot => slot, slot => SlotValues(subject, slot, scale)));
 
 			return new BuffPrice
 			{

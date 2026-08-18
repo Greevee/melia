@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Melia.Test.Balance.Buff
@@ -307,6 +307,33 @@ namespace Melia.Test.Balance.Buff
 		/// a correction to that audit, not routine maintenance.
 		/// </remarks>
 		public static readonly Dictionary<string, string> Excluded = [];
+
+		/// <summary>
+		/// Caption ratio slots held at a chosen magnitude per skill level,
+		/// which the pass measures against but never solves or scales.
+		/// </summary>
+		/// <remarks>
+		/// For a slot whose number is the mechanic rather than a dial on it: a
+		/// player reads "10% a level" off the tooltip and builds a rotation on
+		/// it, and a solver free to move it makes that number a function of
+		/// every other dial in the model.
+		///
+		/// Not an exemption from the budget. A pinned slot is installed live in
+		/// every window, so what it is worth counts against the buff's
+		/// contribution and the slots left free are solved for whatever
+		/// remains. The pass writes it from this table rather than from a
+		/// solve, so the row and the dial cannot drift apart.
+		///
+		/// A pin needs a free slot beside it. Scope is still "the row declares
+		/// a caption ratio the pass can solve", so a row whose every slot is
+		/// pinned leaves the roster entirely.
+		/// </remarks>
+		public static readonly Dictionary<string, Dictionary<int, float>> PinnedRatios = new()
+		{
+			// The multi-hit chance the class is built around, and what the
+			// tooltip promises: 10% a level, half the swings at its cap of five.
+			["Scout_DoubleAttack"] = new() { [2] = 10f },
+		};
 
 		/// <summary>
 		/// Buffs allowed more or less than the roster's budget, and what they

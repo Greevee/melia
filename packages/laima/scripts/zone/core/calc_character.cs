@@ -487,9 +487,10 @@ public class CharacterCalculationsScript : GeneralScript
 		var stat = properties.GetFloat(PropertyName.CON, 1);
 
 		var rateByJob = character.Job?.Data.HpRate ?? 1;
-		var byJob = 400 * rateByJob;
+		var byJob = 80 * rateByJob;
 
-		var byLevel = Math.Floor(byJob + ((level - 1) * 17 * rateByJob));
+		var levels = level - 1;
+		var byLevel = Math.Floor(byJob + (((levels * 3.25f) + (levels * levels * 0.13f)) * rateByJob));
 		var byStat = 0d;
 		if (Feature.IsEnabled("NewCONFormula"))
 			byStat = Math.Floor(((stat * 0.003f) + (Math.Floor(stat / 10.0f) * 0.010f)) * byLevel);

@@ -56,7 +56,6 @@ namespace Melia.Shared.Data
 		public MonsterDb MonsterDb { get; } = new MonsterDb();
 
 		public MonsterIconDb MonsterIconDb { get; } = new MonsterIconDb();
-		public NavGraphDb NavGraphDb { get; } = new NavGraphDb();
 		public NormalTxDb NormalTxDb { get; } = new NormalTxDb();
 		public PacketStringDb PacketStringDb { get; } = new PacketStringDb();
 		public PropertiesDb PropertiesDb { get; } = new PropertiesDb();

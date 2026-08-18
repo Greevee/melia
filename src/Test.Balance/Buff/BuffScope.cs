@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -46,6 +46,17 @@ namespace Melia.Test.Balance.Buff
 		/// cannot see.
 		/// </remarks>
 		public IReadOnlyDictionary<int, float> Slots { get; init; }
+
+		/// <summary>
+		/// The slots BuffDials.PinnedRatios holds at a chosen magnitude, at the
+		/// skill's own cap, which the pass measures against but never solves.
+		/// </summary>
+		/// <remarks>
+		/// Kept out of Slots so the solver cannot move them, and installed live
+		/// in every window regardless, so what they are worth still counts
+		/// against the buff's budget.
+		/// </remarks>
+		public IReadOnlyDictionary<int, float> PinnedSlots { get; init; } = new Dictionary<int, float>();
 
 		/// <summary>
 		/// The magnitude each declared slot actually holds in the file right
@@ -223,10 +234,21 @@ namespace Melia.Test.Balance.Buff
 			{
 				var maxLevel = SfrData.SkillMaxLevel(skillName);
 				var slots = new Dictionary<int, float>();
+				var pinned = new Dictionary<int, float>();
 				var written = new Dictionary<int, float>();
+				var held = BuffDials.PinnedRatios.GetValueOrDefault(skillName);
 
 				for (var slot = 1; slot <= 3; ++slot)
 				{
+					// A pinned slot's magnitude comes from the dial, not the
+					// row, so the pin holds whatever the file was left carrying.
+					if (held != null && held.TryGetValue(slot, out var pin))
+					{
+						pinned[slot] = pin * maxLevel;
+						written[slot] = pin * maxLevel;
+						continue;
+					}
+
 					var baseValue = entry.Num($"captionRatio{slot}", 0);
 					var byLevel = entry.Num($"captionRatio{slot}ByLevel", 0);
 
@@ -258,6 +280,7 @@ namespace Melia.Test.Balance.Buff
 					Buffs = grants.GetValueOrDefault(skillName, []),
 					IsPartyWide = PartyWide().Contains(skillName),
 					Slots = slots,
+					PinnedSlots = pinned,
 					WrittenMagnitudes = written,
 					MaxLevel = maxLevel,
 					DurationSeconds = entry.Num("captionTime", 0) + entry.Num("captionTimeByLevel", 0) * maxLevel,

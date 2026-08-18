@@ -43,6 +43,7 @@ namespace Melia.Zone.World.Actors.Monsters
 		private bool _deathBroadcastPending;
 		private DateTime _deathBroadcastTime;
 		private Character _dropBeneficiary;
+		private List<DropStack> _pendingDrops;
 		private Position _position;
 
 		/// <summary>
@@ -642,6 +643,12 @@ namespace Melia.Zone.World.Actors.Monsters
 
 			this.Died?.Invoke(this, killer);
 			ZoneServer.Instance.ServerEvents.EntityKilled.Raise(new CombatEventArgs(this, killer));
+
+			// Rolled here, while buffs and combat state are still live; only
+			// the placement is deferred to the death broadcast.
+			if (_dropBeneficiary != null)
+				_pendingDrops = this.GenerateAllDropStacks(_dropBeneficiary);
+
 			this.Buffs?.RemoveAll();
 
 			// Trigger Kill card effects
@@ -710,10 +717,12 @@ namespace Melia.Zone.World.Actors.Monsters
 				Send.ZC_NORMAL.ClearEffects(this);
 
 			var beneficiary = _dropBeneficiary;
+			var pendingDrops = _pendingDrops;
 			_dropBeneficiary = null;
+			_pendingDrops = null;
 
-			if (beneficiary != null && beneficiary.IsOnline && beneficiary.Connection != null)
-				this.DropItems(beneficiary);
+			if (pendingDrops != null && beneficiary != null && beneficiary.IsOnline && beneficiary.Connection != null)
+				this.DropStacks(beneficiary, pendingDrops);
 
 			return true;
 		}
@@ -726,6 +735,7 @@ namespace Melia.Zone.World.Actors.Monsters
 		{
 			this.Died = null;
 			_dropBeneficiary = null;
+			_pendingDrops = null;
 			this.FixedDrops.Clear();
 			//this.Vars.Clear();
 			while (this.StaticDrops.TryTake(out _)) { }
@@ -872,20 +882,21 @@ namespace Melia.Zone.World.Actors.Monsters
 		}
 
 		/// <summary>
-		/// Drops random items from the monster's drop table.
+		/// Generates every item stack the monster drops on death, without
+		/// placing any of them on the map.
 		/// </summary>
 		/// <param name="killer"></param>
-		private void DropItems(Character killer)
+		/// <returns></returns>
+		private List<DropStack> GenerateAllDropStacks(Character killer)
 		{
-			if (!this.HasDrops)
-				return;
+			var result = new List<DropStack>();
 
-			if (this.Data.Drops == null)
-				return;
+			if (!this.HasDrops)
+				return result;
 
 			// Normal
-			var drops = this.GenerateDropStacks(killer);
-			this.DropStacks(killer, drops);
+			if (this.Data?.Drops != null)
+				result.AddRange(this.GenerateDropStacks(killer));
 
 			// Event - Removed: GlobalBonusManager was in deleted GameEvents namespace
 			// var eventDrops = this.GenerateDropStacks(killer, ZoneServer.Instance.GameEvents.GlobalBonuses.GetDrops(this, killer));
@@ -896,18 +907,13 @@ namespace Melia.Zone.World.Actors.Monsters
 
 			// Fixed drops
 			if (this.FixedDrops != null && this.FixedDrops.Count > 0)
-			{
-				var fixedDrops = this.GenerateDropStacks(killer, this.FixedDrops);
-				this.DropStacks(killer, fixedDrops);
-			}
+				result.AddRange(this.GenerateDropStacks(killer, this.FixedDrops));
 
 			// Global drops
 			if (killer != null)
-			{
-				var globalDrops = this.GetGlobalDropStacks(killer);
-				this.DropStacks(killer, globalDrops);
-			}
-			this.DropStatic(killer);
+				result.AddRange(this.GetGlobalDropStacks(killer));
+
+			result.AddRange(this.GenerateStaticDropStacks());
 
 			// Map bonus drops
 			var mapBonusRerolls = 1;
@@ -927,7 +933,9 @@ namespace Melia.Zone.World.Actors.Monsters
 					};
 				}
 			}
-			this.DropMapBonusItems(killer, mapBonusRerolls);
+			result.AddRange(this.GenerateMapBonusDropStacks(killer, mapBonusRerolls));
+
+			return result;
 		}
 
 		/// <summary>
@@ -956,7 +964,7 @@ namespace Melia.Zone.World.Actors.Monsters
 			{
 				if (!ZoneServer.Instance.Data.ItemDb.TryFind(dropItemData.ItemId, out var itemData))
 				{
-					Log.Warning("Monster.DropItems: Drop item '{0}' not found.", dropItemData.ItemId);
+					Log.Warning("Monster.GenerateDropStacks: Drop item '{0}' not found.", dropItemData.ItemId);
 					continue;
 				}
 
@@ -1034,8 +1042,10 @@ namespace Melia.Zone.World.Actors.Monsters
 					// super mobs or bosses
 					if ((isSuperMob) || this.Rank == MonsterRank.Boss)
 					{
-						minAmount = (int)Math.Round(minAmount * superMobMoneyMultiplier);
-						maxAmount = (int)Math.Round(maxAmount * superMobMoneyMultiplier);
+						superMobMoneyMultiplier = Math.Max(1f, superMobMoneyMultiplier);
+
+						minAmount = Math.Max(1, (int)Math.Round(minAmount * superMobMoneyMultiplier));
+						maxAmount = Math.Max(minAmount, (int)Math.Round(maxAmount * superMobMoneyMultiplier));
 						stackCount += superMobMoneyStacks;
 					}
 				}
@@ -1250,46 +1260,49 @@ namespace Melia.Zone.World.Actors.Monsters
 		}
 
 		/// <summary>
-		/// Drops the monster's static drops if any were added.
+		/// Generates stacks for the monster's static drops if any were added.
 		/// </summary>
-		/// <param name="killer"></param>
-		private void DropStatic(Character killer)
+		/// <returns></returns>
+		private List<DropStack> GenerateStaticDropStacks()
 		{
-			var rnd = GameRandom.Get();
+			var result = new List<DropStack>();
 
 			if (this.StaticDrops.IsEmpty)
-				return;
+				return result;
 
 			while (this.StaticDrops.TryTake(out var dropItem))
-			{
-				this.DropItem(killer, dropItem.Id, dropItem.Amount, 100f);
-			}
+				result.Add(new DropStack(dropItem.Id, dropItem.Amount, 100f, 100f));
+
+			return result;
 		}
 
 		/// <summary>
-		/// Drops bonus items configured for the current map.
+		/// Generates stacks for the bonus items configured for the current map.
 		/// Only applies to non-Boss and non-MISC rank monsters.
 		/// Each item in the map's bonus drop list rolls independently.
 		/// </summary>
 		/// <param name="killer"></param>
 		/// <param name="rerolls">Number of times to roll for drops (jackpot/elite mobs get more rolls)</param>
-		private void DropMapBonusItems(Character killer, int rerolls = 1)
+		/// <returns></returns>
+		private List<DropStack> GenerateMapBonusDropStacks(Character killer, int rerolls = 1)
 		{
+			var result = new List<DropStack>();
+
 			// Skip Boss and MISC rank monsters
 			if (this.Rank == MonsterRank.Boss ||
 				this.Rank == MonsterRank.MISC ||
 				this.Rank == MonsterRank.Material ||
 				this.Rank == MonsterRank.NPC)
-				return;
+				return result;
 
 			// Get the map class name
 			var mapClassName = this.Map?.Data?.ClassName;
 			if (string.IsNullOrEmpty(mapClassName))
-				return;
+				return result;
 
 			// Check if this map has bonus drops configured
 			if (!ZoneServer.Instance.Data.MapBonusDropsDb.TryFind(mapClassName, out var mapBonusData))
-				return;
+				return result;
 
 			var rnd = GameRandom.Get();
 			var lootingChance = killer?.Properties.GetFloat(PropertyName.LootingChance) ?? 0;
@@ -1353,12 +1366,13 @@ namespace Melia.Zone.World.Actors.Monsters
 						if (dropEntry.MaxAmount > dropEntry.MinAmount)
 							amount = rnd.Next(dropEntry.MinAmount, dropEntry.MaxAmount + 1);
 
-						// Use DropItem which handles party distribution and equipment grading
-						this.DropItem(killer, dropEntry.ItemId, amount, dropChance);
+						result.Add(new DropStack(dropEntry.ItemId, amount, dropChance, dropChance));
 					}
 				}
 				while (rollsRemaining > 0 && !isMoney);
 			}
+
+			return result;
 		}
 
 		/// <summary>

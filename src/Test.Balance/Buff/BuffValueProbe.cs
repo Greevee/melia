@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -784,7 +784,7 @@ namespace Melia.Test.Balance.Buff
 				_saved[1] = (data.CaptionRatio2, data.CaptionRatio2ByLevel);
 				_saved[2] = (data.CaptionRatio3, data.CaptionRatio3ByLevel);
 
-				Install(data, slots, scale);
+				Install(data, slots, scale, subject.PinnedSlots);
 
 				if (ZoneServer.Instance.Data.SkillDb.TryFind(subject.SkillId, out var shared) && !ReferenceEquals(shared, data))
 				{
@@ -794,7 +794,7 @@ namespace Melia.Test.Balance.Buff
 					_savedShared[1] = (shared.CaptionRatio2, shared.CaptionRatio2ByLevel);
 					_savedShared[2] = (shared.CaptionRatio3, shared.CaptionRatio3ByLevel);
 
-					Install(shared, slots, scale);
+					Install(shared, slots, scale, subject.PinnedSlots);
 				}
 
 				skill.Properties.InvalidateAll();
@@ -829,11 +829,34 @@ namespace Melia.Test.Balance.Buff
 		/// <param name="data"></param>
 		/// <param name="slots"></param>
 		/// <param name="scale"></param>
-		private static void Install(SkillData data, IReadOnlyDictionary<int, float> slots, float scale)
+		/// <param name="pinned"></param>
+		private static void Install(SkillData data, IReadOnlyDictionary<int, float> slots, float scale,
+			IReadOnlyDictionary<int, float> pinned)
 		{
-			(data.CaptionRatio1, data.CaptionRatio1ByLevel) = (slots.TryGetValue(1, out var first) ? first * scale : 0f, 0f);
-			(data.CaptionRatio2, data.CaptionRatio2ByLevel) = (slots.TryGetValue(2, out var second) ? second * scale : 0f, 0f);
-			(data.CaptionRatio3, data.CaptionRatio3ByLevel) = (slots.TryGetValue(3, out var third) ? third * scale : 0f, 0f);
+			(data.CaptionRatio1, data.CaptionRatio1ByLevel) = (Magnitude(slots, pinned, 1, scale), 0f);
+			(data.CaptionRatio2, data.CaptionRatio2ByLevel) = (Magnitude(slots, pinned, 2, scale), 0f);
+			(data.CaptionRatio3, data.CaptionRatio3ByLevel) = (Magnitude(slots, pinned, 3, scale), 0f);
+		}
+
+		/// <summary>
+		/// Returns the magnitude one slot is installed at.
+		/// </summary>
+		/// <remarks>
+		/// A pinned slot takes its own magnitude whatever the scale and whatever
+		/// the seed map says, including when the map omits it to isolate another
+		/// slot: it is held at that number by design, so a window that measured
+		/// it anywhere else would be measuring a buff the game never grants.
+		/// </remarks>
+		/// <param name="slots"></param>
+		/// <param name="pinned"></param>
+		/// <param name="slot"></param>
+		/// <param name="scale"></param>
+		private static float Magnitude(IReadOnlyDictionary<int, float> slots, IReadOnlyDictionary<int, float> pinned, int slot, float scale)
+		{
+			if (pinned != null && pinned.TryGetValue(slot, out var held))
+				return held;
+
+			return slots.TryGetValue(slot, out var seed) ? seed * scale : 0f;
 		}
 
 		/// <summary>
