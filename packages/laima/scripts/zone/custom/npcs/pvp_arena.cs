@@ -21,6 +21,7 @@ using Yggdrasil.Extensions;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.World;
 using System.Diagnostics;
 using System.Threading;
@@ -101,7 +102,7 @@ public class CustomNpcPvpArena : GeneralScript
 			spectatePositions.Add(new Position(309, 110, -364));
 			spectatePositions.Add(new Position(-23, 110, -542));
 
-			player.Warp(_pvpMap.Id, spectatePositions.Random());
+			player.Warp(_pvpMap.Id, spectatePositions.PickRandom());
 			return;
 		}
 

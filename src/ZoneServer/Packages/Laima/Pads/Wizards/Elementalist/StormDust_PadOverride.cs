@@ -2,6 +2,7 @@ using System;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills;
 using Melia.Zone.Skills.Combat;
@@ -97,7 +98,7 @@ namespace Melia.Zone.Pads.Handlers.Elementalist
 			if (!target.IsKnockdownable())
 				return;
 
-			var rnd = RandomProvider.Get();
+			var rnd = GameRandom.Get();
 			if (rnd.Next(100) >= KnockbackChance)
 				return;
 
@@ -127,7 +128,7 @@ namespace Melia.Zone.Pads.Handlers.Elementalist
 			if (target.IsBuffActive(BuffId.Freeze))
 				return;
 
-			var rnd = RandomProvider.Get();
+			var rnd = GameRandom.Get();
 			if (rnd.Next(100) >= FreezeChance)
 				return;
 

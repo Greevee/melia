@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Melia.Shared.Game.Const;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone;
 using Melia.Zone.Scripting;
 using Melia.Zone.World.Actors;
@@ -157,7 +158,7 @@ public class DinaBeeFarmHiveSpawner : ISpawner
 
 			var location = new Location(map.Id, position);
 			var dir = new Direction(sp.Dir);
-			var monsterId = HiveMonsterIds[RandomProvider.Get().Next(HiveMonsterIds.Length)];
+			var monsterId = HiveMonsterIds[GameRandom.Get().Next(HiveMonsterIds.Length)];
 
 			var hive = new Npc(monsterId, "Wild Beehive", location, dir);
 			hive.UniqueName = uniqueName;
@@ -172,10 +173,10 @@ public class DinaBeeFarmHiveSpawner : ISpawner
 
 				if (npc.Vars.ActivateOnce($"Npc.{uniqueName}.Disturbed"))
 				{
-					var swarmSize = RandomProvider.Get().Next(14, 19);
+					var swarmSize = GameRandom.Get().Next(14, 19);
 					for (var s = 0; s < swarmSize; s++)
 					{
-						var beeId = RandomProvider.Get().Next(2) == 0 ? MonsterId.Rabbee : MonsterId.Honeybean;
+						var beeId = GameRandom.Get().Next(2) == 0 ? MonsterId.Rabbee : MonsterId.Honeybean;
 						SpawnTempMonsters(character, beeId, 1, 150, TimeSpan.FromMinutes(2));
 					}
 
@@ -221,7 +222,7 @@ public class DinaBeeFarmHiveSpawner : ISpawner
 
 		for (var attempt = 0; attempt < MAX_SPAWN_ATTEMPTS; attempt++)
 		{
-			var sp = SpawnPoints[RandomProvider.Get().Next(SpawnPoints.Length)];
+			var sp = SpawnPoints[GameRandom.Get().Next(SpawnPoints.Length)];
 			var position = new Position(sp.X, sp.Y, sp.Z);
 
 			if (this.IsPositionAvailable(sp.Map, position))

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Melia.Shared.Util;
 using Melia.Zone.Util;
 using Melia.Zone.World.Actors.Characters;
 
@@ -29,7 +30,7 @@ namespace Melia.Zone.Scripting
 		public static void GiveUniformRandomItem(Character character, List<string> items, string reason)
 		{
 			if (items == null || items.Count == 0) return;
-			var random = new Random();
+			var random = GameRandom.Get();
 			var selectedItem = items[random.Next(items.Count)];
 			character.AddItem(selectedItem, 1, reason);
 		}

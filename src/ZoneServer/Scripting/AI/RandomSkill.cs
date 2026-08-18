@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 
 namespace Melia.Zone.Scripting.AI
 {
@@ -57,7 +58,7 @@ namespace Melia.Zone.Scripting.AI
 			foreach (var skill in skills)
 				totalProbability += skill.Probability;
 
-			var randomValue = Random.Shared.NextSingle() * totalProbability;
+			var randomValue = (float)GameRandom.Get().NextDouble() * totalProbability;
 
 			foreach (var skill in skills)
 			{

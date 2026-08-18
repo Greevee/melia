@@ -4,6 +4,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Scripting;
 using Melia.Zone.Scripting.ScriptableEvents;
@@ -56,7 +57,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Cleric
 		/// <param name="skill"></param>
 		private void RemoveDebuffs(ICombatEntity caster, ICombatEntity target, Skill skill)
 		{
-			var rnd = RandomProvider.Get();
+			var rnd = GameRandom.Get();
 			var removeChance = this.GetRemoveChance(skill);
 
 			var buffComponent = target.Components.Get<BuffComponent>();

@@ -5,6 +5,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Pads;
 using Melia.Zone.Skills.Combat;
@@ -10696,7 +10697,7 @@ namespace Melia.Zone.Skills.Handlers.Mon
 		{
 			var targetPos = originPos.GetRelative(farPos, distance: 3.8255448E-43f);
 			var targets = SkillSelectEnemiesInSquare(caster, targetPos, 0f, 150f, 30f, 1);
-			target = targets.Random();
+			target = targets.PickRandom();
 			if (target == null)
 				return;
 			await skill.Wait(TimeSpan.FromMilliseconds(1500));
@@ -11195,7 +11196,7 @@ namespace Melia.Zone.Skills.Handlers.Mon
 				Effect = new EffectConfig("I_force042_violet#Bip001 L Finger0Nub", 1.5f),
 				EndEffect = new EffectConfig("F_ground004_violet", 0.5f),
 				Range = 20f,
-				FlyTime = (0.7f + (float)RandomProvider.Get().NextDouble() * 1.8f),
+				FlyTime = (0.7f + (float)GameRandom.Get().NextDouble() * 1.8f),
 				DelayTime = 0f,
 				Gravity = 0f,
 				Speed = 1f,
@@ -11212,7 +11213,7 @@ namespace Melia.Zone.Skills.Handlers.Mon
 				Effect = new EffectConfig("I_force042_violet#Bip001 R Finger0Nub", 1.5f),
 				EndEffect = new EffectConfig("F_ground004_violet", 0.5f),
 				Range = 20f,
-				FlyTime = (0.7f + (float)RandomProvider.Get().NextDouble() * 1.8f),
+				FlyTime = (0.7f + (float)GameRandom.Get().NextDouble() * 1.8f),
 				DelayTime = 0f,
 				Gravity = 0f,
 				Speed = 1f,

@@ -79,7 +79,7 @@ namespace Melia.Zone.Skills.Handlers.Pyromancer
 					return;
 				}
 
-				_ = Task.Run(() => this.CreateAndMovePad(caster, skill));
+				skill.RunFree(this.CreateAndMovePad(caster, skill));
 				await skill.Wait(TimeSpan.FromMilliseconds(PadDelayMs));
 				createdPads++;
 			}

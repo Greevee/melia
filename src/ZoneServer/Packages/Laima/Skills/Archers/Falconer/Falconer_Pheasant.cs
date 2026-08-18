@@ -6,6 +6,7 @@ using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.Packages;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
@@ -208,7 +209,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Falconer
 				var hit = new HitInfo(caster, enemy, skill, skillHitResult, HitResultType.Hit);
 				Send.ZC_HIT_INFO(caster, enemy, hit);
 
-				if (RandomProvider.Get().Next(100) < 50)
+				if (GameRandom.Get().Next(100) < 50)
 					enemy.StartBuff(BuffId.Stun, skill.Level, 0, TimeSpan.FromSeconds(3), caster);
 			}
 		}

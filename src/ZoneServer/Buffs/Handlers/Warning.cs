@@ -1,4 +1,5 @@
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Buffs.Base;
 using Melia.Zone.World.Actors;
 using Yggdrasil.Util;
@@ -30,7 +31,7 @@ namespace Melia.Zone.Buffs.Handlers
 			var minDamage = baseDamage / 3.0;
 			var maxDamage = baseDamage / 2.0;
 
-			var damage = (float)(minDamage + (RandomProvider.Get().NextDouble() * (maxDamage - minDamage)));
+			var damage = (float)(minDamage + (GameRandom.Get().NextDouble() * (maxDamage - minDamage)));
 
 			if (damage <= 0) return;
 

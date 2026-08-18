@@ -1,6 +1,7 @@
 using System;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Buffs.Base;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
@@ -25,7 +26,7 @@ namespace Melia.Zone.Buffs.HandlersOverrides
 
 			// Stun chance
 			if (caster.TryGetActiveAbilityLevel(AbilityId.Psychokino4, out var abilLv)
-				&& RandomProvider.Get().Next(100) < abilLv * 5)
+				&& GameRandom.Get().Next(100) < abilLv * 5)
 				target.StartBuff(BuffId.Stun, 1, 0, TimeSpan.FromSeconds(4), caster);
 
 			if (caster.TryGetSkill(SkillId.Psychokino_MagneticForce, out var skill))

@@ -5,6 +5,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Pads;
 using Melia.Zone.Skills.Combat;
@@ -312,7 +313,7 @@ namespace Melia.Zone.Skills.Handlers.Monsters.Boss
 
 				for (var i = 0; i < 3; i++)
 				{
-					positions[i] = caster.Position.GetRandomInRange2D(30, 200, RandomProvider.Get());
+					positions[i] = caster.Position.GetRandomInRange2D(30, 200, GameRandom.Get());
 					_ = caster.PlayEffectToGround("F_sys_target_boss##0.5", positions[i], 1.5f, 800);
 				}
 

@@ -3,6 +3,7 @@ using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.Scripting;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone;
 using Melia.Zone.Network;
 using Melia.Zone.Scripting;
@@ -119,7 +120,7 @@ public class MonsterCardBookScripts : GeneralScript
 	/// <returns>A valid spawn position.</returns>
 	private static Position GetRandomSpawnPosition(Character character)
 	{
-		var rnd = RandomProvider.Get();
+		var rnd = GameRandom.Get();
 		var pos = character.Position;
 
 		// Try to find a valid ground position nearby

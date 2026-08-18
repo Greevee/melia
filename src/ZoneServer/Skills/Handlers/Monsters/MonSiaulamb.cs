@@ -4,6 +4,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
@@ -45,7 +46,7 @@ namespace Melia.Zone.Skills.Handlers.Mon
 			var splashArea = skill.GetSplashArea(SplashType.Square, splashParam);
 			await SkillAttack(caster, skill, splashArea, hitDelay, aniTime);
 
-			if (RandomProvider.Get().Next(3) == 1 && !caster.IsBuffActive(BuffId.ATKUP))
+			if (GameRandom.Get().Next(3) == 1 && !caster.IsBuffActive(BuffId.ATKUP))
 			{
 				caster.StartBuff(BuffId.ATKUP, 5f, 0f, TimeSpan.FromMilliseconds(10000f), caster);
 				caster.StartBuff(BuffId.Frenzy_Buff, 1f, 0f, TimeSpan.FromMilliseconds(10000f), caster);

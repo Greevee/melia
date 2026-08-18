@@ -5,6 +5,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
@@ -61,7 +62,6 @@ namespace Melia.Zone.Skills.Handlers.Priest
 		/// </summary>
 		private async Task SkillAttackWithInstantKill(ICombatEntity caster, Skill skill, ISplashArea splashArea, int hitDelay, int aniTime, List<SkillHitInfo> hits)
 		{
-			var rng = new Random();
 			var targets = caster.Map.GetAttackableEnemiesIn(caster, splashArea).ToList();
 
 			var targetCount = skill.Level + 3;
@@ -76,7 +76,7 @@ namespace Melia.Zone.Skills.Handlers.Priest
 				var skillHitResult = SCR_SkillHit(caster, target, skill);
 
 				var killChance = (skillHitResult.Damage / target.MaxHp) * 100;
-				if (rng.Next(100) < killChance)
+				if (GameRandom.Get().Next(100) < killChance)
 				{
 					skillHitResult.Damage = target.MaxHp + skillHitResult.Damage;
 					target.Kill(caster);

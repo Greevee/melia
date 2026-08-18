@@ -6,6 +6,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
@@ -107,7 +108,6 @@ namespace Melia.Zone.Skills.Handlers.Scouts.OutLaw
 
 			for (var i = 0; i < 9; i++)
 			{
-				var rnd = RandomProvider.Get();
 				var targets = caster.Map.GetAttackableEnemiesIn(caster, splashArea);
 
 				foreach (var target in targets.LimitBySDR(caster, skill))
@@ -132,10 +132,10 @@ namespace Melia.Zone.Skills.Handlers.Scouts.OutLaw
 					hits.Add(skillHit);
 
 					var buffRemoveChance = BuffRemoveChancePerLevel * skill.Level;
-					if (rnd.Next(1000) < buffRemoveChance)
+					if (GameRandom.Get().Next(1000) < buffRemoveChance)
 						target.RemoveRandomBuff();
 
-					if (rnd.Next(100) < stunChance)
+					if (GameRandom.Get().Next(100) < stunChance)
 						target.StartBuff(BuffId.Stun, skill.Level, 0, TimeSpan.FromSeconds(2), caster);
 
 					// Ice effect is only applied on last hit

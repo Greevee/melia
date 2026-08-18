@@ -5,6 +5,7 @@ using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.Packages;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Scripting;
 using Melia.Zone.Scripting.AI;
@@ -64,11 +65,11 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Chronomancer
 			Send.ZC_SYNC_START(caster, skillHandle, 1);
 			foreach (var deadMob in deadTargets)
 			{
-				if (RandomProvider.Get().Next(1, 101) > reincarnateChance)
+				if (GameRandom.Get().Next(1, 101) > reincarnateChance)
 					continue;
 
 				var cloneCount = 1;
-				if (doubleCloneChance > 0 && RandomProvider.Get().Next(1, 101) <= doubleCloneChance)
+				if (doubleCloneChance > 0 && GameRandom.Get().Next(1, 101) <= doubleCloneChance)
 					cloneCount = 2;
 
 				for (var i = 0; i < cloneCount; i++)

@@ -5,6 +5,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
@@ -92,9 +93,8 @@ namespace Melia.Zone.Skills.Handlers.Monsters.Boss
 			await skill.Wait(TimeSpan.FromMilliseconds(1400));
 			for (var i = 0; i < 9; i++)
 			{
-				var rnd = RandomProvider.Get();
-				var distance = 30 + rnd.Next(30);
-				var position = target.Position.GetRandomInRange2D(distance, rnd);
+				var distance = 30 + GameRandom.Get().Next(30);
+				var position = target.Position.GetRandomInRange2D(distance, GameRandom.Get());
 				await MissileThrow(skill, caster, position, new MissileConfig
 				{
 					Effect = new EffectConfig("I_force011_green#Dummy_effect_tail", 1f),
@@ -261,9 +261,8 @@ namespace Melia.Zone.Skills.Handlers.Monsters.Boss
 			await skill.Wait(TimeSpan.FromMilliseconds(1400));
 			for (var i = 0; i < 9; i++)
 			{
-				var rnd = RandomProvider.Get();
-				var distance = 30 + rnd.Next(30);
-				var position = target.Position.GetRandomInRange2D(distance, rnd);
+				var distance = 30 + GameRandom.Get().Next(30);
+				var position = target.Position.GetRandomInRange2D(distance, GameRandom.Get());
 				await MissileThrow(skill, caster, position, new MissileConfig
 				{
 					Effect = new EffectConfig("I_force011_green#Dummy_effect_tail", 1f),

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Melia.Shared.Game.Const;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Buffs;
 using Melia.Zone.Network;
 using Melia.Zone.Pads;
@@ -106,19 +107,19 @@ namespace Melia.Zone.Skills.Helpers
 					return target.Position.GetRelative(target.Direction.AddDegreeAngle(angleF), distanceF) + new Position(0, height, 0);
 
 				case PosType.TargetRandom:
-					var randomPos = target.Position.GetRandomInRange2D((int)rand, RandomProvider.Get());
+					var randomPos = target.Position.GetRandomInRange2D((int)rand, GameRandom.Get());
 					randomPos.Y += height;
 					return randomPos;
 
 				case PosType.TargetFrontRandom:
-					var randomAngle = RandomProvider.Get().Next(-45, 46) + angleF;
+					var randomAngle = GameRandom.Get().Next(-45, 46) + angleF;
 					var randomDirection = target.Direction.AddDegreeAngle(randomAngle);
 					var randomFrontPos = target.Position.GetRelative(randomDirection, distanceF);
 					randomFrontPos.Y += height;
 					return randomFrontPos;
 
 				case PosType.TargetDistance:
-					var relativePos = caster.Position.GetRelative(target.Position, distanceF + RandomProvider.Get().Next(rand));
+					var relativePos = caster.Position.GetRelative(target.Position, distanceF + GameRandom.Get().Next(rand));
 					relativePos.Y += height;
 					return relativePos;
 
@@ -128,7 +129,7 @@ namespace Melia.Zone.Skills.Helpers
 				case PosType.TargetRandomDistance:
 					var minDist = (int)distance / 2;
 					var maxDist = (int)distance;
-					var randomDistPos = target.Position.GetRandomInRange2D(minDist, maxDist, RandomProvider.Get());
+					var randomDistPos = target.Position.GetRandomInRange2D(minDist, maxDist, GameRandom.Get());
 					randomDistPos.Y += height;
 					return randomDistPos;
 
@@ -882,12 +883,12 @@ namespace Melia.Zone.Skills.Helpers
 			if (target == null || leadMs <= 0)
 				return target?.Position ?? Position.Zero;
 
-			var lateralOffset = (float)RandomProvider.Get().Next(8, 20);
-			if (RandomProvider.Get().Next(2) == 0) lateralOffset = -lateralOffset;
+			var lateralOffset = (float)GameRandom.Get().Next(8, 20);
+			if (GameRandom.Get().Next(2) == 0) lateralOffset = -lateralOffset;
 			var perpDir = target.Direction.AddDegreeAngle(90);
 
 			var hasMovement = target.Components.TryGet<MovementComponent>(out var movement) && movement.IsMoving;
-			if (!hasMovement || RandomProvider.Get().Next(2) == 0)
+			if (!hasMovement || GameRandom.Get().Next(2) == 0)
 				return target.Position.GetRelative(perpDir, lateralOffset * 0.5f);
 
 			var speed = target.Properties.GetFloat(PropertyName.MSPD);
@@ -905,8 +906,8 @@ namespace Melia.Zone.Skills.Helpers
 				distance *= leadScale;
 			}
 
-			var angleJitter = RandomProvider.Get().Next(5, 15);
-			if (RandomProvider.Get().Next(2) == 0) angleJitter = -angleJitter;
+			var angleJitter = GameRandom.Get().Next(5, 15);
+			if (GameRandom.Get().Next(2) == 0) angleJitter = -angleJitter;
 			var leadDir = target.Direction.AddDegreeAngle(angleJitter);
 			var leadPos = target.Position.GetRelative(leadDir, distance);
 

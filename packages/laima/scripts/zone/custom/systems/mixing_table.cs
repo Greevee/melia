@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone;
 using Melia.Zone.Network;
 using Melia.Zone.Scripting;
@@ -340,7 +341,7 @@ public class MixingTableFunctionsScript : GeneralScript
 				break;
 		}
 
-		var rnd = RandomProvider.Get();
+		var rnd = GameRandom.Get();
 		var resultGem = candidates[rnd.Next(candidates.Count)];
 
 		var newGem = new Item(resultGem.Id);
@@ -573,7 +574,7 @@ public class MixingTableFunctionsScript : GeneralScript
 				break;
 		}
 
-		var rnd = RandomProvider.Get();
+		var rnd = GameRandom.Get();
 		var resultCard = candidates[rnd.Next(candidates.Count)];
 
 		var newCard = new Item(resultCard.Id);
@@ -640,7 +641,7 @@ public class MixingTableFunctionsScript : GeneralScript
 				break;
 		}
 
-		var rnd = RandomProvider.Get();
+		var rnd = GameRandom.Get();
 		var resultCard = candidates[rnd.Next(candidates.Count)];
 
 		var newCard = new Item(resultCard.Id);
@@ -702,7 +703,7 @@ public class MixingTableFunctionsScript : GeneralScript
 		character.Inventory.Remove(powderTxItem.Item.ObjectId, 5, InventoryItemRemoveMsg.Given);
 		character.Inventory.Remove(gemTxItem.Item.ObjectId, 1, InventoryItemRemoveMsg.Given);
 
-		var rnd = RandomProvider.Get();
+		var rnd = GameRandom.Get();
 		var resultGem = candidates[rnd.Next(candidates.Count)];
 
 		var newGem = new Item(resultGem.Id);

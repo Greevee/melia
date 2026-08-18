@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Melia.Shared.Game.Const;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone;
 using Melia.Zone.Scripting;
 using Melia.Zone.World.Actors;
@@ -321,11 +322,11 @@ public class FiretowerBookSpawner : ISpawner
 
 			var uniqueId = Interlocked.Increment(ref BookIds);
 			var uniqueName = $"firetower_book_{uniqueId}";
-			var itemId = ItemIds[RandomProvider.Get().Next(ItemIds.Length)];
+			var itemId = ItemIds[GameRandom.Get().Next(ItemIds.Length)];
 
 			var location = new Location(map.Id, position);
 			var dir = new Direction(sp.Dir);
-			var monsterId = BookMonsterIds[RandomProvider.Get().Next(BookMonsterIds.Length)];
+			var monsterId = BookMonsterIds[GameRandom.Get().Next(BookMonsterIds.Length)];
 
 			var book = new Npc(monsterId, "Magic Books", location, dir);
 			book.UniqueName = uniqueName;
@@ -375,7 +376,7 @@ public class FiretowerBookSpawner : ISpawner
 	{
 		for (var attempt = 0; attempt < MAX_SPAWN_ATTEMPTS; attempt++)
 		{
-			var sp = SpawnPoints[RandomProvider.Get().Next(SpawnPoints.Length)];
+			var sp = SpawnPoints[GameRandom.Get().Next(SpawnPoints.Length)];
 			var position = new Position(sp.X, sp.Y, sp.Z);
 
 			if (this.IsPositionAvailable(sp.Map, position))

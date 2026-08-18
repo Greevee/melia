@@ -5,6 +5,7 @@ using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
@@ -69,7 +70,7 @@ namespace Melia.Zone.Skills.Handlers.Cryomancer
 			if (caster.TryGetActiveAbility(AbilityId.Cryomancer2, out var abilCryomancer2))
 				freezeChance = (int)Math.Floor(freezeChance * (1 + abilCryomancer2.Level * 0.10));
 
-			var random = RandomProvider.Get();
+			var random = GameRandom.Get();
 			foreach (var currentTarget in targets)
 			{
 				var skillHitResult = SCR_SkillHit(caster, currentTarget, skill, SkillModifier.MultiHit(2));

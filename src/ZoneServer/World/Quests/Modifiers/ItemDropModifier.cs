@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Events.Arguments;
 using Melia.Zone.World.Actors.Characters;
 using Melia.Zone.World.Actors.Monsters;
@@ -84,7 +85,7 @@ namespace Melia.Zone.World.Quests.Modifiers
 				if (modifier.IsTarget(monster))
 				{
 					// Check drop chance
-				var rnd = RandomProvider.Get();
+				var rnd = GameRandom.Get();
 				if (rnd.NextDouble() < modifier.DropChance)
 				{
 					// Add item directly to player's inventory

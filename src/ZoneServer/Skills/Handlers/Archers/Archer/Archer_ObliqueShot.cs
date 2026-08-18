@@ -57,7 +57,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Archer
 
 			Send.ZC_SKILL_FORCE_TARGET(caster, target, skill, skillHit);
 
-			if (RandomProvider.Get().Next(100) < 50)
+			if (GameRandom.Get().Next(100) < 50)
 			{
 				var duration = TimeSpan.FromSeconds(7);
 				target.StartBuff(BuffId.Common_Slow, skill.Level, 0, duration, caster);

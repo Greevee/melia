@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone;
 using Melia.Zone.Buffs;
 using Melia.Zone.Items.Effects;
@@ -98,7 +99,7 @@ public class CardFunctionsScript : GeneralScript
 					return;
 
 				var chance = 0.005f * TypeValue;
-				var roll = RandomProvider.Get().NextDouble();
+				var roll = GameRandom.Get().NextDouble();
 				if (roll >= chance)
 					return;
 
@@ -165,7 +166,7 @@ public class CardFunctionsScript : GeneralScript
 				{
 					if (triggerChance < 100)
 					{
-						var roll = RandomProvider.Get().Next(1, 101); // 1 to 100 inclusive
+						var roll = GameRandom.Get().Next(1, 101); // 1 to 100 inclusive
 						if (triggerChance < roll)
 							return;
 					}
@@ -719,7 +720,7 @@ public class CardFunctionsScript : GeneralScript
 				// Check probability (capped at 100%)
 				if (totalChance < 100)
 				{
-					var roll = RandomProvider.Get().Next(1, 101); // 1 to 100 inclusive
+					var roll = GameRandom.Get().Next(1, 101); // 1 to 100 inclusive
 					if (totalChance < roll)
 						return;
 				}
@@ -801,7 +802,7 @@ public class CardFunctionsScript : GeneralScript
 				// Check SCR_CARDCHECK_NORMAL probability (single roll for all cards)
 				if (triggerChance < 100)
 				{
-					var roll = RandomProvider.Get().Next(1, 101); // 1 to 100 inclusive
+					var roll = GameRandom.Get().Next(1, 101); // 1 to 100 inclusive
 					if (triggerChance < roll)
 						return;
 				}
@@ -860,7 +861,7 @@ public class CardFunctionsScript : GeneralScript
 				{
 					if (triggerChance < 100)
 					{
-						var roll = RandomProvider.Get().Next(1, 101);
+						var roll = GameRandom.Get().Next(1, 101);
 						if (triggerChance < roll)
 							return;
 					}
@@ -924,7 +925,7 @@ public class CardFunctionsScript : GeneralScript
 				// Check trigger probability
 				if (triggerChance < 100)
 				{
-					var roll = RandomProvider.Get().Next(1, 101);
+					var roll = GameRandom.Get().Next(1, 101);
 					if (triggerChance < roll)
 						return;
 				}

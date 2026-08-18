@@ -16,6 +16,7 @@ using Melia.Shared.Network.Inter.Messages;
 using Melia.Shared.ObjectProperties;
 using Melia.Shared.Versioning;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Events.Arguments;
 using Melia.Zone.Items.Effects;
 using Melia.Zone.Network.Helpers;
@@ -6039,7 +6040,7 @@ namespace Melia.Zone.Network
 			var weekNum = packet.GetInt();
 
 			//TODO check date time by weekNum
-			var boss = ZoneServer.Instance.Data.MonsterDb.Entries.Values.Where(mob => mob.Rank == MonsterRank.Boss).Random();
+			var boss = ZoneServer.Instance.Data.MonsterDb.Entries.Values.Where(mob => mob.Rank == MonsterRank.Boss).PickRandom();
 			Send.ZC_WEEKLY_BOSS_PATTERN_INFO(conn.SelectedCharacter, boss);
 		}
 

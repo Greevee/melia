@@ -5,6 +5,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
@@ -145,7 +146,7 @@ namespace Melia.Zone.Skills.Handlers.Monsters.Boss
 		{
 			await skill.Wait(TimeSpan.FromMilliseconds(2300));
 			var position = originPos.GetRelative(farPos);
-			MonsterSkillPadMissileBuck(caster, skill, position, PadName.Mon_Fireball_santan, 0f, 250f, 8, RandomProvider.Get().Next(360, 721), 150f, 150f, 150f);
+			MonsterSkillPadMissileBuck(caster, skill, position, PadName.Mon_Fireball_santan, 0f, 250f, 8, GameRandom.Get().Next(360, 721), 150f, 150f, 150f);
 		}
 	}
 
@@ -232,7 +233,7 @@ namespace Melia.Zone.Skills.Handlers.Monsters.Boss
 		{
 			await skill.Wait(TimeSpan.FromMilliseconds(2300));
 			var position = originPos.GetRelative(farPos);
-			MonsterSkillPadMissileBuck(caster, skill, position, PadName.Mon_Fireball_santan, 0f, 250f, 5, RandomProvider.Get().Next(360, 721), 100f, 100f, 150f);
+			MonsterSkillPadMissileBuck(caster, skill, position, PadName.Mon_Fireball_santan, 0f, 250f, 5, GameRandom.Get().Next(360, 721), 100f, 100f, 150f);
 		}
 	}
 

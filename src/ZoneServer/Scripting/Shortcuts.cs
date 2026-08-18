@@ -8,6 +8,7 @@ using Melia.Shared.L10N;
 using Melia.Shared.Game.Const;
 using Melia.Shared.Scripting;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Commands;
 using Melia.Zone.Network;
 using Melia.Zone.Scripting.Dialogues;
@@ -310,7 +311,7 @@ namespace Melia.Zone.Scripting
 		/// <returns></returns>
 		public static int Random(int max)
 		{
-			return RandomProvider.Get().Next(max);
+			return GameRandom.Get().Next(max);
 		}
 
 		/// <summary>
@@ -321,7 +322,7 @@ namespace Melia.Zone.Scripting
 		/// <returns></returns>
 		public static int Random(int min, int max)
 		{
-			return RandomProvider.Get().Next(min, max);
+			return GameRandom.Get().Next(min, max);
 		}
 
 		/// <summary>
@@ -388,7 +389,7 @@ namespace Melia.Zone.Scripting
 		/// <returns></returns>
 		public static T RandomElement<T>(params T[] values)
 		{
-			return values[RandomProvider.Get().Next(values.Length)];
+			return values[GameRandom.Get().Next(values.Length)];
 		}
 
 		/// <summary>

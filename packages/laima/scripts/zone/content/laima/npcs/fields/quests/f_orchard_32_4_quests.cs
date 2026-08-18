@@ -6,6 +6,7 @@
 
 using System;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Scripting;
 using Melia.Zone.World.Quests;
 using Melia.Zone.World.Actors.Characters;
@@ -241,7 +242,7 @@ public class FOrchard324QuestNpcsScript : GeneralScript
 				}
 
 				var hasSpawned = character.Variables.Perm.GetBool(spawnedKey, false);
-				if (!hasSpawned && RandomProvider.Get().Next(100) < 35)
+				if (!hasSpawned && GameRandom.Get().Next(100) < 35)
 				{
 					character.Variables.Perm.Set(spawnedKey, true);
 

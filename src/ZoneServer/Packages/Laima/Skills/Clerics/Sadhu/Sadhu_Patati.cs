@@ -3,6 +3,7 @@ using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
@@ -56,7 +57,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Sadhu
 			{
 				var chance = this.GetKnockdownChance(skill);
 
-				if (chance >= RandomProvider.Get().Next(100) && t.IsKnockdownable())
+				if (chance >= GameRandom.Get().Next(100) && t.IsKnockdownable())
 					this.KnockdownEntity(caster, t, skill);
 
 				var modifier = SkillModifier.MultiHit(6);

@@ -6,6 +6,7 @@
 
 using System;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Scripting;
 using Melia.Zone.World.Actors.Characters;
 using Melia.Zone.World.Actors.Characters.Components;
@@ -286,11 +287,11 @@ public class FFarm492QuestNpcsScript : GeneralScript
 
 				var spawnedKey = $"Laima.Quests.f_farm_49_2.Quest1003.Cyst{cystNumber}.Spawned";
 				var hasSpawned = character.Variables.Perm.GetBool(spawnedKey, false);
-				if (!hasSpawned && RandomProvider.Get().Next(100) < 20)
+				if (!hasSpawned && GameRandom.Get().Next(100) < 20)
 				{
 					character.Variables.Perm.Set(spawnedKey, true);
 
-					var spawnCount = RandomProvider.Get().Next(1, 3);
+					var spawnCount = GameRandom.Get().Next(1, 3);
 					if (SpawnTempMonsters(character, MonsterId.Cyst, spawnCount, 50, TimeSpan.FromMinutes(1)))
 					{
 						character.ServerMessage(L("{#FF6666}The Cyst wakes up, furious!{/}"));

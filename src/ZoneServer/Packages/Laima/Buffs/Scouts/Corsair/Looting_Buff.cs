@@ -1,5 +1,6 @@
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Yggdrasil.Util;
 using Melia.Zone.Buffs.Base;
 using Melia.Zone.Scripting.ScriptableEvents;
@@ -48,7 +49,7 @@ namespace Melia.Zone.Buffs.Handlers.Scouts.Corsair
 			if (dropCount >= MaxDropsPerMob)
 				return;
 
-			var rnd = RandomProvider.Get();
+			var rnd = GameRandom.Get();
 			if (rnd.NextDouble() * 100 < DropChance)
 			{
 				mob.Vars.SetInt(LootingCounterKey, dropCount + 1);

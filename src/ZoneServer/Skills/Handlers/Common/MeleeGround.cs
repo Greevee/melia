@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
@@ -79,7 +80,7 @@ namespace Melia.Zone.Skills.Handlers.Common
 			await skill.Wait(skillHitDelay);
 
 			var hits = new List<SkillHitInfo>();
-			var rnd = RandomProvider.Get();
+			var rnd = GameRandom.Get();
 
 			foreach (var target in targets)
 			{

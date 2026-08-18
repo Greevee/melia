@@ -112,19 +112,104 @@ namespace Melia.Test.Balance.Sfr
 			Assert.True(measuredAny, "no skill could be measured at all");
 		}
 
+		/// <summary>
+		/// Report the repeatability run leaves behind.
+		/// </summary>
+		public const string RepeatReportName = "sfr-defense-repeat.md";
+
+		/// <summary>
+		/// Runs the whole probe twice for one skill and reports both sets of
+		/// pairs side by side, so a reading that disagrees between runs can be
+		/// read pair by pair instead of as one number.
+		/// </summary>
+		/// <remarks>
+		/// This is the only reading in the model that still moves between two
+		/// identically seeded runs, and one number cannot say why. The columns
+		/// separate the two candidates: a control half that differs is the mob
+		/// having behaved differently, which is the window itself leaking real
+		/// time or shared state, while controls that match and differences that
+		/// do not is the press.
+		///
+		/// Both runs go at once, on one pool, because a probe measured with the
+		/// machine to itself is the one condition a scheduling-dependent
+		/// reading looks stable in.
+		/// </remarks>
+		[Fact]
+		public void DefenseProbeIsRepeatable()
+		{
+			if (!Enabled)
+			{
+				_output.WriteLine($"Skipped. Set {EnableVariable}=1 to run.");
+				return;
+			}
+
+			var named = Environment.GetEnvironmentVariable(SkillsVariable);
+			var skillName = string.IsNullOrWhiteSpace(named)
+				? SfrDials.AnchorSkill
+				: named.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)[0];
+
+			if (!ZoneServer.Instance.Data.SkillDb.TryFind(skillName, out var data))
+				throw new ArgumentException($"Unknown skill '{skillName}'.");
+
+			if (!JobCatalog.TryGet(SfrData.ClassOf(skillName), out var job))
+				throw new ArgumentException($"'{skillName}' is not in the job catalog.");
+
+			var level = SfrData.SkillMaxLevel(skillName);
+			var charLevel = ScenarioMatrix.CharacterLevelsFor(job, [50]).FirstOrDefault(50);
+
+			using var pool = new ArenaPool(SfrDials.ExplainPoolSize);
+
+			SfrDefenseResult first = null;
+			SfrDefenseResult second = null;
+
+			SkillPressProbe.RunAll(
+				() => first = SfrDefenseProbe.Measure(job, data.Id, level, charLevel, pool: pool),
+				() => second = SfrDefenseProbe.Measure(job, data.Id, level, charLevel, pool: pool));
+
+			Write($"# {skillName} defence probe, twice");
+			Write("");
+			Write($"per-tick realignment {(DeterministicRandom.RealignEnabled ? "on" : "off")}"
+				+ $" ({DeterministicRandom.NoRealignVariable}=1 turns it off)");
+			Write($"{SfrDials.DefenseProbeTrials} trials, {SfrDials.DefenseWindowMs} ms window,"
+				+ $" {SfrDials.DefenseSettleMs} ms settle");
+			Write("");
+			Write($"basic swing {first.BasicSwing:F0} then {second.BasicSwing:F0}");
+			Write($"swings prevented {first.SwingsPrevented:0.000} then {second.SwingsPrevented:0.000}");
+			Write("");
+			Write($"{"trial",6}{"controlA",12}{"controlB",12}{"treatA",12}{"treatB",12}{"diffA",12}{"diffB",12}");
+
+			for (var trial = 0; trial < first.Controls.Length && trial < second.Controls.Length; ++trial)
+			{
+				var controlMoved = Math.Abs(first.Controls[trial] - second.Controls[trial]) > 0.5f;
+				var treatmentMoved = Math.Abs(first.Treatments[trial] - second.Treatments[trial]) > 0.5f;
+
+				Write($"{trial,6}{first.Controls[trial],12:F0}{second.Controls[trial],12:F0}"
+					+ $"{first.Treatments[trial],12:F0}{second.Treatments[trial],12:F0}"
+					+ $"{first.Controls[trial] - first.Treatments[trial],12:F0}{second.Controls[trial] - second.Treatments[trial],12:F0}"
+					+ (controlMoved ? "   CONTROL MOVED" : "") + (treatmentMoved ? "   TREATMENT MOVED" : ""));
+			}
+
+			_output.WriteLine("report saved to " + SaveReport(RepeatReportName));
+
+			Assert.Null(first.Error);
+			Assert.Null(second.Error);
+			Assert.Equal(first.SwingsPrevented, second.SwingsPrevented, 3);
+		}
+
 		private void Write(string line = "")
 		{
 			_output.WriteLine(line);
 			_lines.Add(line);
 		}
 
-		private string SaveReport()
+		/// <param name="name"></param>
+		private string SaveReport(string name = ReportName)
 		{
 			var directory = Path.Combine(SfrData.Root, SweepReport.OutputDirectory);
 
 			Directory.CreateDirectory(directory);
 
-			var path = Path.Combine(directory, ReportName);
+			var path = Path.Combine(directory, name);
 
 			File.WriteAllText(path, string.Join(Environment.NewLine, _lines), Encoding.UTF8);
 

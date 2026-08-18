@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.World.Maps;
 using Yggdrasil.Geometry;
 using Yggdrasil.Util;
@@ -67,7 +68,7 @@ namespace Melia.Zone.World.Spawning
 
 			for (var i = 0; i < MaxValidPositionTries; ++i)
 			{
-				var rndVector = this.Area.GetRandomPoint(RandomProvider.Get());
+				var rndVector = this.Area.GetRandomPoint(GameRandom.Get());
 				if (this.TryGetPositionFromPoint(rndVector, out pos))
 					return true;
 			}
@@ -77,7 +78,7 @@ namespace Melia.Zone.World.Spawning
 				return true;
 
 			// No dice? Okay... What about the edge points?
-			foreach (var edgePoint in this.Area.GetEdgePoints().OrderBy(_ => RandomProvider.Get().Next()))
+			foreach (var edgePoint in this.Area.GetEdgePoints().OrderBy(_ => GameRandom.Get().Next()))
 			{
 				if (this.TryGetPositionFromPoint(edgePoint, out pos))
 					return true;

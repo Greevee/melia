@@ -1,6 +1,7 @@
 using System;
 using Melia.Shared.Game.Const;
 using Melia.Shared.Packages;
+using Melia.Shared.Util;
 using Melia.Zone.Buffs.Base;
 using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.Characters;
@@ -40,7 +41,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Pardoner
 			executeChance += bonusChance;
 
 			// Roll for the execute.
-			if (RandomProvider.Get().Next(1, 101) <= executeChance
+			if (GameRandom.Get().Next(1, 101) <= executeChance
 				&& target is Mob monster && monster.Rank != MonsterRank.Boss)
 			{
 				// If the check succeeds on a non-boss monster, kill it.

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills;
 using Melia.Zone.Skills.Combat;
@@ -68,7 +69,7 @@ namespace Melia.Zone.Pads.Handlers
 			if (creator.IsDead || pad.IsDead)
 				return;
 
-			var fallPos = pad.Position.GetRandomInRange2D((int)fallRange, RandomProvider.Get());
+			var fallPos = pad.Position.GetRandomInRange2D((int)fallRange, GameRandom.Get());
 
 			creator.MissileFall(skill.Data.ClassName, "I_wizard_hail_force", 0.5f, fallPos, HitRange, delayTime, 0.6f, 200f, 2f, "F_wizard_hail_hit_ice", 0.5f, 0f, "F_wizard_hail_hit_ice", 0.5f);
 
@@ -93,7 +94,7 @@ namespace Melia.Zone.Pads.Handlers
 				var skillHit = new SkillHitInfo(creator, target, skill, skillHitResult);
 				Send.ZC_SKILL_HIT_INFO(creator, skillHit);
 
-				if (RandomProvider.Get().Next(100) < freezeChance && !target.IsBuffActive(BuffId.Freeze))
+				if (GameRandom.Get().Next(100) < freezeChance && !target.IsBuffActive(BuffId.Freeze))
 					target.StartBuff(BuffId.Freeze, skill.Level, 0, TimeSpan.FromMilliseconds(FreezeDurationMs), creator);
 			}
 		}

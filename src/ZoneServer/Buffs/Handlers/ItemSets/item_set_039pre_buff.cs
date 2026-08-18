@@ -1,4 +1,5 @@
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Buffs.Base;
 using Melia.Zone.Scripting.ScriptableEvents;
 using Melia.Zone.Skills;
@@ -47,7 +48,7 @@ namespace Melia.Zone.Buffs.Handlers.ItemSets
 			buff.Vars.SetInt(AttackCountVar, 0);
 
 			// Calculate random explosion damage
-			var baseDamage = RandomProvider.Get().Next(MinBaseDamage, MaxBaseDamage + 1);
+			var baseDamage = GameRandom.Get().Next(MinBaseDamage, MaxBaseDamage + 1);
 			var explosionDamage = baseDamage * BonusDamageRatio;
 
 			// Add explosion damage

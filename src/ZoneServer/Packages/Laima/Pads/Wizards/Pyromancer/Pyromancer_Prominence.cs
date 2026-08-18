@@ -104,7 +104,7 @@ namespace Melia.Zone.Pads.Handlers
 
 		private static Position GetRandomPerimeterPosition(Position center, float radius)
 		{
-			var angle = RandomProvider.Get().NextDouble() * Math.PI * 2;
+			var angle = GameRandom.Get().NextDouble() * Math.PI * 2;
 			var x = center.X + radius * (float)Math.Cos(angle);
 			var z = center.Z + radius * (float)Math.Sin(angle);
 			return new Position(x, center.Y, z);

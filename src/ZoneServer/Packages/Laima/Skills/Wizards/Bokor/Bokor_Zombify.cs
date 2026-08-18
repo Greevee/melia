@@ -5,6 +5,7 @@ using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills;
 using Melia.Zone.Skills.Handlers.Base;
@@ -123,11 +124,10 @@ namespace Melia.Zone.Skills.Handlers.Bokor
 		public static int SummonZombies(Skill skill, ICombatEntity caster, ZombieInfo info, int count)
 		{
 			var summonedCount = 0;
-			var random = new Random();
 
 			for (var i = 0; i < count; i++)
 			{
-				var randomAngle = random.Next(0, 360);
+				var randomAngle = GameRandom.Get().Next(0, 360);
 				var spawnRadius = 35f;
 				var spawnPosition = caster.Position.GetRelative(new Direction(randomAngle), spawnRadius);
 

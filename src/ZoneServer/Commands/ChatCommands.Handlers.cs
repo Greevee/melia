@@ -1272,7 +1272,7 @@ namespace Melia.Zone.Commands
 			if (randomGrade)
 			{
 				var grades = new[] { ItemGrade.Magic, ItemGrade.Rare, ItemGrade.Unique, ItemGrade.Legend };
-				grade = grades[RandomProvider.Get().Next(grades.Length)];
+				grade = grades[GameRandom.Get().Next(grades.Length)];
 			}
 
 			// Create and add item(s)
@@ -1430,15 +1430,14 @@ namespace Melia.Zone.Commands
 
 			var map = target.Map;
 			var position = target.Position;
-			var rnd = RandomProvider.Get();
 
 			for (var i = 0; i < count; i++)
 			{
 				var item = new Item(itemId, 1);
 
 				// Calculate random drop position within radius
-				var angle = rnd.NextDouble() * Math.PI * 2;
-				var distance = (float)(rnd.NextDouble() * radius);
+				var angle = GameRandom.Get().NextDouble() * Math.PI * 2;
+				var distance = (float)(GameRandom.Get().NextDouble() * radius);
 				var direction = new Direction((float)Math.Cos(angle), (float)Math.Sin(angle));
 
 				item.Drop(map, position, direction, distance, target.AccountObjectId, target.Layer);
@@ -1511,7 +1510,6 @@ namespace Melia.Zone.Commands
 			if (args.TryGet("tendency", out var tendencyArg) && tendencyArg.ToLower() == "aggressive")
 				tendency = TendencyType.Aggressive;
 
-			var rnd = new Random(Environment.TickCount);
 			for (var i = 0; i < amount; ++i)
 			{
 				var monster = new Mob(monsterData.Id);
@@ -1525,8 +1523,8 @@ namespace Melia.Zone.Commands
 				}
 				else
 				{
-					pos = target.Position.GetRandomInRange2D(amount * 4, rnd);
-					dir = new Direction(rnd.Next(0, 360));
+					pos = target.Position.GetRandomInRange2D(amount * 4, GameRandom.Get());
+					dir = new Direction(GameRandom.Get().Next(0, 360));
 				}
 
 				if (!target.Map.Ground.TryGetNearestValidPosition(pos, out var validPos))

@@ -9,6 +9,7 @@ using Melia.Zone.World.Items;
 using Yggdrasil.Util;
 using Yggdrasil.Extensions;
 using Melia.Shared.Data.Database;
+using Melia.Shared.Util;
 using System.Linq;
 
 public class ItemGachaScripts : GeneralScript
@@ -138,7 +139,7 @@ public class ItemGachaScripts : GeneralScript
 				return;
 			}
 			reward = null;
-			var result = RandomProvider.Next(1, (int)totalRatio);
+			var result = GameRandom.Get().Next(1, (int)totalRatio);
 			result *= (int)(ZoneServer.Instance.Conf.World.CubeDropRate / 100);
 			for (var i = 0; i < ratioList.Count - 1; i++)
 			{
@@ -225,7 +226,7 @@ public class ItemGachaScripts : GeneralScript
 		}
 
 		var grade = "C";
-		var gradeRandom = RandomProvider.Next(1, totalGradeRatio);
+		var gradeRandom = GameRandom.Get().Next(1, totalGradeRatio);
 
 		foreach (var gradeTemp in gradeList)
 		{
@@ -301,7 +302,7 @@ public class ItemGachaScripts : GeneralScript
 			}
 
 			reward = null;
-			var result = RandomProvider.Next(1, (int)totalRatio);
+			var result = GameRandom.Get().Next(1, (int)totalRatio);
 			for (var i = 0; i < ratioList.Count; i++)
 			{
 				if (result <= ratioList[i])

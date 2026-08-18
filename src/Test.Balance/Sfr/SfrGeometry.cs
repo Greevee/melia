@@ -69,6 +69,43 @@ namespace Melia.Test.Balance.Sfr
 				DensitySpacing(spec.MobCount), out aimDistance);
 
 		/// <summary>
+		/// Ground one monster has to itself where monsters stand at passive
+		/// density, in square world units.
+		/// </summary>
+		/// <remarks>
+		/// The zero point of the gathering axis: a press that reaches its
+		/// targets on ground this loose needs no pull built for it, because
+		/// this is how densely the world already places them.
+		/// </remarks>
+		public static float NaturalMobArea
+			=> MathF.PI * MathF.Pow(DensitySpacingAtThree * 2f, 2) / DensityReferenceCount;
+
+		/// <summary>
+		/// Returns the ground one monster has to itself in a scenario's own
+		/// placement, in square world units.
+		/// </summary>
+		/// <remarks>
+		/// The disc the placement fills, over the monsters filling it. Taken
+		/// from the offsets themselves rather than from the ring constants, so
+		/// it follows the matrix if the layout ever changes.
+		///
+		/// First-order: a press covering only the inner rings covers ground
+		/// that is denser than the disc's average, so its area comes out
+		/// slightly high. The whole term is a ratio against a design reference,
+		/// which is well inside that error.
+		/// </remarks>
+		/// <param name="offsets"></param>
+		public static float FieldAreaPerMob(ScenarioMob[] offsets)
+		{
+			if (offsets.Length == 0)
+				return NaturalMobArea;
+
+			var radius = offsets.Max(o => MathF.Sqrt(o.X * o.X + o.Z * o.Z));
+
+			return MathF.PI * radius * radius / offsets.Length;
+		}
+
+		/// <summary>
 		/// Returns how far apart that many monsters stand at passive density.
 		/// </summary>
 		/// <remarks>

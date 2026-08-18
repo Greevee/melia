@@ -7,6 +7,7 @@
 using System;
 using System.Threading.Tasks;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Scripting;
 using Melia.Zone.World.Quests;
 using Melia.Zone.World.Actors.Characters;
@@ -121,7 +122,7 @@ public class FFlash58QuestNpcsScript : GeneralScript
 					var recipes = new[] { 911011, 911012, 911013, 911014, 911015 };
 					for (var i = 0; i < rewards; i++)
 					{
-						var recipeId = recipes[RandomProvider.Get().Next(recipes.Length)];
+						var recipeId = recipes[GameRandom.Get().Next(recipes.Length)];
 						character.Inventory.Add(recipeId, 1, InventoryAddType.PickUp);
 					}
 

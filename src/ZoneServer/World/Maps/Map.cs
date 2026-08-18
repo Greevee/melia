@@ -70,7 +70,7 @@ namespace Melia.Zone.World.Maps
 		private readonly ConcurrentQueue<(ItemMonster Item, DateTime DueTime)> _pendingItemMerges = new();
 		private int _characterCount;
 		private DateTime _lastPlayerLeftTime = DateTime.MinValue;
-		private DateTime _createdTime = DateTime.Now;
+		private DateTime _createdTime = GameClock.LocalNow;
 
 		// Guards the dormancy state transitions against the character
 		// add/remove paths, which run on the network threads while the
@@ -264,7 +264,7 @@ namespace Melia.Zone.World.Maps
 				// Collect updateables - update monsters if players are on
 				// the map or if players left recently (grace period for
 				// mobs to return to spawn, despawn via lifetime, etc.)
-				var withinGracePeriod = _lastPlayerLeftTime != DateTime.MinValue && (DateTime.Now - _lastPlayerLeftTime) < EntityUpdateGracePeriod;
+				var withinGracePeriod = _lastPlayerLeftTime != DateTime.MinValue && (GameClock.LocalNow - _lastPlayerLeftTime) < EntityUpdateGracePeriod;
 				if (this.HasCharacters || withinGracePeriod)
 				{
 					lock (_monsters)
@@ -300,7 +300,9 @@ namespace Melia.Zone.World.Maps
 
 		private void Disappearances()
 		{
-			var now = DateTime.Now;
+			// The same clock DisappearTime is set on, so a lifetime measured
+			// in game time is not compared against wall-clock time.
+			var now = GameClock.LocalNow;
 
 			// Process monster disappearances (like base Melia)
 			var toDisappear = new List<IMonster>();
@@ -384,7 +386,7 @@ namespace Melia.Zone.World.Maps
 			if (this.IsDormant || this.HasCharacters || this.IsCity || this.IsInstance)
 				return false;
 
-			var now = DateTime.Now;
+			var now = GameClock.LocalNow;
 
 			// Never unload right after a wake-up, so a map that just
 			// received a player can't be pulled out from under them
@@ -494,7 +496,7 @@ namespace Melia.Zone.World.Maps
 		{
 			this.IsDormant = false;
 			_lastPlayerLeftTime = DateTime.MinValue;
-			_createdTime = DateTime.Now;
+			_createdTime = GameClock.LocalNow;
 
 			Log.Info("Map '{0}' waking up.", this.ClassName);
 		}
@@ -615,7 +617,7 @@ namespace Melia.Zone.World.Maps
 					Interlocked.Decrement(ref _characterCount);
 
 					if (!this.HasCharacters)
-						_lastPlayerLeftTime = DateTime.Now;
+						_lastPlayerLeftTime = GameClock.LocalNow;
 				}
 			}
 
@@ -869,6 +871,52 @@ namespace Melia.Zone.World.Maps
 
 			if (monster is Mob mob)
 				mob.Cleanup();
+		}
+
+		/// <summary>
+		/// Releases the capacity the entity tables still hold for entities that
+		/// have been removed, so what is left enumerates in the order it was
+		/// added.
+		/// </summary>
+		/// <remarks>
+		/// A removed entry leaves a hole its table hands to the next entity
+		/// added, so after a churn of adds and removes the tables enumerate in
+		/// an order set by that churn rather than by the current contents.
+		/// Anything reading them in order - a target sweep that keeps the first
+		/// n candidates at equal distance - then depends on what the map held
+		/// before.
+		/// </remarks>
+		public void CompactEntityTables()
+		{
+			lock (_combatEntities)
+				_combatEntities.TrimExcess();
+
+			lock (_characters)
+				_characters.TrimExcess();
+
+			lock (_monsters)
+				_monsters.TrimExcess();
+
+			lock (_pads)
+				_pads.TrimExcess();
+		}
+
+		/// <summary>
+		/// Drops the additions that are still queued, so nothing a cleared
+		/// map had in flight appears on it afterwards.
+		/// </summary>
+		/// <remarks>
+		/// Monster additions are throttled per tick, so a map that stops
+		/// updating while a burst is still queued keeps it until it updates
+		/// again, whenever that is and whatever it is doing by then.
+		/// </remarks>
+		public void ClearPendingEntities()
+		{
+			while (_addMonsters.TryDequeue(out _))
+			{ }
+
+			while (_pendingItemMerges.TryDequeue(out _))
+			{ }
 		}
 
 		/// <summary>

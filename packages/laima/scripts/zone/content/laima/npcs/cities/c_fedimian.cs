@@ -6,6 +6,7 @@
 
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Scripting;
 using Yggdrasil.Util;
 using static Melia.Zone.Scripting.Shortcuts;
@@ -32,7 +33,7 @@ public class CFedimianNpcScript : GeneralScript
 			dialog.SetTitle(L("Muras"));
 			dialog.SetPortrait("Dlg_port_Muras");
 
-			if (RandomProvider.Get().NextDouble() >= 0.5)
+			if (GameRandom.Get().NextDouble() >= 0.5)
 				await dialog.Msg(L("H-Hello there! C-Can I help you with some good consumables?"));
 			else
 				await dialog.Msg(L("O-Oh, hi. W-Welcome to my humble shop."));

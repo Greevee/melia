@@ -279,7 +279,7 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 			if (removableBuffs.Count == 0)
 				return 0;
 
-			var buff = removableBuffs.Random();
+			var buff = removableBuffs.PickRandom();
 			this.Remove(buff);
 
 			return buff.Id;
@@ -300,7 +300,7 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 			if (removableDeBuffs.Count == 0)
 				return 0;
 
-			var buff = removableDeBuffs.Random();
+			var buff = removableDeBuffs.PickRandom();
 			this.Remove(buff);
 
 			return buff.Id;
@@ -740,14 +740,14 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 			}
 
 			if (this.TryGet(BuffId.Cyclone_Buff_ImmuneAbil, out var cycloneImmuneBuff)
-				&& RandomProvider.Get().Next(100) < cycloneImmuneBuff.NumArg1 * 15)
+				&& GameRandom.Get().Next(100) < cycloneImmuneBuff.NumArg1 * 15)
 				return true;
 
 			if (this.TryGet(BuffId.Ausirine_Buff, out var ausirineBuff))
 			{
 				var skillLevel = ausirineBuff.NumArg1;
 				var resistanceChance = 30 + (3 * skillLevel);
-				if (RandomProvider.Get().Next(100) < resistanceChance)
+				if (GameRandom.Get().Next(100) < resistanceChance)
 					return true;
 			}
 
@@ -757,7 +757,7 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 				var resistRate = ItemHookRegistry.Instance.GetDebuffResistance(character, buffId);
 				if (resistRate > 0f)
 				{
-					var roll = RandomProvider.Get().NextDouble();
+					var roll = GameRandom.Get().NextDouble();
 					if (roll < resistRate)
 						return true;
 				}

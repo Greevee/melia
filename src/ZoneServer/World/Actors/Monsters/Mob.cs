@@ -950,7 +950,7 @@ namespace Melia.Zone.World.Actors.Monsters
 		private List<DropStack> GenerateDropStacks(Character killer, List<DropData> drops)
 		{
 			var result = new List<DropStack>();
-			var rnd = RandomProvider.Get();
+			var rnd = GameRandom.Get();
 
 			foreach (var dropItemData in drops)
 			{
@@ -1161,7 +1161,7 @@ namespace Melia.Zone.World.Actors.Monsters
 		/// <param name="dropChance"></param>
 		public void DropItem(Character killer, int itemId, int amount, float dropChance)
 		{
-			var rnd = RandomProvider.Get();
+			var rnd = GameRandom.Get();
 
 			var dropItem = new Item(itemId, amount);
 
@@ -1255,7 +1255,7 @@ namespace Melia.Zone.World.Actors.Monsters
 		/// <param name="killer"></param>
 		private void DropStatic(Character killer)
 		{
-			var rnd = RandomProvider.Get();
+			var rnd = GameRandom.Get();
 
 			if (this.StaticDrops.IsEmpty)
 				return;
@@ -1291,7 +1291,7 @@ namespace Melia.Zone.World.Actors.Monsters
 			if (!ZoneServer.Instance.Data.MapBonusDropsDb.TryFind(mapClassName, out var mapBonusData))
 				return;
 
-			var rnd = RandomProvider.Get();
+			var rnd = GameRandom.Get();
 			var lootingChance = killer?.Properties.GetFloat(PropertyName.LootingChance) ?? 0;
 			var lootingRate = 1f + lootingChance * 0.001f;
 
@@ -1384,7 +1384,7 @@ namespace Melia.Zone.World.Actors.Monsters
 				this.Rank == MonsterRank.NPC)
 				return;
 
-			var rnd = RandomProvider.Get();
+			var rnd = GameRandom.Get();
 
 			var worldConf = ZoneServer.Instance.Conf.World;
 
@@ -1472,7 +1472,7 @@ namespace Melia.Zone.World.Actors.Monsters
 
 			var worldConf = ZoneServer.Instance.Conf.World;
 
-			var waves = RandomProvider.Get().Next(worldConf.RedJackpotWaveMin, worldConf.RedJackpotWaveMax);
+			var waves = GameRandom.Get().Next(worldConf.RedJackpotWaveMin, worldConf.RedJackpotWaveMax);
 			var waveMinDelay = worldConf.RedJackpotWaveDelayMin;
 			var waveMaxDelay = worldConf.RedJackpotWaveDelayMax;
 			var mobPerWave = worldConf.RedJackpotWaveMonsterCount;
@@ -1492,10 +1492,10 @@ namespace Melia.Zone.World.Actors.Monsters
 					break;
 
 				var fromGround = false;
-				if (RandomProvider.Get().Next(2) == 1)
+				if (GameRandom.Get().Next(2) == 1)
 					fromGround = true;
 
-				var waveDelay = TimeSpan.FromSeconds(RandomProvider.Get().Next(waveMinDelay, waveMaxDelay));
+				var waveDelay = TimeSpan.FromSeconds(GameRandom.Get().Next(waveMinDelay, waveMaxDelay));
 
 				for (var j = 0; j < mobPerWave; j++)
 				{

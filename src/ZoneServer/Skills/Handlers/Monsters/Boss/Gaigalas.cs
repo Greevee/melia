@@ -5,6 +5,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Pads;
 using Melia.Zone.Skills.Combat;
@@ -211,14 +212,13 @@ namespace Melia.Zone.Skills.Handlers.Monsters.Boss
 			aniTime = 200;
 			await SkillAttack(caster, skill, splashArea, hitDelay, aniTime);
 
-			var rnd = new Random();
 			var padCount = 12;
 			var baseDirection = originPos.GetDirection(farPos);
 
 			for (var i = 0; i < padCount; i++)
 			{
-				var distance = 50 + rnd.NextDouble() * 170;
-				var widthOffset = (rnd.NextDouble() - 0.5) * 60;
+				var distance = 50 + GameRandom.Get().NextDouble() * 170;
+				var widthOffset = (GameRandom.Get().NextDouble() - 0.5) * 60;
 				var padPos = originPos.GetRelative(baseDirection, (float)distance);
 				padPos = padPos.GetRelative(new Direction((float)(baseDirection.DegreeAngle + 90)), (float)widthOffset);
 				SkillCreatePad(caster, skill, padPos, 0f, PadName.Mon_firewall);

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Melia.Shared.Game.Const;
 using Melia.Zone.Scripting;
 using Melia.Zone.Skills;
 using Melia.Zone.Skills.Combat;
@@ -15,7 +16,8 @@ namespace Melia.Test.Balance.Sfr
 	/// <param name="Target"></param>
 	/// <param name="Damage"></param>
 	/// <param name="HitCount"></param>
-	public readonly record struct PressHit(ICombatEntity Target, float Damage, int HitCount);
+	/// <param name="Skill"></param>
+	public readonly record struct PressHit(ICombatEntity Target, float Damage, int HitCount, SkillId Skill);
 
 	/// <summary>
 	/// Watches the real damage pipeline and records every application one
@@ -110,7 +112,7 @@ namespace Melia.Test.Balance.Sfr
 					Replace(AfterCalc, (attacker, target, skill, modifier, result) =>
 					{
 						var value = afterCalc(attacker, target, skill, modifier, result);
-						_current.Value?.Record(attacker, target, result);
+						_current.Value?.Record(attacker, target, skill, result);
 
 						return value;
 					});
@@ -190,6 +192,15 @@ namespace Melia.Test.Balance.Sfr
 			=> this.Hits.Where(h => h.Target == target).Sum(h => h.Damage);
 
 		/// <summary>
+		/// Returns the damage one skill of the caster's dealt, which is how a
+		/// window separates what a press amplified from what the press itself
+		/// delivered.
+		/// </summary>
+		/// <param name="skillId"></param>
+		public float DamageDealtWith(SkillId skillId)
+			=> this.Hits.Where(h => h.Target != _caster && h.Skill == skillId).Sum(h => h.Damage);
+
+		/// <summary>
 		/// Returns the damage every enemy took across the whole press,
 		/// excluding whatever the caster itself took.
 		/// </summary>
@@ -235,14 +246,15 @@ namespace Melia.Test.Balance.Sfr
 		/// </summary>
 		/// <param name="attacker"></param>
 		/// <param name="target"></param>
+		/// <param name="skill"></param>
 		/// <param name="result"></param>
-		private void Record(ICombatEntity attacker, ICombatEntity target, SkillHitResult result)
+		private void Record(ICombatEntity attacker, ICombatEntity target, Skill skill, SkillHitResult result)
 		{
 			if (target == null || (!IsCasters(attacker) && target != _caster))
 				return;
 
 			lock (_syncLock)
-				_hits.Add(new PressHit(target, result.Damage, result.HitCount));
+				_hits.Add(new PressHit(target, result.Damage, result.HitCount, skill?.Id ?? SkillId.None));
 		}
 
 		/// <summary>

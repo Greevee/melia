@@ -4,6 +4,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
@@ -237,7 +238,7 @@ namespace Melia.Zone.Skills.Handlers.Monsters.Boss
 
 		private string GetRandomMob()
 		{
-			var random = RandomProvider.Get().Next(4);
+			var random = GameRandom.Get().Next(4);
 			var mob = "raider";
 			switch (random)
 			{

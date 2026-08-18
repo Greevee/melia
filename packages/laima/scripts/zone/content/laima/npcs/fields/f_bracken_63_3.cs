@@ -6,6 +6,7 @@
 
 using System;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Scripting;
 using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.Characters;
@@ -69,7 +70,7 @@ public class FBracken633DangerZonesScript : GeneralScript
 				if (character.Variables.Perm.GetBool(triggeredKey, false))
 					return;
 
-				if (RandomProvider.Get().Next(100) < TriggerChance)
+				if (GameRandom.Get().Next(100) < TriggerChance)
 				{
 					character.Variables.Perm.Set(triggeredKey, true);
 
@@ -81,8 +82,8 @@ public class FBracken633DangerZonesScript : GeneralScript
 						character
 					);
 
-					var spawnCount = RandomProvider.Get().Next(2, 4);
-					var monster = RandomProvider.Get().Next(2) == 0 ? MonsterId.Gosaru : MonsterId.Raffly;
+					var spawnCount = GameRandom.Get().Next(2, 4);
+					var monster = GameRandom.Get().Next(2) == 0 ? MonsterId.Gosaru : MonsterId.Raffly;
 					SpawnTempMonsters(character, monster, spawnCount, 70, TimeSpan.FromMinutes(1));
 
 					character.ServerMessage(L("{#66FF66}A choking miasma rises - and predators lunge from the bushes!{/}"));

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.World.Maps;
 using Yggdrasil.Geometry;
 using Yggdrasil.Util;
@@ -97,7 +98,7 @@ namespace Melia.Zone.World.Spawning
 				if (_spawnAreas.Count == 0)
 					return false;
 
-				var index = RandomProvider.Get().Next(_spawnAreas.Count);
+				var index = GameRandom.Get().Next(_spawnAreas.Count);
 				spawnArea = _spawnAreas[index];
 
 				return true;

@@ -6,6 +6,7 @@
 
 using System;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Scripting;
 using Melia.Zone.World.Actors.Characters;
 using Melia.Zone.World.Actors.Characters.Components;
@@ -286,7 +287,7 @@ public class FSiauliai474QuestNpcsScript : GeneralScript
 
 				var spawnedKey = $"Laima.Quests.f_siauliai_47_4.Quest1003.Nest{nestNumber}.Spawned";
 				var hasSpawned = character.Variables.Perm.GetBool(spawnedKey, false);
-				if (!hasSpawned && RandomProvider.Get().Next(100) < 15)
+				if (!hasSpawned && GameRandom.Get().Next(100) < 15)
 				{
 					character.Variables.Perm.Set(spawnedKey, true);
 

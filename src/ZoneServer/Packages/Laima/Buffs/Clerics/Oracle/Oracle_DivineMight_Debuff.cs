@@ -1,5 +1,6 @@
 using Melia.Shared.Game.Const;
 using Melia.Shared.Packages;
+using Melia.Shared.Util;
 using Melia.Zone.Buffs.Base;
 using Melia.Zone.World.Actors;
 using Yggdrasil.Util;
@@ -22,7 +23,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Oracle
 			{
 				var minMatk = caster.Properties.GetFloat(PropertyName.MINMATK);
 				var maxMatk = caster.Properties.GetFloat(PropertyName.MAXMATK);
-				var damage = RandomProvider.Get().Next((int)minMatk, (int)maxMatk + 1);
+				var damage = GameRandom.Get().Next((int)minMatk, (int)maxMatk + 1);
 
 				caster.TakeSimpleHit(damage, target, SkillId.Oracle_DivineMight);
 			}

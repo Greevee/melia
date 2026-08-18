@@ -5,6 +5,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
@@ -57,7 +58,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Wizard
 			{
 				for (var i = 0; i < BulletsPerUse; ++i)
 				{
-					var missileTarget = mainTargets.Random();
+					var missileTarget = mainTargets.PickRandom();
 
 					var skillHitResult = SCR_SkillHit(caster, missileTarget, skill);
 					var skillHit = new SkillHitInfo(caster, missileTarget, skill, skillHitResult, aniTime, hitDelay);
@@ -87,7 +88,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Wizard
 
 				for (var i = 0; i < richochetBulletsPerHit; ++i)
 				{
-					var subTarget = subTargets.Random();
+					var subTarget = subTargets.PickRandom();
 
 					var skillHitResult = SCR_SkillHit(caster, subTarget, skill);
 					var subHit = new SkillHitInfo(caster, subTarget, skill, skillHitResult, TimeSpan.Zero, TimeSpan.Zero);

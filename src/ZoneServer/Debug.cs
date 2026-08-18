@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Shared.Versioning;
 using Melia.Shared.World;
 using Melia.Zone.Network;
@@ -179,9 +180,9 @@ namespace Melia.Zone
 
 			foreach (var polygon in polygons)
 			{
-				var r = new Random().Next(0x77, 0xDD);
-				var g = new Random().Next(0x77, 0xDD);
-				var b = new Random().Next(0x77, 0xDD);
+				var r = GameRandom.Get().Next(0x77, 0xDD);
+				var g = GameRandom.Get().Next(0x77, 0xDD);
+				var b = GameRandom.Get().Next(0x77, 0xDD);
 				var color = new Rgba32((byte)r, (byte)g, (byte)b);
 
 				if (!drawCellsColored)

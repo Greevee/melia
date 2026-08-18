@@ -3,6 +3,7 @@ using System.Collections;
 using System.Linq;
 using Melia.Shared.Game.Const;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.CombatEntities.Components;
@@ -263,7 +264,7 @@ namespace Melia.Zone.Scripting.AI
 
 				if (distance < IdleRadius - 20 || distance > IdleRadius + 20)
 				{
-					var randomAngle = RandomProvider.Get().Next(360);
+					var randomAngle = GameRandom.Get().Next(360);
 					var targetPos = master.Position.GetRelative(new Direction(randomAngle), IdleRadius);
 
 					if (this.Entity.Map.Ground.IsValidPosition(targetPos))

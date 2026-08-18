@@ -6,6 +6,7 @@
 
 using System;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Scripting;
 using Melia.Zone.World.Quests;
 using Melia.Zone.World.Actors.Characters;
@@ -47,7 +48,7 @@ public class FSiauliai501QuestNpcsScript : GeneralScript
 				// 20% chance to spawn 2 Orange Sakmoli when collecting crops
 				var spawnedKey = $"Laima.Quests.f_siauliai_50_1.Quest1005.SpawnedBundle{bundleNumber}";
 				var hasSpawned = character.Variables.Perm.GetBool(spawnedKey, false);
-				if (!hasSpawned && RandomProvider.Get().Next(100) < 20)
+				if (!hasSpawned && GameRandom.Get().Next(100) < 20)
 				{
 					character.Variables.Perm.Set(spawnedKey, true);
 

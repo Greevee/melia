@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Melia.Shared.Game.Const;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone;
 using Melia.Zone.Network;
 using Melia.Zone.Scripting;
@@ -513,7 +514,7 @@ public class KingsPlateauQuestNpcsScript : GeneralScript
 
 				// Chance to spawn Hogma when interacting
 				var hasSpawned = character.Variables.Perm.GetBool(spawnedKey, false);
-				if (!hasSpawned && RandomProvider.Get().Next(100) < 30)
+				if (!hasSpawned && GameRandom.Get().Next(100) < 30)
 				{
 					character.Variables.Perm.Set(spawnedKey, true);
 					SpawnTempMonsters(character, MonsterId.Hogma_Guard, 2, 70, TimeSpan.FromMinutes(1));

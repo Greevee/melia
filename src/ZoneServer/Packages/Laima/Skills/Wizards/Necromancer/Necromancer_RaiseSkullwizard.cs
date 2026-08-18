@@ -3,6 +3,7 @@ using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Handlers.Base;
 using Melia.Zone.World.Actors;
@@ -49,7 +50,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Necromancer
 				summon.Properties.SetFloat(PropertyName.Level, caster.Level);
 				summon.Properties.SetFloat(PropertyName.FIXMSPD_BM, 140f);
 
-				var attack = RandomProvider.Get().Next((int)caster.Properties.GetFloat(PropertyName.MINMATK),
+				var attack = GameRandom.Get().Next((int)caster.Properties.GetFloat(PropertyName.MINMATK),
 					(int)caster.Properties.GetFloat(PropertyName.MINMATK))
 					* (skill.Properties.GetFloat(PropertyName.CaptionRatio) / 100f);
 				var life = caster.Properties.GetFloat(PropertyName.MHP) * (skill.Properties.GetFloat(PropertyName.CaptionRatio3) / 100f);

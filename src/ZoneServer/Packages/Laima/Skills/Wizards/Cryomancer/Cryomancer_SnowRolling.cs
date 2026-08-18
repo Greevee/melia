@@ -98,7 +98,7 @@ namespace Melia.Zone.Skills.Handlers.Cryomancer
 					// Apply freeze
 					var freezeChance = 100f;
 					var freezeDurationMilli = 3000f;
-					if ((RandomProvider.Get().Next(100) < freezeChance) && splashHitResult.Damage > 0)
+					if ((GameRandom.Get().Next(100) < freezeChance) && splashHitResult.Damage > 0)
 					{
 						target.StartBuff(BuffId.Cryomancer_Freeze, TimeSpan.FromMilliseconds(freezeDurationMilli), caster);
 					}

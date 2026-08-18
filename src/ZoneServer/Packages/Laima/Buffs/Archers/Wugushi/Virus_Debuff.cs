@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Buffs.Base;
 using Melia.Zone.Scripting.ScriptableEvents;
 using Melia.Zone.Skills;
@@ -64,7 +65,7 @@ namespace Melia.Zone.Buffs.Handlers
 			if (target.IsDead)
 				return;
 
-			if (RandomProvider.Get().Next(100) >= SpreadOnHitChance)
+			if (GameRandom.Get().Next(100) >= SpreadOnHitChance)
 				return;
 
 			var map = target.Map;

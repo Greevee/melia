@@ -6,6 +6,7 @@
 
 using System;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Scripting;
 using Melia.Zone.World.Actors.Characters;
 using Melia.Zone.World.Actors.Characters.Components;
@@ -336,7 +337,7 @@ public class FWhitetrees212QuestNpcsScript : GeneralScript
 				// 15% chance to spawn a Kugheri Zeffi (only once per flower per player)
 				var spawnedKey = $"Laima.Quests.f_whitetrees_21_2.Quest1003.Flower{spotNumber}.Spawned";
 				var hasSpawned = character.Variables.Perm.GetBool(spawnedKey, false);
-				if (!hasSpawned && RandomProvider.Get().Next(100) < 15)
+				if (!hasSpawned && GameRandom.Get().Next(100) < 15)
 				{
 					character.Variables.Perm.Set(spawnedKey, true);
 

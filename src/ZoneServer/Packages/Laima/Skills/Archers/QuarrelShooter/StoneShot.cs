@@ -6,6 +6,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Pads;
 using Melia.Zone.Skills.Combat;
@@ -72,7 +73,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.QuarrelShooter
 			if (skillHitResult.Damage > 0)
 			{
 				var stunChance = 0.3f + (skill.Level * 0.05f);
-				if (RandomProvider.Get().NextDouble() < stunChance)
+				if (GameRandom.Get().NextDouble() < stunChance)
 				{
 					target.StartBuff(BuffId.Stun, TimeSpan.FromSeconds(1.5), caster);
 				}

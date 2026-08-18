@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
@@ -235,7 +236,7 @@ namespace Melia.Zone.Skills.Handlers.Monsters
 			};
 
 			var targets = SkillSelectEnemiesInCircle(caster, target.Position, 200, 30);
-			var randomTarget = targets.Random();
+			var randomTarget = targets.PickRandom();
 			if (randomTarget != null)
 			{
 				await skill.Wait(TimeSpan.FromMilliseconds(1500));
@@ -271,7 +272,7 @@ namespace Melia.Zone.Skills.Handlers.Monsters
 				if (randDist == 0)
 					pos = target.Position; // Center projectile
 				else
-					pos = caster.Position.GetRandomInRange2D(randDist, RandomProvider.Get()); // Random projectile
+					pos = caster.Position.GetRandomInRange2D(randDist, GameRandom.Get()); // Random projectile
 
 				Send.ZC_NORMAL.SkillProjectile(caster, pos, "I_force045_green#dionia_head_001", 1.5f, "F_explosion001_yellow", 2f, 600, TimeSpan.FromMilliseconds(1000), TimeSpan.Zero, 3);
 
@@ -316,7 +317,7 @@ namespace Melia.Zone.Skills.Handlers.Monsters
 
 			if (targets == null || targets.Count == 0)
 				return;
-			var chosenTarget = targets.Random();
+			var chosenTarget = targets.PickRandom();
 
 			skill.Run(this.HandleSkill(caster, chosenTarget, skill));
 		}

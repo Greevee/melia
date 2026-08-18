@@ -6,6 +6,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
@@ -76,7 +77,7 @@ namespace Melia.Zone.Skills.Handlers.Scouts.OutLaw
 
 			// Outlaw4 has a 20% chance to activate.  If it does, it guarantees
 			// the stun and makes the attack a forced critical
-			var outlaw4Activates = caster.IsAbilityActive(AbilityId.Outlaw4) && RandomProvider.Get().Next(5) == 1;
+			var outlaw4Activates = caster.IsAbilityActive(AbilityId.Outlaw4) && GameRandom.Get().Next(5) == 1;
 
 			await skill.Wait(hitDelay);
 
@@ -100,7 +101,7 @@ namespace Melia.Zone.Skills.Handlers.Scouts.OutLaw
 
 				if (skillHitResult.Damage > 0)
 				{
-					if (RandomProvider.Get().Next(10) <= stunChance)
+					if (GameRandom.Get().Next(10) <= stunChance)
 						target.StartBuff(BuffId.Stun, skill.Level, 0, TimeSpan.FromSeconds(3), caster);
 				}
 			}

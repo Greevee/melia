@@ -8,6 +8,7 @@ using Melia.Zone.World.Actors;
 using Yggdrasil.Util;
 using static Melia.Zone.Skills.SkillUseFunctions;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Skills.SplashAreas;
 using System.Threading.Tasks;
 
@@ -118,7 +119,7 @@ namespace Melia.Zone.Skills.Handlers.Common
 
 			// Random chance to trigger double hit while buff is active
 			if (caster.TryGetBuff(BuffId.DoubleAttack_Buff, out var doubleAttackBuff)
-				&& RandomProvider.Get().Next(100) < doubleAttackBuff.NumArg2)
+				&& GameRandom.Get().Next(100) < doubleAttackBuff.NumArg2)
 			{
 				modifier.HitCount += 1;
 			}

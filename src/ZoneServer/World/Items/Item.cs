@@ -6,6 +6,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.ObjectProperties;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Scripting;
 using Melia.Zone.World.Actors;
@@ -593,7 +594,7 @@ namespace Melia.Zone.World.Items
 
 		public ItemMonster Drop(Map map, Position position, long ownerId = 0)
 		{
-			var rnd = RandomProvider.Get();
+			var rnd = GameRandom.Get();
 			var direction = new Direction(rnd.Next(0, 360));
 			var dropRadius = ZoneServer.Instance.Conf.World.DropRadius;
 			var distance = rnd.Next(dropRadius / 2, dropRadius + 1);
@@ -861,7 +862,7 @@ namespace Melia.Zone.World.Items
 				return;
 
 			this.Properties.SetFloat(PropertyName.NeedRandomOption, 0);
-			var random = RandomProvider.Get();
+			var random = GameRandom.Get();
 			var options = random.Next(minOptions, maxOptions);
 			var utilOptions = new string[] { "CRTHR", "CRTDR", "BLK_BREAK", "BLK", "ADD_HR", "ADD_DR", "RHP", "MSP" };
 			var atkOptions = new string[] { "ADD_CLOTH", "ADD_LEATHER", "ADD_IRON", "ADD_SMALLSIZE", "ADD_MIDDLESIZE",
@@ -907,7 +908,7 @@ namespace Melia.Zone.World.Items
 				this.RemoveRandomOption(i);
 
 			this.Properties.SetFloat(PropertyName.NeedRandomOption, 0);
-			var random = RandomProvider.Get();
+			var random = GameRandom.Get();
 			var itemGrade = (ItemGrade)this.Properties.GetFloat(PropertyName.ItemGrade);
 
 			if (itemGrade <= ItemGrade.Normal)
@@ -1188,7 +1189,7 @@ namespace Melia.Zone.World.Items
 		/// <returns></returns>
 		public float GenerateRandomStatValue(string propertyName, float itemLevel, ItemGrade itemGrade, out float rngModifier)
 		{
-			var random = RandomProvider.Get();
+			var random = GameRandom.Get();
 
 			// Natural oscilation of -20% to +20% to stat value
 			rngModifier = (float)(random.NextDouble() * 0.4 - 0.2);
@@ -1487,7 +1488,7 @@ namespace Melia.Zone.World.Items
 		/// </summary>
 		public void GenerateRandomHatOptions(int minOptions = 1, int maxOptions = 2)
 		{
-			var random = RandomProvider.Get();
+			var random = GameRandom.Get();
 			var options = random.Next(minOptions, maxOptions);
 			var utilOptions = new string[] { "CRTHR", "CRTDR", "BLK_BREAK", "BLK", "ADD_HR", "ADD_DR", "RHP", "SR", "MSPD" };
 			var atkOptions = new string[] { "ADD_CLOTH", "ADD_LEATHER", "ADD_IRON", "ADD_SMALLSIZE", "ADD_MIDDLESIZE",

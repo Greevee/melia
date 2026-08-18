@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone;
 using Melia.Zone.Buffs.Handlers;
 using Melia.Zone.Items.Effects;
@@ -68,7 +69,7 @@ public class CombatCalculationsScript : GeneralScript
 	[ScriptableFunction]
 	public float SCR_GetRandomAtk(ICombatEntity attacker, ICombatEntity target, Skill skill, SkillModifier modifier, SkillHitResult skillHitResult)
 	{
-		var rnd = RandomProvider.Get();
+		var rnd = GameRandom.Get();
 
 		float min, max;
 
@@ -182,7 +183,7 @@ public class CombatCalculationsScript : GeneralScript
 		var SCR_Combat_BeforeBonuses = ScriptableFunctions.Combat.Get("SCR_Combat_BeforeBonuses");
 		var SCR_Combat_AfterBonuses = ScriptableFunctions.Combat.Get("SCR_Combat_AfterBonuses");
 
-		var rnd = RandomProvider.Get();
+		var rnd = GameRandom.Get();
 
 		SCR_Combat_BeforeCalc(attacker, target, skill, modifier, skillHitResult);
 

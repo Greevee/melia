@@ -6,6 +6,7 @@
 
 using System;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Scripting;
 using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.Characters;
@@ -75,9 +76,9 @@ public class FBracken632DangerZonesScript : GeneralScript
 				if (alreadyPoisoned || alreadySpawned)
 					return;
 
-				if (RandomProvider.Get().Next(100) < TriggerChance)
+				if (GameRandom.Get().Next(100) < TriggerChance)
 				{
-					var eventType = RandomProvider.Get().Next(2);
+					var eventType = GameRandom.Get().Next(2);
 
 					if (eventType == 0)
 					{
@@ -97,8 +98,8 @@ public class FBracken632DangerZonesScript : GeneralScript
 					{
 						character.Variables.Perm.Set(spawnKey, true);
 
-						var spawnCount = RandomProvider.Get().Next(2, 4);
-						var monster = RandomProvider.Get().Next(2) == 0 ? MonsterId.Loktanun : MonsterId.Ponpon;
+						var spawnCount = GameRandom.Get().Next(2, 4);
+						var monster = GameRandom.Get().Next(2) == 0 ? MonsterId.Loktanun : MonsterId.Ponpon;
 						if (SpawnTempMonsters(character, monster, spawnCount, 70, TimeSpan.FromMinutes(1)))
 						{
 							character.ServerMessage(L("{#FF6666}Predators erupt from the poisonous undergrowth!{/}"));

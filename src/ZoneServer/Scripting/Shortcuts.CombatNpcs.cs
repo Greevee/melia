@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Melia.Shared.Game.Const;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.CombatEntities.Components;
 using Melia.Zone.World.Actors.Monsters;
@@ -142,7 +143,7 @@ namespace Melia.Zone.Scripting
 			guard.Vars.Set("Laima.Guards.NextChatAt", now + GuardChatCooldown);
 
 			var pool = (guard.CombatState?.AttackState ?? false) ? GuardCombatLines : GuardIdleLines;
-			var line = pool[RandomProvider.Get().Next(pool.Length)];
+			var line = pool[GameRandom.Get().Next(pool.Length)];
 			guard.Say(line);
 		}
 

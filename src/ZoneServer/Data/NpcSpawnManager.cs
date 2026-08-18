@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Data.Spawning;
 using Melia.Zone.Scripting.Dialogues;
 using Melia.Zone.World.Maps;
@@ -168,7 +169,7 @@ namespace Melia.Zone.Spawning
 
 			// Normalize chances if they exceed 1.0, or just use them as weights?
 			// Simple weighted random selection:
-			var roll = RandomProvider.Get().NextDouble() * totalChance;
+			var roll = GameRandom.Get().NextDouble() * totalChance;
 			double cumulative = 0;
 
 			foreach (var npcData in possibilities)
@@ -195,11 +196,11 @@ namespace Melia.Zone.Spawning
 			var finalName = nameFormat;
 			if (finalName.Contains("%FirstName%"))
 			{
-				finalName = finalName.Replace("%FirstName%", _firstNames[RandomProvider.Get().Next(_firstNames.Length)]);
+				finalName = finalName.Replace("%FirstName%", _firstNames[GameRandom.Get().Next(_firstNames.Length)]);
 			}
 			if (finalName.Contains("%LastName%"))
 			{
-				finalName = finalName.Replace("%LastName%", _lastNames[RandomProvider.Get().Next(_lastNames.Length)]);
+				finalName = finalName.Replace("%LastName%", _lastNames[GameRandom.Get().Next(_lastNames.Length)]);
 			}
 
 			// Wrap name in localization code if applicable

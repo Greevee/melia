@@ -6,6 +6,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
@@ -123,7 +124,7 @@ namespace Melia.Zone.Skills.Handlers.Scouts.OutLaw
 					skillHit.HitEffect = HitEffect.Impact;
 					hits.Add(skillHit);
 
-					if (RandomProvider.Get().Next(100) < stunChance)
+					if (GameRandom.Get().Next(100) < stunChance)
 					{
 						target.StartBuff(BuffId.Stun, skill.Level, 0, TimeSpan.FromSeconds(3), caster);
 					}

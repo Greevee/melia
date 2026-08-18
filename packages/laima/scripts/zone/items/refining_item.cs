@@ -10,6 +10,7 @@ using System.Linq;
 using System.Numerics;
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone;
 using Melia.Zone.Network;
 using Melia.Zone.Scripting;
@@ -223,7 +224,7 @@ public class RefiningItemScripts : GeneralScript
 		if (reinForceMode == "YES")
 			successRate = 100;
 
-		var isSuccess = RandomProvider.Get().Next(1, 101) <= successRate; // Use 101 for <= comparison with 100
+		var isSuccess = GameRandom.Get().Next(1, 101) <= successRate; // Use 101 for <= comparison with 100
 
 		ReinforceResult(owner, fromItem, isSuccess, anvil, anvilItem);
 	}

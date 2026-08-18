@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using g4;
 using Melia.Shared.Data.Database;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.World.Maps.NavMesh;
 using Yggdrasil.Geometry;
 using Yggdrasil.Util;
@@ -582,7 +583,7 @@ namespace Melia.Zone.World.Maps
 
 			if (validCount == 0) return false;
 
-			var rnd = RandomProvider.Get();
+			var rnd = GameRandom.Get();
 			var targetIdx = rnd.Next(validCount);
 			Polygon2d rndCell = null;
 			var seen = 0;

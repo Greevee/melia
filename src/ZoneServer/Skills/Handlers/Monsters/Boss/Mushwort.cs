@@ -5,6 +5,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
@@ -104,9 +105,8 @@ namespace Melia.Zone.Skills.Handlers.Monsters.Boss
 
 			for (var i = 0; i < 10; i++)
 			{
-				var rnd = RandomProvider.Get();
-				var angle = rnd.NextDouble() * Math.PI * 2;
-				var distance = rnd.NextDouble() * 20;
+				var angle = GameRandom.Get().NextDouble() * Math.PI * 2;
+				var distance = GameRandom.Get().NextDouble() * 20;
 				var missilePos = new Position(
 					target.Position.X + (float)(Math.Cos(angle) * distance),
 					target.Position.Y,
@@ -212,9 +212,8 @@ namespace Melia.Zone.Skills.Handlers.Monsters.Boss
 			{
 				for (var j = 0; j < 3; j++)
 				{
-					var rnd = RandomProvider.Get();
-					var angle = rnd.NextDouble() * Math.PI * 2;
-					var distance = rnd.NextDouble() * 300;
+					var angle = GameRandom.Get().NextDouble() * Math.PI * 2;
+					var distance = GameRandom.Get().NextDouble() * 300;
 					var missilePos = new Position(
 						originPos.X + (float)(Math.Cos(angle) * distance),
 						originPos.Y,
@@ -276,9 +275,8 @@ namespace Melia.Zone.Skills.Handlers.Monsters.Boss
 				{
 					for (var j = 0; j < 2; j++)
 					{
-						var rnd = RandomProvider.Get();
-						var angle = rnd.NextDouble() * Math.PI * 2;
-						var distance = 20 + rnd.NextDouble() * 40;
+						var angle = GameRandom.Get().NextDouble() * Math.PI * 2;
+						var distance = 20 + GameRandom.Get().NextDouble() * 40;
 						var missilePos = new Position(
 							target.Position.X + (float)(Math.Cos(angle) * distance),
 							target.Position.Y,
@@ -341,9 +339,8 @@ namespace Melia.Zone.Skills.Handlers.Monsters.Boss
 				{
 					for (var j = 0; j < 2; j++)
 					{
-						var rnd = RandomProvider.Get();
-						var angle = rnd.NextDouble() * Math.PI * 2;
-						var distance = 20 + rnd.NextDouble() * 40;
+						var angle = GameRandom.Get().NextDouble() * Math.PI * 2;
+						var distance = 20 + GameRandom.Get().NextDouble() * 40;
 						var missilePos = new Position(
 							target.Position.X + (float)(Math.Cos(angle) * distance),
 							target.Position.Y,
@@ -403,9 +400,8 @@ namespace Melia.Zone.Skills.Handlers.Monsters.Boss
 			{
 				for (var j = 0; j < 3; j++)
 				{
-					var rnd = RandomProvider.Get();
-					var angle = rnd.NextDouble() * Math.PI * 2;
-					var distance = 20 + rnd.NextDouble() * 40;
+					var angle = GameRandom.Get().NextDouble() * Math.PI * 2;
+					var distance = 20 + GameRandom.Get().NextDouble() * 40;
 					var missilePos = new Position(
 						target.Position.X + (float)(Math.Cos(angle) * distance),
 						target.Position.Y,

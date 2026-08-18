@@ -11,6 +11,7 @@ using System.Linq;
 using Melia.Shared.Game.Const;
 using Melia.Shared.Scripting;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone;
 using Melia.Zone.Events.Arguments;
 using Melia.Zone.Network;
@@ -314,7 +315,7 @@ public class CardAlbumBossRewardsScript : GeneralScript
 	/// </summary>
 	private void DropCardForPlayer(Character character, int cardItemId, int rank, Position bossPos)
 	{
-		var rnd = RandomProvider.Get();
+		var rnd = GameRandom.Get();
 
 		// Calculate drop position spread around the boss
 		var dropPos = GetDropPosition(bossPos, rank);

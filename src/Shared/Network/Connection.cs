@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using Melia.Shared.Network.Crypto;
+using Melia.Shared.Util;
 using Yggdrasil.Logging;
 using Yggdrasil.Network.TCP;
 using Yggdrasil.Util;
@@ -81,7 +82,7 @@ namespace Melia.Shared.Network
 		public Connection()
 		{
 			_framer.MessageReceived += this.OnMessageReceived;
-			this.IntegritySeed = RandomProvider.Get().Next();
+			this.IntegritySeed = GameRandom.Get().Next();
 		}
 
 		/// <summary>

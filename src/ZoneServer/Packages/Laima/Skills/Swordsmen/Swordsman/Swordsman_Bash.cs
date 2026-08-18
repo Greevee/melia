@@ -6,6 +6,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
@@ -73,7 +74,7 @@ namespace Melia.Zone.Skills.HandlersOverrides.Swordsmen.Swordsman
 
 			if (skillHitResult.Damage > 0)
 			{
-				if (RandomProvider.Get().Next(10) <= stunChance)
+				if (GameRandom.Get().Next(10) <= stunChance)
 					target.StartBuff(BuffId.Stun, skill.Level, 0, TimeSpan.FromSeconds(3), caster);
 			}
 

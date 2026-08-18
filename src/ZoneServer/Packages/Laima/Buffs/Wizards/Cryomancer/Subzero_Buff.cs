@@ -2,6 +2,7 @@ using System;
 using Melia.Shared.Packages;
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Buffs.Base;
 using Melia.Zone.Network;
 using Melia.Zone.Scripting.ScriptableEvents;
@@ -40,7 +41,7 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Wizard.Cryomancer
 				return;
 
 			var freezeChance = GetCaptionRatio(buff, 2);
-			if (RandomProvider.Get().Next(100) < freezeChance)
+			if (GameRandom.Get().Next(100) < freezeChance)
 			{
 				var freezeDuration = buff.NumArg2;
 

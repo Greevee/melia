@@ -674,7 +674,7 @@ namespace Melia.Zone.World
 
 					if (partyCharacters.Count > 0)
 					{
-						var rnd = RandomProvider.Get();
+						var rnd = GameRandom.Get();
 						recipient = partyCharacters[rnd.Next(partyCharacters.Count)];
 						return true;
 					}

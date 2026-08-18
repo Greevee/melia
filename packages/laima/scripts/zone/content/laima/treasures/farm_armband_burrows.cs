@@ -13,6 +13,7 @@ using System.Linq;
 using System.Threading;
 using Melia.Shared.Game.Const;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone;
 using Melia.Zone.Scripting;
 using Melia.Zone.World.Actors;
@@ -254,11 +255,11 @@ public class FarmArmbandBurrowSpawner : ISpawner
 
 			var uniqueId = Interlocked.Increment(ref BurrowIds);
 			var uniqueName = $"farm_armband_burrow_{uniqueId}";
-			var armbandId = ArmbandIds[RandomProvider.Get().Next(ArmbandIds.Length)];
+			var armbandId = ArmbandIds[GameRandom.Get().Next(ArmbandIds.Length)];
 
 			var location = new Location(map.Id, position);
 			var dir = new Direction(sp.Dir);
-			var monsterId = BurrowMonsterIds[RandomProvider.Get().Next(BurrowMonsterIds.Length)];
+			var monsterId = BurrowMonsterIds[GameRandom.Get().Next(BurrowMonsterIds.Length)];
 
 			var burrow = new Npc(monsterId, "Disturbed Soil", location, dir);
 			burrow.UniqueName = uniqueName;
@@ -308,7 +309,7 @@ public class FarmArmbandBurrowSpawner : ISpawner
 	{
 		for (var attempt = 0; attempt < MAX_SPAWN_ATTEMPTS; attempt++)
 		{
-			var sp = SpawnPoints[RandomProvider.Get().Next(SpawnPoints.Length)];
+			var sp = SpawnPoints[GameRandom.Get().Next(SpawnPoints.Length)];
 			var position = new Position(sp.X, sp.Y, sp.Z);
 
 			if (this.IsPositionAvailable(sp.Map, position))

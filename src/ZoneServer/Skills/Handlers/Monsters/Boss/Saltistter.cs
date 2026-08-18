@@ -5,6 +5,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
@@ -97,9 +98,8 @@ namespace Melia.Zone.Skills.Handlers.Monsters.Boss
 
 				for (var i = 0; i < 4; i++)
 				{
-					var rnd = RandomProvider.Get();
-					var angle = rnd.NextDouble() * Math.PI * 2;
-					var distance = rnd.NextDouble() * 200;
+					var angle = GameRandom.Get().NextDouble() * Math.PI * 2;
+					var distance = GameRandom.Get().NextDouble() * 200;
 					var position = new Position(
 						originPos.X + (float)(Math.Cos(angle) * distance),
 						originPos.Y,
@@ -300,9 +300,8 @@ namespace Melia.Zone.Skills.Handlers.Monsters.Boss
 
 				for (var i = 0; i < 4; i++)
 				{
-					var rnd = RandomProvider.Get();
-					var angle = rnd.NextDouble() * Math.PI * 2;
-					var distance = rnd.NextDouble() * 200;
+					var angle = GameRandom.Get().NextDouble() * Math.PI * 2;
+					var distance = GameRandom.Get().NextDouble() * 200;
 					var position = new Position(
 						originPos.X + (float)(Math.Cos(angle) * distance),
 						originPos.Y,

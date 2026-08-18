@@ -1,6 +1,7 @@
 using System;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Buffs.Base;
 using Melia.Zone.Buffs.Handlers.Monster;
 using Melia.Zone.Skills;
@@ -45,7 +46,7 @@ namespace Melia.Zone.Buffs.Handlers.Laima.Monster
 			if (enemies.Count == 0)
 				return;
 
-			var rnd = RandomProvider.Get();
+			var rnd = GameRandom.Get();
 			var target = enemies[rnd.Next(enemies.Count)];
 
 			if (target.TryGetBuff(BuffId.Mythic_InfectiousDisease_Debuff, out var existing) && existing.RemainingDuration >= TimeSpan.FromSeconds(6))

@@ -331,15 +331,18 @@ namespace Melia.Zone.World.Actors.Components
 				foreach (var a in _actorsInsideBuffer)
 					_nowInsideSet.Add(a);
 
-				// Find entered actors (in now but not in previous)
+				// Find entered actors (in now but not in previous). Walked in
+				// list order rather than set order, which is the order the
+				// actors' identity hashes happen to fall in and differs
+				// between runs of the same fight.
 				_tempEntered.Clear();
-				foreach (var a in _nowInsideSet)
+				foreach (var a in _actorsInsideBuffer)
 					if (!_actorsInsideSet.Contains(a))
 						_tempEntered.Add(a);
 
 				// Find left actors (in previous but not in now)
 				_tempLeft.Clear();
-				foreach (var a in _actorsInsideSet)
+				foreach (var a in _actorsInside)
 					if (!_nowInsideSet.Contains(a))
 						_tempLeft.Add(a);
 

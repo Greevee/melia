@@ -1,6 +1,7 @@
 using System;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Buffs.Base;
 using Melia.Zone.Scripting.ScriptableEvents;
 using Melia.Zone.Skills;
@@ -29,7 +30,7 @@ namespace Melia.Zone.Buffs.Handlers
 			if (skillHitResult.Damage > 0)
 			{
 				var applyDebuffChance = ChancePerAbilityLevel * buff.NumArg2;
-				var rng = RandomProvider.Get().Next(100);
+				var rng = GameRandom.Get().Next(100);
 
 				var enhanceAbilityLevel = 0;
 				if (attacker.TryGetAbility(AbilityId.Wizard27, out var enhanceAbility))

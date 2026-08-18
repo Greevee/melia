@@ -5,6 +5,7 @@ using System.Threading;
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Scripting;
 using Melia.Zone.Scripting.AI;
 using Melia.Zone.World.Actors;
@@ -198,7 +199,7 @@ namespace Melia.Zone.World.Spawning
 				}
 				else if (_positions != null && _positions.Length > 0)
 				{
-					monster.Position = _positions[RandomProvider.Get().Next(_positions.Length)];
+					monster.Position = _positions[GameRandom.Get().Next(_positions.Length)];
 				}
 				else
 				{
@@ -292,7 +293,7 @@ namespace Melia.Zone.World.Spawning
 				if (monster.IsBuffActive(entry.BuffId))
 					continue;
 
-				if (RandomProvider.Get().NextDouble() * 100 >= entry.Chance)
+				if (GameRandom.Get().NextDouble() * 100 >= entry.Chance)
 					continue;
 
 				monster.StartBuff(entry.BuffId, entry.NumArg1, entry.NumArg2, TimeSpan.Zero, monster);
@@ -336,7 +337,7 @@ namespace Melia.Zone.World.Spawning
 			this.Amount--;
 			_flexMeter += FlexMeterIncreasePerDeath;
 
-			var delay = RandomProvider.Get().Between(this.MinRespawnDelay, this.MaxRespawnDelay);
+			var delay = GameRandom.Get().Between(this.MinRespawnDelay, this.MaxRespawnDelay);
 
 			lock (_respawnDelays)
 				_respawnDelays.Add(delay);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using Melia.Shared.Util;
 using Yggdrasil.Geometry;
 using Yggdrasil.Util;
 
@@ -207,7 +208,7 @@ namespace Melia.Shared.World
 		/// <returns></returns>
 		public readonly Position GetRandomInRange2D(int distance)
 		{
-			var rnd = RandomProvider.Get();
+			var rnd = GameRandom.Get();
 			return this.GetRandom(rnd.Next(1, distance + 1), rnd);
 		}
 
@@ -220,7 +221,7 @@ namespace Melia.Shared.World
 		/// <returns></returns>
 		public readonly Position GetRandomInRange2D(int distanceMin, int distanceMax)
 		{
-			var rnd = RandomProvider.Get();
+			var rnd = GameRandom.Get();
 			return this.GetRandom(rnd.Next(distanceMin, distanceMax + 1), rnd);
 		}
 
@@ -279,7 +280,7 @@ namespace Melia.Shared.World
 				return this;
 
 			if (rand != 0)
-				distance += RandomProvider.Get().Next(rand);
+				distance += GameRandom.Get().Next(rand);
 
 			var deltaX = other.X - this.X;
 			var deltaY = other.Y - this.Y;

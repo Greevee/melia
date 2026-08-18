@@ -51,6 +51,27 @@ namespace Melia.Test.Balance.Sfr
 		/// </summary>
 		public float SwingsPrevented { get; init; }
 
+		/// <summary>
+		/// Damage taken in each control window, in trial order.
+		/// </summary>
+		/// <remarks>
+		/// Kept per trial rather than only as a mean so a run that disagrees
+		/// with the last one can be read pair by pair: a control half that
+		/// moves is the mob behaving differently, where only the difference
+		/// moving is the press.
+		/// </remarks>
+		public float[] Controls { get; init; } = [];
+
+		/// <summary>
+		/// Damage taken in each treatment window, in the same order.
+		/// </summary>
+		public float[] Treatments { get; init; } = [];
+
+		/// <summary>
+		/// The caster's own basic swing the difference is divided by.
+		/// </summary>
+		public float BasicSwing { get; init; }
+
 		public string Error { get; init; }
 
 		public float DamagePrevented => Math.Max(0f, this.ControlDamageTaken - this.TreatmentDamageTaken);
@@ -123,11 +144,11 @@ namespace Melia.Test.Balance.Sfr
 					DeterministicRandom.Seed(SkillPressProbe.Seed + trial);
 					try
 					{
-						controls[trial] = RunWindow(job, skillId, skillLevel, characterLevel, windowMs, false, map, out className, out var swing);
+						controls[trial] = RunWindow(job, skillId, skillLevel, characterLevel, windowMs, false, map, SkillPressProbe.Seed + trial, out className, out var swing);
 						basicSwing = swing;
 
 						DeterministicRandom.Seed(SkillPressProbe.Seed + trial);
-						treatments[trial] = RunWindow(job, skillId, skillLevel, characterLevel, windowMs, true, map, out className, out _);
+						treatments[trial] = RunWindow(job, skillId, skillLevel, characterLevel, windowMs, true, map, SkillPressProbe.Seed + trial, out className, out _);
 					}
 					finally
 					{
@@ -143,6 +164,9 @@ namespace Melia.Test.Balance.Sfr
 					ControlDamageTaken = controls.Average(),
 					TreatmentDamageTaken = treatments.Average(),
 					SwingsPrevented = Math.Max(0f, PairedTrimmedMean(controls, treatments)) / Math.Max(1f, basicSwing),
+					Controls = controls,
+					Treatments = treatments,
+					BasicSwing = basicSwing,
 				};
 			}
 			catch (Exception ex)
@@ -239,15 +263,22 @@ namespace Melia.Test.Balance.Sfr
 
 				SkillPressProbe.RunAll(Enumerable.Range(0, count).Select(trial => (Action)(() =>
 				{
-					// Control and treatment stay on one thread so the seed they
-					// share is the same thread-local RandomProvider.
+					// Control and treatment share a seed, a thread and one rented
+					// arena, so the only difference between the two windows is
+					// the press. Renting an arena each let the pair land on two
+					// instances, which is a difference inside a paired reading.
 					try
 					{
-						DeterministicRandom.Seed(SkillPressProbe.Seed + trial);
-						controls[trial] = pool.Use(m => RunWindow(job, skillId, skillLevel, characterLevel, windowMs, false, m, out names[trial], out swings[trial]));
+						pool.Use(m =>
+						{
+							DeterministicRandom.Seed(SkillPressProbe.Seed + trial);
+							controls[trial] = RunWindow(job, skillId, skillLevel, characterLevel, windowMs, false, m, SkillPressProbe.Seed + trial, out names[trial], out swings[trial]);
 
-						DeterministicRandom.Seed(SkillPressProbe.Seed + trial);
-						treatments[trial] = pool.Use(m => RunWindow(job, skillId, skillLevel, characterLevel, windowMs, true, m, out _, out _));
+							DeterministicRandom.Seed(SkillPressProbe.Seed + trial);
+							treatments[trial] = RunWindow(job, skillId, skillLevel, characterLevel, windowMs, true, m, SkillPressProbe.Seed + trial, out _, out _);
+
+							return 0;
+						});
 					}
 					finally
 					{
@@ -265,6 +296,9 @@ namespace Melia.Test.Balance.Sfr
 					ControlDamageTaken = controls.Average(),
 					TreatmentDamageTaken = treatments.Average(),
 					SwingsPrevented = Math.Max(0f, PairedTrimmedMean(controls, treatments)) / Math.Max(1f, basicSwing),
+					Controls = controls,
+					Treatments = treatments,
+					BasicSwing = basicSwing,
 				};
 			}
 			catch (Exception ex)
@@ -290,10 +324,11 @@ namespace Melia.Test.Balance.Sfr
 		/// <param name="windowMs"></param>
 		/// <param name="useSkill"></param>
 		/// <param name="arena"></param>
+		/// <param name="seed"></param>
 		/// <param name="className"></param>
 		/// <param name="basicSwing"></param>
 		private static float RunWindow(JobEntry job, SkillId skillId, int skillLevel, int characterLevel, int windowMs, bool useSkill,
-			Map arena, out string className, out float basicSwing)
+			Map arena, int seed, out string className, out float basicSwing)
 		{
 			var character = (Character)null;
 			var mob = (Mob)null;
@@ -305,7 +340,7 @@ namespace Melia.Test.Balance.Sfr
 			// number of the mob's swings every run. Real time is what made a
 			// single skill read 0.07 swings prevented on one run and 0.88 on
 			// the next.
-			GameClock.Use(new VirtualClock(DateTime.Now));
+			GameClock.Use(new VirtualClock());
 
 			try
 			{
@@ -335,6 +370,11 @@ namespace Melia.Test.Balance.Sfr
 				var tick = TimeSpan.FromMilliseconds(TickMs);
 				var clock = GameClock.Current;
 
+				// Position in the window, which is what the two halves realign
+				// their rolls on. It runs across both loops so the settle and
+				// the window never share a seed.
+				var at = 0;
+
 				using (var recorder = new SfrPressRecorder(character))
 				{
 					// Given the mob time to close and land its first swing
@@ -342,6 +382,9 @@ namespace Melia.Test.Balance.Sfr
 					// is not measuring an empty aggro window.
 					for (var elapsed = 0; elapsed < SfrDials.DefenseSettleMs; elapsed += TickMs)
 					{
+						DeterministicRandom.Realign(seed, at);
+						at += TickMs;
+
 						SkillPressProbe.Step(clock, tick);
 						arena.Update(tick);
 						Refill(character);
@@ -354,6 +397,9 @@ namespace Melia.Test.Balance.Sfr
 
 					for (var elapsed = 0; elapsed < windowMs; elapsed += TickMs)
 					{
+						DeterministicRandom.Realign(seed, at);
+						at += TickMs;
+
 						SkillPressProbe.Step(clock, tick);
 						arena.Update(tick);
 					}

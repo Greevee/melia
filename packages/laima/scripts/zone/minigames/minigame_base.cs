@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Shared.World;
 using Melia.Zone.Network;
 using Melia.Zone.Scripting;
@@ -12,7 +13,6 @@ using Melia.Zone.World.Actors.Monsters;
 using Melia.Zone.World.Maps;
 using Melia.Zone.World.Spawning;
 using Yggdrasil.Geometry;
-using Yggdrasil.Util;
 using static Melia.Zone.Scripting.Shortcuts;
 
 /// <summary>
@@ -27,7 +27,7 @@ public abstract class MinigameBase : IMinigameInstance
 	public Position SpawnPosition { get; }
 	public Direction SpawnDirection { get; }
 
-	protected Random Rnd { get; }
+	protected Random Rnd => GameRandom.Get();
 	protected TimeSpan ElapsedTime { get; private set; }
 	protected bool IsActive { get; set; }
 
@@ -39,7 +39,6 @@ public abstract class MinigameBase : IMinigameInstance
 		this.Map = map;
 		this.SpawnPosition = position;
 		this.SpawnDirection = direction;
-		this.Rnd = new Random(RandomProvider.GetSeed());
 		this.ElapsedTime = TimeSpan.Zero;
 		this.IsActive = false;
 	}

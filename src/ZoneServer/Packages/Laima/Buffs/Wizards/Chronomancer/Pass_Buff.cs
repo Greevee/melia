@@ -1,6 +1,7 @@
 using System;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Buffs.Base;
 using Melia.Zone.Network;
 using Melia.Zone.World.Actors;
@@ -38,7 +39,7 @@ namespace Melia.Zone.Buffs.HandlersOverrides.Wizards.Chronomancer
 			var bonusReduction = TimeSpan.Zero;
 			if (buff.Caster is ICombatEntity abilCaster
 				&& abilCaster.TryGetActiveAbilityLevel(AbilityId.Chronomancer9, out var chrono9Level)
-				&& RandomProvider.Get().Next(1, 101) <= chrono9Level * 0.5f)
+				&& GameRandom.Get().Next(1, 101) <= chrono9Level * 0.5f)
 			{
 				bonusReduction = TimeSpan.FromSeconds(3);
 			}

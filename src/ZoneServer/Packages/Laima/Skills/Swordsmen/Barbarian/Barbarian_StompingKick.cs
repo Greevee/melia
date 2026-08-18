@@ -7,6 +7,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Buffs;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
@@ -156,7 +157,7 @@ namespace Melia.Zone.Skills.Handlers.Barbarian
 			var stunChance = 20 + (skill.Level * 3);
 
 			// Roll for stun (0-99, check if less than stunChance)
-			if (RandomProvider.Get().Next(100) < stunChance)
+			if (GameRandom.Get().Next(100) < stunChance)
 			{
 				var stunDuration = target.IsKnockedDown() ? 4 : 2;
 				target.StartBuff(BuffId.Stun, skill.Level, 0, TimeSpan.FromSeconds(stunDuration), caster);

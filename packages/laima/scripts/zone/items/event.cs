@@ -10,6 +10,7 @@ using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Shared.World;
 using Melia.Zone;
 using Melia.Zone.Scripting;
@@ -25,8 +26,7 @@ public class EventItemScript : GeneralScript
 	[ScriptableFunction]
 	public static ItemUseResult SCR_USE_ITEM_GODDESS_STATUE(Character character, Item item, string strArg, float numArg1, float numArg2)
 	{
-		var random = new Random();
-		var distance = (float)(random.NextDouble() * 30 + 10);
+		var distance = (float)(GameRandom.Get().NextDouble() * 30 + 10);
 		var spawnPosition = character.Position.GetRelative(character.Direction, distance);
 
 		var npc = AddNpc(

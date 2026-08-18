@@ -8,6 +8,7 @@
 
 using System;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Scripting;
 using Melia.Zone.World.Actors.Characters;
 using Melia.Zone.World.Actors.Characters.Components;
@@ -270,7 +271,7 @@ public class FWhitetrees561QuestNpcsScript : GeneralScript
 
 				var spawnedKey = $"Laima.Quests.f_whitetrees_56_1.Quest1003.Spot{spotNumber}.Spawned";
 				var hasSpawned = character.Variables.Perm.GetBool(spawnedKey, false);
-				if (!hasSpawned && RandomProvider.Get().Next(100) < 15)
+				if (!hasSpawned && GameRandom.Get().Next(100) < 15)
 				{
 					character.Variables.Perm.Set(spawnedKey, true);
 					if (SpawnTempMonsters(character, MonsterId.Budny, 1, 70, TimeSpan.FromMinutes(1)))

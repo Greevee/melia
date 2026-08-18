@@ -6,6 +6,7 @@
 
 using System;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Scripting;
 using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.Characters;
@@ -71,9 +72,9 @@ public class FBracken421DangerZonesScript : GeneralScript
 				if (alreadyPoisoned || alreadySpawned)
 					return;
 
-				if (RandomProvider.Get().Next(100) < TriggerChance)
+				if (GameRandom.Get().Next(100) < TriggerChance)
 				{
-					var eventType = RandomProvider.Get().Next(2);
+					var eventType = GameRandom.Get().Next(2);
 
 					if (eventType == 0)
 					{
@@ -93,7 +94,7 @@ public class FBracken421DangerZonesScript : GeneralScript
 					{
 						character.Variables.Perm.Set(spawnKey, true);
 
-						var spawnCount = RandomProvider.Get().Next(2, 4);
+						var spawnCount = GameRandom.Get().Next(2, 4);
 						if (SpawnTempMonsters(character, MonsterId.Gosaru_Blue, spawnCount, 70, TimeSpan.FromMinutes(1)))
 						{
 							character.ServerMessage(L("{#FF6666}Blue Gosarus drop from the canopy!{/}"));

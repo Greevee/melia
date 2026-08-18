@@ -7,6 +7,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Pads;
 using Melia.Zone.Skills.Combat;
@@ -454,7 +455,7 @@ namespace Melia.Zone.Skills.HandlersOverrides.Clerics.Dievdirbys
 			if (probability > 100)
 				probability = 100;
 
-			var rnd = RandomProvider.Get();
+			var rnd = GameRandom.Get();
 			for (var i = 0; i < itemCount; i++)
 			{
 				var randomItem = rnd.Next(0, 100);

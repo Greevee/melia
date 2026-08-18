@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Scripting.ScriptableEvents;
 using Melia.Zone.Skills.Handlers.Base;
 using Melia.Zone.Skills.Combat;
@@ -100,7 +101,7 @@ namespace Melia.Zone.Skills.Handlers.Hunter
 			if (allEnemies.Count == 0)
 				return;
 
-			var rnd = RandomProvider.Get();
+			var rnd = GameRandom.Get();
 			var roll = rnd.NextDouble();
 			int targetCount;
 

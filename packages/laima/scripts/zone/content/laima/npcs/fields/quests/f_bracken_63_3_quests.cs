@@ -6,6 +6,7 @@
 
 using System;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Scripting;
 using Melia.Zone.World.Quests;
 using Melia.Zone.World.Actors.Characters;
@@ -170,7 +171,7 @@ public class FBracken633QuestNpcsScript : GeneralScript
 				}
 
 				var hasSpawned = character.Variables.Perm.GetBool(spawnedKey, false);
-				if (!hasSpawned && RandomProvider.Get().Next(100) < 40)
+				if (!hasSpawned && GameRandom.Get().Next(100) < 40)
 				{
 					character.Variables.Perm.Set(spawnedKey, true);
 
@@ -347,10 +348,10 @@ public class FBracken633QuestNpcsScript : GeneralScript
 				if (character.Variables.Perm.GetBool(variableKey, false))
 					return;
 
-				if (RandomProvider.Get().Next(100) >= 20)
+				if (GameRandom.Get().Next(100) >= 20)
 					return;
 
-				var amount = RandomProvider.Get().Next(2, 4);
+				var amount = GameRandom.Get().Next(2, 4);
 				if (SpawnTempMonsters(character, MonsterId.Bush_Beetle, amount, 80, TimeSpan.FromMinutes(1)))
 					character.ServerMessage(L("{#FF6666}Beetles boil out of the hive!{/}"));
 			});

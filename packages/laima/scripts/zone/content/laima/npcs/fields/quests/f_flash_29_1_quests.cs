@@ -6,6 +6,7 @@
 
 using System;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Scripting;
 using Melia.Zone.World.Quests;
 using Melia.Zone.World.Actors.Characters;
@@ -427,7 +428,7 @@ public class FFlash291QuestNpcsScript : GeneralScript
 				if (!character.Variables.Perm.GetBool(petrifyRolledKey, false))
 				{
 					character.Variables.Perm.Set(petrifyRolledKey, true);
-					if (RandomProvider.Get().Next(100) < 30)
+					if (GameRandom.Get().Next(100) < 30)
 					{
 						character.StartBuff(BuffId.GM_Petrification_PC_Debuff, TimeSpan.FromSeconds(3));
 						character.ServerMessage(L("{#AAAAAA}The curse leaks out of the rank-plate - your limbs lock in stone!{/}"));

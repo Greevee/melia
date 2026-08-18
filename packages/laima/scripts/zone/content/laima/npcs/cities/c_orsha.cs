@@ -6,6 +6,7 @@
 
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Scripting;
 using Melia.Zone.World;
 using Yggdrasil.Util;
@@ -51,7 +52,7 @@ public class COrshaNpcScript : GeneralScript
 			dialog.SetTitle(L("Alf"));
 			dialog.SetPortrait("Dlg_port_Alf");
 
-			if (RandomProvider.Get().NextDouble() >= 0.5)
+			if (GameRandom.Get().NextDouble() >= 0.5)
 				await dialog.Msg(L("Looking for potions or other useful items? You've come to the right place!"));
 			else
 				await dialog.Msg(L("Welcome to Alf's shop. What can I get for you today?"));

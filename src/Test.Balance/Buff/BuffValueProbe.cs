@@ -208,8 +208,8 @@ namespace Melia.Test.Balance.Buff
 			{
 				try
 				{
-					// Control and treatment stay on one thread so the seed they
-					// share is the same thread-local RandomProvider.
+					// Control and treatment stay on one flow so the seed they
+					// share is the same GameRandom instance.
 					DeterministicRandom.Seed(SkillPressProbe.Seed + trial);
 					var control = RunOn(pool, m => RunWindow(job, subject, buffLevel, characterLevel, slotScale, false, m, scenario, alsoHeld, slotsOverride));
 
@@ -420,7 +420,7 @@ namespace Melia.Test.Balance.Buff
 			// The mobs fight back on the same clock the character swings on, so
 			// a control window and its treatment window hold the same number of
 			// exchanges every run.
-			GameClock.Use(new VirtualClock(DateTime.Now));
+			GameClock.Use(new VirtualClock());
 
 			try
 			{

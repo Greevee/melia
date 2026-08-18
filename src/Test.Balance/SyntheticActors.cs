@@ -4,6 +4,7 @@ using System.Reflection;
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.ObjectProperties;
+using Melia.Shared.Util;
 using Melia.Shared.World;
 using Melia.Zone;
 using Melia.Zone.Database;
@@ -77,7 +78,8 @@ namespace Melia.Test.Balance
 		private const int MaxSettleTicks = 20;
 
 		private static int _teamNameCounter;
-		private static readonly System.Collections.Concurrent.ConcurrentDictionary<Map, Position> _arenaCenters = new();
+		private static readonly object _arenaCenterLock = new();
+		private static readonly Dictionary<int, Position> _arenaCenters = [];
 
 		/// <summary>
 		/// Returns the map synthetic actors fight on by default.
@@ -129,7 +131,7 @@ namespace Melia.Test.Balance
 			stats ??= StatSpread.AllIn("STR", level);
 			arena ??= GetArena();
 
-			var teamName = $"Synth{++_teamNameCounter}";
+			var teamName = $"Synth{System.Threading.Interlocked.Increment(ref _teamNameCounter)}";
 
 			var character = new Character
 			{
@@ -390,6 +392,12 @@ namespace Melia.Test.Balance
 		private const int ArenaSearchTries = 2000;
 
 		/// <summary>
+		/// Seed the clearance search runs under, so the ground every scenario
+		/// is built on is the same ground on every run.
+		/// </summary>
+		private const int ArenaCenterSeed = 20260807;
+
+		/// <summary>
 		/// Returns a fixed point of walkable ground that every scenario is
 		/// built around, so offsets between actors are meaningful.
 		/// </summary>
@@ -398,47 +406,82 @@ namespace Melia.Test.Balance
 		/// point is not enough: scenario offsets that land on a wall get
 		/// snapped to the nearest valid ground, which silently moves a
 		/// monster out of the cone the skill was aimed down.
+		///
+		/// Cached per map id rather than per Map instance, and searched under a
+		/// seed of its own rather than the flow's. A pool arena is a separate
+		/// Map built on the same id, so its ground is the same read-only
+		/// geometry and one centre is correct for all of them - while a centre
+		/// per instance made every arena a slightly different fighting ground,
+		/// and which arena a press rents is decided by whichever is free. The
+		/// private seed is what keeps the search off the flow's own RNG
+		/// position: drawn from that, the centre depended on how many rolls the
+		/// press that first touched the arena had already made, so the same
+		/// arena came out different depending on who got there first.
 		/// </remarks>
 		public static Position GetArenaCenter(Map arena = null)
 		{
 			arena ??= GetArena();
 
-			if (_arenaCenters.TryGetValue(arena, out var cached))
-				return cached;
+			lock (_arenaCenterLock)
+			{
+				if (_arenaCenters.TryGetValue(arena.Id, out var cached))
+					return cached;
 
+				var best = SearchArenaCenter(arena);
+
+				_arenaCenters[arena.Id] = best;
+
+				return best;
+			}
+		}
+
+		/// <summary>
+		/// Runs the clearance search for the roomiest walkable point on a map.
+		/// </summary>
+		/// <param name="arena"></param>
+		private static Position SearchArenaCenter(Map arena)
+		{
 			var ground = arena.Ground;
 			var probes = GetClearanceProbes();
 
 			var best = default(Position);
 			var bestClear = -1;
 
-			for (var i = 0; i < ArenaSearchTries; ++i)
+			var previous = GameRandom.Current;
+			GameRandom.Use(new Random(ArenaCenterSeed));
+
+			try
 			{
-				if (!ground.TryGetRandomPosition(out var candidate))
-					continue;
-
-				var clear = 0;
-
-				foreach (var probe in probes)
+				for (var i = 0; i < ArenaSearchTries; ++i)
 				{
-					if (ground.IsValidPosition(new Position(candidate.X + probe.X, candidate.Y, candidate.Z + probe.Z)))
-						++clear;
-				}
+					if (!ground.TryGetRandomPosition(out var candidate))
+						continue;
 
-				if (clear > bestClear)
-				{
-					best = candidate;
-					bestClear = clear;
-				}
+					var clear = 0;
 
-				if (clear == probes.Length)
-					break;
+					foreach (var probe in probes)
+					{
+						if (ground.IsValidPosition(new Position(candidate.X + probe.X, candidate.Y, candidate.Z + probe.Z)))
+							++clear;
+					}
+
+					if (clear > bestClear)
+					{
+						best = candidate;
+						bestClear = clear;
+					}
+
+					if (clear == probes.Length)
+						break;
+				}
+			}
+			finally
+			{
+				GameRandom.Use(previous);
 			}
 
 			if (bestClear < 0)
 				throw new InvalidOperationException($"Could not find walkable ground on '{ArenaMapName}'.");
-
-			_arenaCenters[arena] = best;
 
 			return best;
 		}
@@ -528,6 +571,15 @@ namespace Melia.Test.Balance
 			}
 
 			character?.Map?.RemoveCharacter(character);
+
+			// The tables hand a removed entity's slot to the next one added, so
+			// without this an arena enumerates its actors in an order set by
+			// whatever ran on it before - and which arena a window rents is
+			// decided by whichever is free. A handler keeping the first n of
+			// several candidates at equal distance, which is every scenario that
+			// stacks its pull on one point, then measured a different pull each
+			// run.
+			map?.CompactEntityTables();
 		}
 	}
 
@@ -604,7 +656,9 @@ namespace Melia.Test.Balance
 		/// <param name="arena"></param>
 		public void Return(Map arena)
 		{
+			arena.ClearPendingEntities();
 			arena.RemoveEntitiesOnLayer(0);
+			arena.CompactEntityTables();
 			_free.Add(arena);
 		}
 

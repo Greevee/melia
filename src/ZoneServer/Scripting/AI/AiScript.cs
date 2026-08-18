@@ -838,7 +838,7 @@ namespace Melia.Zone.Scripting.AI
 				return;
 
 			// Random chance check
-			if (RandomProvider.Get().NextDouble() > actualCallChance)
+			if (GameRandom.Get().NextDouble() > actualCallChance)
 				return;
 
 			// Find nearby allies of same type
@@ -2007,7 +2007,7 @@ namespace Melia.Zone.Scripting.AI
 		/// <returns></returns>
 		protected Position GetAdjacentPosition(ICombatEntity target, float range)
 		{
-			var rnd = RandomProvider.Get();
+			var rnd = GameRandom.Get();
 
 			var ground = target.Map.Ground;
 			var targetPos = target.Position;

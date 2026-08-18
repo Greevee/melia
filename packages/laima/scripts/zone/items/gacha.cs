@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone;
 using Melia.Zone.Scripting;
 using Melia.Zone.World.Actors.Characters;
@@ -64,7 +65,7 @@ public class GachaItemScripts : GeneralScript
 		}
 
 		// Weighted random selection
-		var result = RandomProvider.Get().NextDouble() * totalRatio;
+		var result = GameRandom.Get().NextDouble() * totalRatio;
 		var cumulativeRatio = 0f;
 
 		foreach (var (itemName, count, ratio) in rewardList)

@@ -91,9 +91,9 @@ namespace Melia.Test.Balance
 		[Fact]
 		public void SamplingIsReproducible()
 		{
-			// Guards the reflection hook into RandomProvider: if a Yggdrasil
-			// bump renames the field, Seed throws and this fails loudly
-			// rather than silently going back to unseeded sampling.
+			// Guards the seed reaching the damage pipeline: if a roll stops
+			// reading GameRandom, this fails loudly rather than silently going
+			// back to unseeded sampling.
 			var character = SyntheticActors.CreateCharacter(JobId.Swordsman, 30);
 			var mobData = SyntheticActors.FindReferenceMob(40);
 			var mob = SyntheticActors.CreateMob(mobData.Id);
@@ -109,7 +109,6 @@ namespace Melia.Test.Balance
 				_output.WriteLine($"seed A run 1: {first}");
 				_output.WriteLine($"seed A run 2: {second}");
 				_output.WriteLine($"seed B      : {different}");
-				_output.WriteLine($"shared instance pinned: {DeterministicRandom.SharedInstancePinned}");
 
 				Assert.Equal(first.EffectiveMean, second.EffectiveMean);
 				Assert.Equal(first.DodgeRate, second.DodgeRate);

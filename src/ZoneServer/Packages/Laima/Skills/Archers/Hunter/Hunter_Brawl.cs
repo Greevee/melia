@@ -94,7 +94,7 @@ namespace Melia.Zone.Skills.Handlers.Hunter
 
 		private Mob SpawnCompanionCopy(ICombatEntity caster, Companion companion, string companionClassName, Position centerPos)
 		{
-			var rnd = RandomProvider.Get();
+			var rnd = GameRandom.Get();
 			var angle = rnd.NextDouble() * Math.PI * 2;
 			var distance = rnd.Next(20, 60);
 			var offsetX = (float)(Math.Cos(angle) * distance);

@@ -6,6 +6,7 @@
 
 using System;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Scripting;
 using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.Characters;
@@ -46,7 +47,7 @@ public class FFlash291NpcScript : GeneralScript
 
 			args.Npc.Vars.Set(lastCheckKey, now);
 
-			if (RandomProvider.Get().Next(100) >= 5)
+			if (GameRandom.Get().Next(100) >= 5)
 				return;
 
 			character.StartBuff(BuffId.Petrification, 1, 0, TimeSpan.FromSeconds(3), character);

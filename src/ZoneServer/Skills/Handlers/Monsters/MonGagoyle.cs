@@ -6,6 +6,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Pads;
 using Melia.Zone.Skills.Combat;
@@ -618,7 +619,7 @@ namespace Melia.Zone.Skills.Handlers.Mon
 				Effect = new EffectConfig("I_force018_trail_black3#Bip001 L Finger0Nub", 1.5f),
 				EndEffect = new EffectConfig("F_explosion99_dark1", 2f),
 				Range = 20f,
-				FlyTime = (2.0f + (float)RandomProvider.Get().NextDouble() * 0.5f),
+				FlyTime = (2.0f + (float)GameRandom.Get().NextDouble() * 0.5f),
 				DelayTime = 0f,
 				Gravity = 0f,
 				Speed = 1f,
@@ -635,7 +636,7 @@ namespace Melia.Zone.Skills.Handlers.Mon
 				Effect = new EffectConfig("I_force018_trail_black4#Bip001 L Finger0Nub", 1.5f),
 				EndEffect = new EffectConfig("F_explosion99_dark2", 2f),
 				Range = 20f,
-				FlyTime = (2.0f + (float)RandomProvider.Get().NextDouble() * 0.5f),
+				FlyTime = (2.0f + (float)GameRandom.Get().NextDouble() * 0.5f),
 				DelayTime = 0f,
 				Gravity = 0f,
 				Speed = 1f,
@@ -652,7 +653,7 @@ namespace Melia.Zone.Skills.Handlers.Mon
 				Effect = new EffectConfig("I_force018_trail_black3#Bip001 R Finger0Nub", 1.5f),
 				EndEffect = new EffectConfig("F_explosion99_dark1", 2f),
 				Range = 20f,
-				FlyTime = (2.0f + (float)RandomProvider.Get().NextDouble() * 0.5f),
+				FlyTime = (2.0f + (float)GameRandom.Get().NextDouble() * 0.5f),
 				DelayTime = 0f,
 				Gravity = 0f,
 				Speed = 1f,
@@ -669,7 +670,7 @@ namespace Melia.Zone.Skills.Handlers.Mon
 				Effect = new EffectConfig("I_force018_trail_black4#Bip001 R Finger0Nub", 1.5f),
 				EndEffect = new EffectConfig("F_explosion99_dark2", 2f),
 				Range = 20f,
-				FlyTime = (2.0f + (float)RandomProvider.Get().NextDouble() * 0.5f),
+				FlyTime = (2.0f + (float)GameRandom.Get().NextDouble() * 0.5f),
 				DelayTime = 0f,
 				Gravity = 0f,
 				Speed = 1f,

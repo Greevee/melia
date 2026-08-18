@@ -415,7 +415,7 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 			int handle;
 
 			lock (_targets)
-				handle = _targets.Random();
+				handle = _targets.PickRandom();
 
 			if (this.Entity.Map.TryGetCombatEntity(handle, out var entity))
 				return entity;

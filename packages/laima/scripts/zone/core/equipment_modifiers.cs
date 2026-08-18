@@ -21,6 +21,7 @@
 using System;
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Buffs.Handlers;
 using Melia.Zone.Scripting;
 using Melia.Zone.Scripting.ScriptableEvents;
@@ -82,7 +83,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!AttackerHasItem(attacker, 244118))
 			return;
 
-		if (RandomProvider.Get().Next(100) < 5)
+		if (GameRandom.Get().Next(100) < 5)
 			modifier.BonusDamage += attacker.Properties.GetFloat(PropertyName.Lightning_Atk) * 10f;
 	}
 
@@ -173,7 +174,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!AttackerHasItem(attacker, 314101))
 			return;
 
-		if (RandomProvider.Get().Next(100) < 3)
+		if (GameRandom.Get().Next(100) < 3)
 			modifier.BonusDamage += attacker.Properties.GetFloat(PropertyName.Holy_Atk);
 	}
 
@@ -291,7 +292,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!AttackerHasItem(attacker, 102116))
 			return;
 
-		if (RandomProvider.Get().Next(100) < 2)
+		if (GameRandom.Get().Next(100) < 2)
 			modifier.DamageMultiplier += 6.0f;
 	}
 
@@ -304,7 +305,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!AttackerHasItem(attacker, 122112))
 			return;
 
-		if (RandomProvider.Get().Next(100) < 2)
+		if (GameRandom.Get().Next(100) < 2)
 			modifier.DamageMultiplier += 6.0f;
 	}
 
@@ -317,7 +318,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!AttackerHasItem(attacker, 142111))
 			return;
 
-		if (RandomProvider.Get().Next(100) < 2)
+		if (GameRandom.Get().Next(100) < 2)
 			modifier.DamageMultiplier += 6.0f;
 	}
 
@@ -330,7 +331,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!AttackerHasItem(attacker, 272111))
 			return;
 
-		if (RandomProvider.Get().Next(100) < 2)
+		if (GameRandom.Get().Next(100) < 2)
 			modifier.DamageMultiplier += 6.0f;
 	}
 
@@ -343,7 +344,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!AttackerHasItem(attacker, 162114))
 			return;
 
-		if (RandomProvider.Get().Next(100) < 2)
+		if (GameRandom.Get().Next(100) < 2)
 			modifier.DamageMultiplier += 6.0f;
 	}
 
@@ -356,7 +357,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!AttackerHasItem(attacker, 182110))
 			return;
 
-		if (RandomProvider.Get().Next(100) < 2)
+		if (GameRandom.Get().Next(100) < 2)
 			modifier.DamageMultiplier += 6.0f;
 	}
 
@@ -369,7 +370,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!AttackerHasItem(attacker, 202112))
 			return;
 
-		if (RandomProvider.Get().Next(100) < 2)
+		if (GameRandom.Get().Next(100) < 2)
 			modifier.DamageMultiplier += 6.0f;
 	}
 
@@ -382,7 +383,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!AttackerHasItem(attacker, 123112))
 			return;
 
-		if (RandomProvider.Get().Next(100) < 2)
+		if (GameRandom.Get().Next(100) < 2)
 			modifier.BonusDamage += attacker.Properties.GetFloat(PropertyName.RSP);
 	}
 
@@ -506,7 +507,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!AttackerHasItem(attacker, 203105))
 			return;
 
-		if (RandomProvider.Get().Next(100) < 3)
+		if (GameRandom.Get().Next(100) < 3)
 			target.StartBuff(BuffId.Stun, 1, 0, TimeSpan.FromSeconds(3), attacker);
 	}
 
@@ -519,7 +520,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!AttackerHasItem(attacker, 204101))
 			return;
 
-		if (RandomProvider.Get().Next(100) < 3)
+		if (GameRandom.Get().Next(100) < 3)
 			target.StartBuff(BuffId.Stun, 1, 0, TimeSpan.FromSeconds(3), attacker);
 	}
 
@@ -548,7 +549,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!AttackerHasItem(attacker, 210413))
 			return;
 
-		if (RandomProvider.Get().Next(100) < 5)
+		if (GameRandom.Get().Next(100) < 5)
 			target.StartBuff(BuffId.ITEM_SKIACLIPS_THMACE, 1, 0, TimeSpan.FromSeconds(5), attacker);
 	}
 
@@ -565,7 +566,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!TargetHasItem(target, 224102))
 			return;
 
-		if (RandomProvider.Get().Next(100) < 8)
+		if (GameRandom.Get().Next(100) < 8)
 			modifier.FinalDamageMultiplier -= 0.5f;
 	}
 
@@ -595,7 +596,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!AttackerHasItem(attacker, 334108))
 			return;
 
-		if (skillHitResult.Result == HitResultType.Crit && RandomProvider.Get().Next(100) < 10)
+		if (skillHitResult.Result == HitResultType.Crit && GameRandom.Get().Next(100) < 10)
 			target.StartBuff(BuffId.Item_BLOCK_Debuff, 1, 400, TimeSpan.FromSeconds(10), attacker);
 	}
 
@@ -625,7 +626,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!AttackerHasItem(attacker, 112001))
 			return;
 
-		if (RandomProvider.Get().Next(100) < 1)
+		if (GameRandom.Get().Next(100) < 1)
 		{
 			var damage = attacker.Properties.GetFloat(PropertyName.MINPATK) * 0.50f;
 			target.StartBuff(BuffId.CriticalWound, 1, damage, TimeSpan.FromSeconds(15), attacker);
@@ -647,7 +648,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 			&& skill.Id != SkillId.Corsair_DustDevil)
 			return;
 
-		if (RandomProvider.Get().Next(100) < 2)
+		if (GameRandom.Get().Next(100) < 2)
 			target.StartBuff(BuffId.item_poison_fast, 1, 685, TimeSpan.FromSeconds(10), attacker);
 	}
 
@@ -660,7 +661,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!AttackerHasItem(attacker, 164117))
 			return;
 
-		if (RandomProvider.Get().Next(100) < 10)
+		if (GameRandom.Get().Next(100) < 10)
 			target.StartBuff(BuffId.CRIDR_Debuff, 1, 10, TimeSpan.FromSeconds(5), attacker);
 	}
 
@@ -673,7 +674,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!AttackerHasItem(attacker, 254109))
 			return;
 
-		if (RandomProvider.Get().Next(100) < 3)
+		if (GameRandom.Get().Next(100) < 3)
 			target.StartBuff(BuffId.Common_Rotten, 1, 0, TimeSpan.FromSeconds(20), attacker);
 	}
 
@@ -698,7 +699,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!AttackerHasItem(attacker, 253106))
 			return;
 
-		if (RandomProvider.Get().Next(100) < 33)
+		if (GameRandom.Get().Next(100) < 33)
 			target.StartBuff(BuffId.TSP03_106_Debuff, 1, 0, TimeSpan.FromSeconds(30), attacker);
 	}
 
@@ -715,7 +716,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (skill.Id != SkillId.Common_shark)
 			return;
 
-		if (RandomProvider.Get().Next(100) < 5)
+		if (GameRandom.Get().Next(100) < 5)
 		{
 			var damage = attacker.Properties.GetFloat(PropertyName.MINPATK) * 0.20f;
 			target.StartBuff(BuffId.CriticalWound, 1, damage, TimeSpan.FromSeconds(30), attacker);
@@ -735,7 +736,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (skill.Data.Attribute != AttributeType.Ice)
 			return;
 
-		if (RandomProvider.Get().Next(100) < 15)
+		if (GameRandom.Get().Next(100) < 15)
 			target.StartBuff(BuffId.Freeze, 1, 0, TimeSpan.FromSeconds(3), attacker);
 	}
 
@@ -748,7 +749,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!AttackerHasItem(attacker, 253103))
 			return;
 
-		if (RandomProvider.Get().Next(100) < 1)
+		if (GameRandom.Get().Next(100) < 1)
 			target.StartBuff(BuffId.item_laideka, 1, 0, TimeSpan.FromSeconds(10), attacker);
 	}
 
@@ -761,7 +762,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!AttackerHasItem(attacker, 162108))
 			return;
 
-		if (skill.IsNormalAttack && RandomProvider.Get().Next(100) < 2)
+		if (skill.IsNormalAttack && GameRandom.Get().Next(100) < 2)
 			target.StartBuff(BuffId.item_poison, 1, 75, TimeSpan.FromSeconds(20), attacker);
 	}
 
@@ -774,7 +775,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!AttackerHasItem(attacker, 272106))
 			return;
 
-		if (skill.Id == SkillId.Pyromancer_HellBreath && RandomProvider.Get().Next(100) < 20)
+		if (skill.Id == SkillId.Pyromancer_HellBreath && GameRandom.Get().Next(100) < 20)
 		{
 			var damage = attacker.Level * 0.33f;
 			target.StartBuff(BuffId.Fire, 1, damage, TimeSpan.FromSeconds(10), attacker);
@@ -790,7 +791,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!AttackerHasItem(attacker, 143102))
 			return;
 
-		if (RandomProvider.Get().Next(100) < 5)
+		if (GameRandom.Get().Next(100) < 5)
 		{
 			var damage = attacker.Properties.GetFloat(PropertyName.MINMATK) * 0.16f;
 			target.StartBuff(BuffId.Fire, 1, damage, TimeSpan.FromSeconds(10), attacker);
@@ -806,7 +807,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!AttackerHasItem(attacker, 143101))
 			return;
 
-		if (skill.IsNormalAttack && target.Rank != MonsterRank.Boss && RandomProvider.Get().Next(100) < 1)
+		if (skill.IsNormalAttack && target.Rank != MonsterRank.Boss && GameRandom.Get().Next(100) < 1)
 			target.StartBuff(BuffId.item_temere, 1, 0, TimeSpan.FromSeconds(30), attacker);
 	}
 
@@ -927,7 +928,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!TargetHasItem(target, 583103))
 			return;
 
-		if (skill.Data.Attribute == AttributeType.Lightning && RandomProvider.Get().Next(100) < 15)
+		if (skill.Data.Attribute == AttributeType.Lightning && GameRandom.Get().Next(100) < 15)
 			attacker.StartBuff(BuffId.item_electricShock, 1, 405, TimeSpan.FromSeconds(1), target);
 	}
 
@@ -940,7 +941,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!TargetHasItem(target, 123102))
 			return;
 
-		if (skill.Data.ClassType == SkillClassType.Magic && RandomProvider.Get().Next(100) < 2)
+		if (skill.Data.ClassType == SkillClassType.Magic && GameRandom.Get().Next(100) < 2)
 			attacker.StartBuff(BuffId.item_wizardSlayer, 1, 0, TimeSpan.FromSeconds(15), target);
 	}
 
@@ -953,7 +954,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!TargetHasItem(target, 123111))
 			return;
 
-		if (skill.Data.ClassType == SkillClassType.Magic && RandomProvider.Get().NextDouble() * 100 < 1.5)
+		if (skill.Data.ClassType == SkillClassType.Magic && GameRandom.Get().NextDouble() * 100 < 1.5)
 			attacker.StartBuff(BuffId.TSW03_111_Buff, 1, 0, TimeSpan.FromSeconds(30), target);
 	}
 
@@ -970,7 +971,7 @@ public class EquipmentCombatModifiersScript : GeneralScript
 		if (!TargetHasItem(target, 223104))
 			return;
 
-		if (RandomProvider.Get().Next(100) < 1)
+		if (GameRandom.Get().Next(100) < 1)
 			target.StartBuff(BuffId.SHD03_104_Buff, 1, 0, TimeSpan.FromSeconds(5), target);
 	}
 

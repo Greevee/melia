@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Melia.Shared.Util;
 using Newtonsoft.Json.Linq;
 using Yggdrasil.Data.JSON;
 using Yggdrasil.Util;
@@ -68,7 +69,7 @@ namespace Melia.Shared.Data.Database
 				return null;
 
 			var totalRatio = matchingEntries.Sum(e => e.Ratio);
-			var roll = RandomProvider.Get().Next(1, totalRatio + 1);
+			var roll = GameRandom.Get().Next(1, totalRatio + 1);
 
 			var cumulativeRatio = 0;
 			foreach (var entry in matchingEntries)

@@ -90,6 +90,85 @@ namespace Melia.Test.Balance.Sfr
 		public const float AoeExponent = 0.85f;
 
 		/// <summary>
+		/// What a press earns for needing its targets packed GatheringReference
+		/// times tighter than they naturally stand.
+		/// </summary>
+		/// <remarks>
+		/// Area and target count are two separate axes, and width is only the
+		/// first of them. A press that reaches six mobs because its area is
+		/// enormous is easy to use - point it at a field and it works - and
+		/// width already charges it for those six. A press that reaches six
+		/// only when six are packed into a small box is a different skill, and
+		/// nothing in the model paid for the pull that has to be built first.
+		///
+		/// So this is keyed on the density a press needs to pay out - its
+		/// target count over the ground it covers - against the density the
+		/// world already places monsters at. A press that works on monsters as
+		/// they stand earns nothing.
+		/// </remarks>
+		public const float GatheringPremium = 0.25f;
+
+		/// <summary>
+		/// How many times natural spawn density a press has to be handed before
+		/// it earns the full premium.
+		/// </summary>
+		/// <remarks>
+		/// Seven, which is roughly what a tight high-count press demands:
+		/// OutLaw_SprinkleSands wants eight monsters inside a 90x50 box, where
+		/// Scout_ObliqueFire's two land at whatever spacing they are already
+		/// standing at. That spacing is what puts the two about 25% apart,
+		/// which is the gap this term exists to open.
+		/// </remarks>
+		public const float GatheringReference = 7.0f;
+
+		/// <summary>
+		/// How the gathering premium grows with the density demanded.
+		/// </summary>
+		/// <remarks>
+		/// Above one, so the premium is convex: the marginal target costs more
+		/// to gather the tighter the pile already has to be. Pulling a second
+		/// monster onto the first is most of a step from one to two; pulling an
+		/// eleventh onto ten is a pull that has to be built. Kept only slightly
+		/// above one, because the whole term is a setup cost rather than a
+		/// second width axis.
+		/// </remarks>
+		public const float GatheringExponent = 1.25f;
+
+		/// <summary>
+		/// Ceiling on the gathering premium.
+		/// </summary>
+		/// <remarks>
+		/// The curve does not saturate on its own, and nothing measured says
+		/// what a pile is worth past the tightest press the matrix can show.
+		/// This binds at about 15x natural density.
+		/// </remarks>
+		public const float GatheringMax = 1.75f;
+
+		/// <summary>
+		/// The scenarios the covered area is estimated from - the spread
+		/// fields, where a count budget buys nothing and only the shape decides
+		/// how much ground is covered.
+		/// </summary>
+		/// <remarks>
+		/// Targets reached on a field of known density is an area: hitting a
+		/// third of a field covers a third of its ground. The stacked and
+		/// single-target scenarios cannot say anything about area, since every
+		/// press covers the one point they place monsters on.
+		/// </remarks>
+		public static readonly string[] GatheringAreaScenarios = ["S9", "S10"];
+
+		/// <summary>
+		/// Floor on the covered area, in square world units.
+		/// </summary>
+		/// <remarks>
+		/// One natural monster's worth of ground. A press that reached nothing
+		/// on either spread field covered something smaller than the model can
+		/// resolve, and without a floor it would divide its count by zero and
+		/// take the whole premium for being unmeasurable.
+		/// </remarks>
+		public static float GatheringMinArea => SfrGeometry.NaturalMobArea;
+
+		/// <summary>
 		/// The skill the whole roster floats against.
 		/// </summary>
 		public const string AnchorSkill = "Swordman_Bash";
@@ -621,19 +700,110 @@ namespace Melia.Test.Balance.Sfr
 		public const float RiderFloor = 0.75f;
 
 		/// <summary>
+		/// How long each half of an amplification trial counts the caster's own
+		/// output over.
+		/// </summary>
+		/// <remarks>
+		/// Shorter than DefenseWindowMs because the signal is the caster's own
+		/// swings, which land on a fixed cadence rather than through a mob's
+		/// AI, and because a window outliving the buff it is measuring folds
+		/// uptime into what is meant to be the buff's size. Long enough to hold
+		/// several swings at every weapon's rate.
+		/// </remarks>
+		public const int OffenseWindowMs = 12_000;
+
+		/// <summary>
+		/// Presses the amplification probe's treatment half makes before it
+		/// starts counting.
+		/// </summary>
+		/// <remarks>
+		/// More than one, because a stacking buff is worth what it is worth at
+		/// the stack a rotation actually holds: Scout_ObliqueFire adds 4% per
+		/// application and reads nothing at all off a single press. Pressed on
+		/// the skill's own cycle, so a skill that cannot reach this many stacks
+		/// inside the window does not get credited with them.
+		/// </remarks>
+		public const int OffensePresses = 5;
+
+		/// <summary>
+		/// Floor on the gap between the probe's repeat presses, in
+		/// milliseconds.
+		/// </summary>
+		/// <remarks>
+		/// The presses are paced on the skill's own cycle. This keeps a
+		/// zero-cooldown press from being spammed every tick, which would build
+		/// a stack no rotation reaches.
+		/// </remarks>
+		public const int OffensePressIntervalMs = 500;
+
+		/// <summary>
+		/// Ceiling on how long the treatment half spends building its stack, in
+		/// milliseconds.
+		/// </summary>
+		/// <remarks>
+		/// The presses are paced on the skill's own cycle, so a 40-second
+		/// cooldown would otherwise run the lead-in past three minutes of ticks
+		/// for a stack no rotation holds anyway. A skill whose cycle outruns
+		/// this is measured on the presses that fit, and never on fewer than
+		/// one.
+		/// </remarks>
+		public const int OffenseMaxLeadInMs = 60_000;
+
+		/// <summary>
+		/// Control/treatment pairs SfrOffenseProbe averages over.
+		/// </summary>
+		/// <remarks>
+		/// Fewer than the defence probe's, because nothing in this window acts
+		/// on its own: the caster swings on a fixed cadence against a mob that
+		/// does not move or fight back, so a pair replays identically under the
+		/// virtual clock. The trials are here for the handlers that pace
+		/// themselves with their own waits.
+		/// </remarks>
+		public const int OffenseProbeTrials = 3;
+
+		/// <summary>
+		/// How hard a measured damage amplification discounts the skill's own
+		/// damage: <c>1 / (1 + AmplifierValueScale * amplification)</c>.
+		/// </summary>
+		/// <remarks>
+		/// At 1.0 a press that buys 25% more damage on everything else the
+		/// caster does is charged x0.80 on its own factor, which is the same
+		/// trade the defensive rider makes for crowd control - a payload that
+		/// is not this press's damage is still this press's budget.
+		/// </remarks>
+		public const float AmplifierValueScale = 1.0f;
+
+		/// <summary>
+		/// Floor on the amplification multiplier.
+		/// </summary>
+		/// <remarks>
+		/// Below RiderFloor, because an amplifier's value is bounded by what
+		/// the rest of the rotation deals and a lockdown's is not - but still a
+		/// floor, for the same reason: 1/(1+a) is unbounded and the scale is
+		/// calibrated at a quarter, not at a doubling.
+		/// </remarks>
+		public const float AmplifierFloor = 0.65f;
+
+		/// <summary>
 		/// Independent measurements of the anchor the calibration takes the
 		/// median of.
 		/// </summary>
 		/// <remarks>
-		/// One, for the same reason ScenarioTrials is: the anchor is a press,
-		/// and a press replays identically now. It was three because the
-		/// anchor is pinned to AnchorFactor whatever it measures, so its own
-		/// noise never showed in its own number - it landed in the scale that
-		/// multiplies every other skill, and moved the whole roster inversely.
-		/// The machinery stays because that failure mode is invisible in the
-		/// anchor's own output and worth being able to re-arm.
+		/// Three, and re-armed deliberately. The anchor is pinned to
+		/// AnchorFactor whatever it measures, so its own noise never shows in
+		/// its own number - it lands in the scale that multiplies every other
+		/// skill, and moves the whole roster inversely. A single skill coming
+		/// back 9% different between two runs is far more often the anchor
+		/// having moved than that skill having moved, and a median of three is
+		/// the cheapest guard against it: the trials are queued in the same
+		/// fan-out as the roster (ApplyAll's "#n" keys), so they cost two extra
+		/// presses out of a hundred and change and no wall time at all.
+		///
+		/// It was one on the argument that a press replays identically. It does
+		/// now, per press - but this is insurance on the one measurement whose
+		/// error is multiplied by the whole roster, and it is nearly free.
 		/// </remarks>
-		public const int AnchorTrials = 1;
+		public const int AnchorTrials = 3;
 
 		/// <summary>
 		/// How many times the whole low/high scenario pair is repeated.

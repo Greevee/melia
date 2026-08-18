@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
@@ -98,7 +99,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Archer
 
 				if (targets.Count != 0)
 				{
-					var target = targets.Random();
+					var target = targets.PickRandom();
 					if (!caster.CanDamage(target))
 						continue;
 

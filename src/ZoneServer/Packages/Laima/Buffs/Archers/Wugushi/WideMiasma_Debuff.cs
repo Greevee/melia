@@ -1,6 +1,7 @@
 using System.Linq;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Buffs.Base;
 using Melia.Zone.Scripting.ScriptableEvents;
 using Melia.Zone.Skills;
@@ -59,7 +60,7 @@ namespace Melia.Zone.Buffs.Handlers
 
 			foreach (var poisonBuff in poisonBuffs)
 			{
-				if (RandomProvider.Get().Next(100) >= SpreadChance)
+				if (GameRandom.Get().Next(100) >= SpreadChance)
 					continue;
 
 				var poisonCaster = poisonBuff.Caster as ICombatEntity ?? caster;

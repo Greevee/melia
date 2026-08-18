@@ -392,7 +392,7 @@ namespace Melia.Zone.Pads.Helpers
 				{
 					try { pad.Destroy(); }
 					catch (Exception ex) { Log.Error("PadHelper.SetDestPos: Error destroying pad: {0}", ex); }
-				}, TaskScheduler.Default);
+				}, TaskContinuationOptions.ExecuteSynchronously);
 			}
 		}
 
@@ -750,7 +750,7 @@ namespace Melia.Zone.Pads.Helpers
 			}
 
 			Buff buff = null;
-			if (rate == 0 || rate >= RandomProvider.Get().Next(1, 100))
+			if (rate == 0 || rate >= GameRandom.Get().Next(1, 100))
 			{
 				buff = target.StartBuff(buffId, arg1, arg2, TimeSpan.FromMilliseconds(time), caster, pad.Skill?.Id ?? SkillId.None);
 			}

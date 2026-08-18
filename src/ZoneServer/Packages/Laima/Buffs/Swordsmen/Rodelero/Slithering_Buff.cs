@@ -2,6 +2,7 @@
 using Melia.Shared.Packages;
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Buffs.Base;
 using Melia.Zone.Scripting.ScriptableEvents;
 using Melia.Zone.Skills;
@@ -74,7 +75,7 @@ namespace Melia.Zone.Buffs.Handlers
 			var skillLevel = buff.NumArg1;
 			var missChance = 40f + 4f * skillLevel;
 
-			var roll = RandomProvider.Get().Next(1, 100);
+			var roll = GameRandom.Get().Next(1, 100);
 			if (roll <= missChance)
 			{
 				skillHitResult.Damage = 0;

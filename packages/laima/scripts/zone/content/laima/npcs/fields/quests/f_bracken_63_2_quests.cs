@@ -7,6 +7,7 @@
 using System;
 using System.Threading.Tasks;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Scripting;
 using Melia.Zone.World.Quests;
 using Melia.Zone.World.Actors.Characters;
@@ -197,7 +198,7 @@ public class FBracken632QuestNpcsScript : GeneralScript
 				}
 
 				var hasSpawned = character.Variables.Perm.GetBool(spawnedKey, false);
-				if (!hasSpawned && RandomProvider.Get().Next(100) < 35)
+				if (!hasSpawned && GameRandom.Get().Next(100) < 35)
 				{
 					character.Variables.Perm.Set(spawnedKey, true);
 
@@ -345,7 +346,7 @@ public class FBracken632QuestNpcsScript : GeneralScript
 					var currentCount = character.Inventory.CountItem(650601);
 					character.ServerMessage(LF("Crystals shattered: {0}/4", currentCount));
 
-					if (RandomProvider.Get().Next(100) < 30)
+					if (GameRandom.Get().Next(100) < 30)
 					{
 						if (SpawnTempMonsters(character, MonsterId.Lapasape_Mage, 2, 80, TimeSpan.FromMinutes(2)))
 						{

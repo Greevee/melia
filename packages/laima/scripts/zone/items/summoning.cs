@@ -3,6 +3,7 @@ using Melia.Shared.L10N;
 using Melia.Shared.Scripting;
 using Melia.Shared.Game.Const;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone;
 using Melia.Zone.Events.Arguments;
 using Melia.Zone.Scripting;
@@ -191,7 +192,7 @@ public class SummoningItemScripts : GeneralScript
 	/// <returns></returns>
 	private static Position GetRandomSpawnPosition(Character character)
 	{
-		var rnd = RandomProvider.Get();
+		var rnd = GameRandom.Get();
 		var pos = character.Position;
 
 		for (var i = 0; i < 10; ++i)

@@ -3470,7 +3470,7 @@ namespace Melia.Zone.Network
 			foreach (var character in characters)
 			{
 				var jobs = character.Jobs.GetList();
-				packet.PutInt(RandomProvider.Next(2)); // Could be team id? 1 or 2
+				packet.PutInt(GameRandom.Get().Next(2)); // Could be team id? 1 or 2
 				packet.PutInt(0);
 				packet.PutInt(0); // Random values 4334, 1015, 603
 				packet.PutLong(character.AccountObjectId);
@@ -5447,7 +5447,7 @@ namespace Melia.Zone.Network
 				packet.PutInt((i % 3) + 1); // Shop Category Type (1 = Regular, 2 = Rotational, 3 = Event)
 				packet.PutInt(100 + i); // Item Cost
 				packet.PutInt(999); // Maximum Purchase Amount
-				packet.PutString(ZoneServer.Instance.Data.ItemDb.Entries.Values.Random().ClassName, 64);
+				packet.PutString(ZoneServer.Instance.Data.ItemDb.Entries.Values.PickRandom().ClassName, 64);
 				packet.PutInt(0);
 				packet.PutInt(20); // Item Amount
 				packet.PutInt(dateTime.Year);

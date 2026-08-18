@@ -167,7 +167,7 @@ namespace Melia.Zone.Skills.Helpers
 					continue;
 
 				var finalChance = SCR_Calc_Status_Chance(caster, target, skill, buffId, percent);
-				if (finalChance < 100 && RandomProvider.Get().Next(1, 101) > finalChance)
+				if (finalChance < 100 && GameRandom.Get().Next(1, 101) > finalChance)
 					continue;
 
 				var finalDuration = SCR_Calc_Status_Duration(caster, target, skill, buffId, buffTime);
@@ -219,7 +219,7 @@ namespace Melia.Zone.Skills.Helpers
 			if (caster is not Character && caster.CheckBoolTempVar("BUNSIN"))
 				return;
 
-			if (percent < 100 && RandomProvider.Get().Next(1, 101) > percent)
+			if (percent < 100 && GameRandom.Get().Next(1, 101) > percent)
 				return;
 
 			var buff = caster.StartBuff(buffId, level, arg2, TimeSpan.FromMilliseconds(buffTime), caster);

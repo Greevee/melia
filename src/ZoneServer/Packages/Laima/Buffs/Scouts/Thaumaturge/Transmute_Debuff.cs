@@ -1,5 +1,6 @@
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Buffs.Base;
 using Melia.Zone.Network;
 using Melia.Zone.World.Actors;
@@ -37,7 +38,7 @@ namespace Melia.Zone.Buffs.Handlers.Scouts.Thaumaturge
 		{
 			var target = buff.Target;
 
-			var rng = RandomProvider.Get();
+			var rng = GameRandom.Get();
 			var className = TransmuteForms[rng.Next(TransmuteForms.Length)];
 
 			if (!ZoneServer.Instance.Data.MonsterDb.TryFind(className, out var monster))

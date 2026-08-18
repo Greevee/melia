@@ -5,6 +5,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
@@ -338,7 +339,7 @@ namespace Melia.Zone.Skills.Handlers.Monsters.Boss
 			});
 			for (var i = 0; i < 3; i++)
 			{
-				var firePos = GetRandomPositionAround(originPos, RandomProvider.Get(), 150);
+				var firePos = GetRandomPositionAround(originPos, GameRandom.Get(), 150);
 				_ = EffectAndHit(skill, caster, firePos, new EffectHitConfig
 				{
 					GroundEffect = new EffectConfig("F_buff_fire_spread##1", 0.3f),
@@ -379,7 +380,7 @@ namespace Melia.Zone.Skills.Handlers.Monsters.Boss
 			});
 			for (var i = 0; i < 3; i++)
 			{
-				var firePos = GetRandomPositionAround(originPos, RandomProvider.Get(), 180);
+				var firePos = GetRandomPositionAround(originPos, GameRandom.Get(), 180);
 				_ = EffectAndHit(skill, caster, firePos, new EffectHitConfig
 				{
 					GroundEffect = new EffectConfig("F_buff_fire_spread##1", 0.4f),
@@ -420,7 +421,7 @@ namespace Melia.Zone.Skills.Handlers.Monsters.Boss
 			});
 			for (var i = 0; i < 5; i++)
 			{
-				var firePos = GetRandomPositionAround(originPos, RandomProvider.Get(), 200);
+				var firePos = GetRandomPositionAround(originPos, GameRandom.Get(), 200);
 				_ = EffectAndHit(skill, caster, firePos, new EffectHitConfig
 				{
 					GroundEffect = new EffectConfig("F_buff_fire_spread##1", 0.5f),

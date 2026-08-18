@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.Game.Properties;
+using Melia.Shared.Util;
 using Melia.Zone;
 using Melia.Zone.Network;
 using Melia.Zone.Scripting;
@@ -267,7 +268,7 @@ public class DialogTxFunctionsScript : GeneralScript
 					{
 						var chanceToIncreaseGrade = 0.5f / grade;
 
-						if (RandomProvider.Get().NextDouble() < chanceToIncreaseGrade)
+						if (GameRandom.Get().NextDouble() < chanceToIncreaseGrade)
 							grade++;
 						else
 							break;

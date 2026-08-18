@@ -15,6 +15,7 @@
 using System;
 using Melia.Shared.Game.Const;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Scripting;
 using Melia.Zone.Scripting.AI;
 using Melia.Zone.World.Actors;
@@ -472,7 +473,7 @@ public class RokasRidgeScript : GeneralScript
 
 				// 30% chance to spawn 2 Lichenclops BEFORE the timed action (only once per pillar per player)
 				var hasSpawned = character.Variables.Perm.GetBool(spawnedKey, false);
-				if (!hasSpawned && RandomProvider.Get().Next(100) < 30)
+				if (!hasSpawned && GameRandom.Get().Next(100) < 30)
 				{
 					character.Variables.Perm.Set(spawnedKey, true);
 

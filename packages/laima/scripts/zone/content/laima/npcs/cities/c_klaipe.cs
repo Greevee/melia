@@ -6,6 +6,7 @@
 
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Scripting;
 using Melia.Zone.World;
 using Yggdrasil.Util;
@@ -56,7 +57,7 @@ public class CKlaipeNpcScript : GeneralScript
 			dialog.SetTitle(L("Mirina"));
 			dialog.SetPortrait("Dlg_port_TOOL_DEALER");
 
-			if (RandomProvider.Get().NextDouble() >= 0.5)
+			if (GameRandom.Get().NextDouble() >= 0.5)
 				await dialog.Msg(L("Care for some potions or helpful consumables?{nl}Buy at Mirina's shop today!"));
 			else
 				await dialog.Msg(L("Mirina's shop at your service~"));

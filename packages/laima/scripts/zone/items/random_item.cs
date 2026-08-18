@@ -6,6 +6,7 @@
 
 using System;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Scripting;
 using Melia.Zone.World.Actors.Characters;
@@ -25,7 +26,7 @@ public class RandomItemScripts : GeneralScript
 			return ItemUseResult.Fail;
 		}
 
-		var randomIndex = RandomProvider.Get().Next(splitItems.Length);
+		var randomIndex = GameRandom.Get().Next(splitItems.Length);
 		var itemString = splitItems[randomIndex];
 		var itemDataSplit = itemString.Split('/');
 		var itemClassName = itemDataSplit[0];
@@ -64,7 +65,7 @@ public class RandomItemScripts : GeneralScript
 			return ItemUseResult.Fail;
 		}
 
-		var randomIndex = RandomProvider.Get().Next(splitItems.Length);
+		var randomIndex = GameRandom.Get().Next(splitItems.Length);
 		var itemString = splitItems[randomIndex];
 		var itemDataSplit = itemString.Split('/');
 		var itemClassName = itemDataSplit[0];

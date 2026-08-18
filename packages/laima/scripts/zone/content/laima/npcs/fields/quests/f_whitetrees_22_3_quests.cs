@@ -6,6 +6,7 @@
 
 using System;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Scripting;
 using Melia.Zone.World.Actors.Characters;
 using Melia.Zone.World.Actors.Characters.Components;
@@ -291,7 +292,7 @@ public class FWhitetrees223QuestNpcsScript : GeneralScript
 
 				var spawnedKey = $"Laima.Quests.f_whitetrees_22_3.Quest1003.Fragment{fragmentNumber}.Spawned";
 				var hasSpawned = character.Variables.Perm.GetBool(spawnedKey, false);
-				if (!hasSpawned && RandomProvider.Get().Next(100) < 20)
+				if (!hasSpawned && GameRandom.Get().Next(100) < 20)
 				{
 					character.Variables.Perm.Set(spawnedKey, true);
 

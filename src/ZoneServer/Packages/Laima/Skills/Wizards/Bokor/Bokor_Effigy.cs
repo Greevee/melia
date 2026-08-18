@@ -6,6 +6,7 @@ using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Scripting.AI;
 using Melia.Zone.Skills.Combat;
@@ -93,7 +94,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Bokor
 					var skillHitInfo = new SkillHitInfo(caster, target, skill, skillHit);
 					Send.ZC_SKILL_HIT_INFO(caster, skillHitInfo);
 
-					if (skillHit.Damage > 0 && RandomProvider.Get().Next(100) < 5)
+					if (skillHit.Damage > 0 && GameRandom.Get().Next(100) < 5)
 						target.StartBuff(BuffId.Pollution_Debuff, skill.Level, skillHit.Damage, TimeSpan.FromMilliseconds(6000), caster, skill.Id);
 				}
 			}

@@ -5,6 +5,7 @@ using Melia.Shared.Packages;
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Pads.Handlers;
 using Melia.Zone.Skills;
@@ -115,7 +116,7 @@ namespace Melia.Zone.Pads.HandlersOverride
 
 			Send.ZC_SKILL_HIT_INFO(caster, skillHit);
 
-			var rand = RandomProvider.Get();
+			var rand = GameRandom.Get();
 			if (rand.NextDouble() >= .5)
 				target.StartBuff(BuffId.Stun, TimeSpan.FromSeconds(3), caster);
 		}

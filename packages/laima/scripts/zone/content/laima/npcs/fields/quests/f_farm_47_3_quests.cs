@@ -6,6 +6,7 @@
 
 using System;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone.Scripting;
 using Melia.Zone.World.Actors.Characters;
 using Melia.Zone.World.Actors.Characters.Components;
@@ -277,7 +278,7 @@ public class FFarm473QuestNpcsScript : GeneralScript
 
 				var spawnedKey = $"Laima.Quests.f_farm_47_3.Quest1003.Pod{podNumber}.Spawned";
 				var hasSpawned = character.Variables.Perm.GetBool(spawnedKey, false);
-				if (!hasSpawned && RandomProvider.Get().Next(100) < 15)
+				if (!hasSpawned && GameRandom.Get().Next(100) < 15)
 				{
 					character.Variables.Perm.Set(spawnedKey, true);
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
+using Melia.Shared.Util;
 using Melia.Zone;
 using Melia.Zone.Scripting;
 using Melia.Zone.Scripting.Dialogues;
@@ -280,7 +281,7 @@ public class ItemEtcScripts : GeneralScript
 	{
 		var hpHeal = (int)numArg1;
 		if (numArg2 != 0)
-			hpHeal = RandomProvider.Get().Next((int)numArg1, (int)numArg2);
+			hpHeal = GameRandom.Get().Next((int)numArg1, (int)numArg2);
 
 		if (character.Properties.TryGetFloat(PropertyName.HPPotion_BM, out var hpPotionBM) && hpPotionBM > 0)
 			hpHeal = (int)MathF.Floor(hpHeal * (1 + hpPotionBM / 100));
@@ -295,7 +296,7 @@ public class ItemEtcScripts : GeneralScript
 	{
 		var spHeal = (int)numArg1;
 		if (numArg2 != 0)
-			spHeal = RandomProvider.Get().Next((int)numArg1, (int)numArg2);
+			spHeal = GameRandom.Get().Next((int)numArg1, (int)numArg2);
 
 		if (character.Properties.TryGetFloat(PropertyName.SPPotion_BM, out var spPotionBM) && spPotionBM > 0)
 			spHeal = (int)MathF.Floor(spHeal * (1 + spPotionBM / 100));
@@ -314,7 +315,7 @@ public class ItemEtcScripts : GeneralScript
 		var stamina = (int)numArg1 * 1000;
 		var staminaMax = (int)numArg2 * 1000;
 		if (staminaMax != 0)
-			stamina = RandomProvider.Get().Next(stamina, staminaMax);
+			stamina = GameRandom.Get().Next(stamina, staminaMax);
 
 		if (character.Properties.TryGetFloat(PropertyName.STAPotion_BM, out var staminaPotionBM) && staminaPotionBM > 0)
 			stamina = (int)MathF.Floor(stamina * (1 + staminaPotionBM / 100));
@@ -327,8 +328,8 @@ public class ItemEtcScripts : GeneralScript
 	[ScriptableFunction]
 	public ItemUseResult SCR_USE_ITEM_AddHPSP1(Character character, Item item, string strArg, float numArg1, float numArg2)
 	{
-		var hpPoint = RandomProvider.Get().Next((int)numArg1, (int)numArg2);
-		var spPoint = RandomProvider.Get().Next((int)numArg1, (int)numArg2) / 2;
+		var hpPoint = GameRandom.Get().Next((int)numArg1, (int)numArg2);
+		var spPoint = GameRandom.Get().Next((int)numArg1, (int)numArg2) / 2;
 
 		if (character.Properties.TryGetFloat(PropertyName.SPPotion_BM, out var spPotionBM) && spPotionBM > 0)
 			spPoint = (int)MathF.Floor(spPoint * (1 + spPotionBM / 100));

@@ -762,7 +762,7 @@ namespace Melia.Zone.World.Actors
 			if (mob.Data.Skills.Count == 0)
 				return false;
 
-			var rndSkillId = mob.Data.Skills.Where(a => !caster.IsOnCooldown(a.SkillId)).Select(a => a.SkillId).Random();
+			var rndSkillId = mob.Data.Skills.Where(a => !caster.IsOnCooldown(a.SkillId)).Select(a => a.SkillId).PickRandom();
 
 			if (caster.Components.TryGet<BaseSkillComponent>(out var skills))
 				if (!skills.Has(rndSkillId))
@@ -2115,7 +2115,7 @@ namespace Melia.Zone.World.Actors
 		/// <param name="chance"></param>
 		public static void RemoveRandomBuff(this ICombatEntity entity, float chance = 100)
 		{
-			var rnd = RandomProvider.Get();
+			var rnd = GameRandom.Get();
 
 			if (rnd.Next(100) < chance && entity.Components.TryGet<BuffComponent>(out var buffs))
 				buffs.RemoveRandomBuff();
@@ -2133,7 +2133,7 @@ namespace Melia.Zone.World.Actors
 		/// <param name="chance"></param>
 		public static void RemoveRandomDebuff(this ICombatEntity entity, float chance = 100)
 		{
-			var rnd = RandomProvider.Get();
+			var rnd = GameRandom.Get();
 
 			if (rnd.Next(100) < chance && entity.Components.TryGet<BuffComponent>(out var buffs))
 				buffs.RemoveRandomDebuff();

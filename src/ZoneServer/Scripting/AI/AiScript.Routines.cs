@@ -78,7 +78,7 @@ namespace Melia.Zone.Scripting.AI
 
 			for (var i = 0; i < 10; ++i)
 			{
-				destination = this.Entity.Position.GetRandomInRange2D(radius, RandomProvider.Get());
+				destination = this.Entity.Position.GetRandomInRange2D(radius, GameRandom.Get());
 
 				// Give entities a random chance to move past their wander
 				// limit, that decreases with distance, to add some
@@ -94,7 +94,7 @@ namespace Melia.Zone.Scripting.AI
 					{
 						var chance = Math.Clamp(1 - (distance - wanderRange) / (wanderRange * extraRangeRate), 0, 1);
 
-						if (RandomProvider.Get().NextDouble() > chance)
+						if (GameRandom.Get().NextDouble() > chance)
 							continue;
 					}
 				}
@@ -430,7 +430,7 @@ namespace Melia.Zone.Scripting.AI
 			{
 				// Strafe sideways while maintaining range
 				var dirFromTarget = target.Position.GetDirection(this.Entity.Position);
-				var arcDegrees = RandomProvider.Get().Next(2) == 0 ? -20f : 20f;
+				var arcDegrees = GameRandom.Get().Next(2) == 0 ? -20f : 20f;
 				var orbitDir = dirFromTarget.AddDegreeAngle(arcDegrees);
 				var strafePos = target.Position.GetRelative(orbitDir, idealRange);
 				yield return this.MoveTo(strafePos);
@@ -551,7 +551,7 @@ namespace Melia.Zone.Scripting.AI
 					possibleSkills.Add(a.SkillId);
 			if (possibleSkills.Count == 0)
 				return false;
-			var rndSkillId = possibleSkills.Random();
+			var rndSkillId = possibleSkills.PickRandom();
 
 			if (!skills.Has(rndSkillId))
 			{
@@ -763,7 +763,7 @@ namespace Melia.Zone.Scripting.AI
 				{
 					// Option A: Teleport to target
 					movement?.Stop();
-					this.Entity.Position = followTarget.Position.GetRandomInRange2D((int)minDistance / 2, RandomProvider.Get()); // Teleport nearby, not directly on top
+					this.Entity.Position = followTarget.Position.GetRandomInRange2D((int)minDistance / 2, GameRandom.Get()); // Teleport nearby, not directly on top
 					Send.ZC_SET_POS(this.Entity);
 					yield return this.Wait(250); // Small delay after teleport to re-orient.
 					continue; // Continue the loop from the new position

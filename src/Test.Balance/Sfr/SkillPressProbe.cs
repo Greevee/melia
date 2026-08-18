@@ -307,6 +307,25 @@ namespace Melia.Test.Balance.Sfr
 		public float SwingsPrevented { get; set; }
 
 		/// <summary>
+		/// Damage the caster took in each of the defensive probe's control
+		/// windows, in trial order, so a reading that moved can be read pair
+		/// by pair rather than only as a mean.
+		/// </summary>
+		public float[] DefenseControls { get; set; } = [];
+
+		/// <summary>
+		/// Damage the caster took in each treatment window, in the same order.
+		/// </summary>
+		public float[] DefenseTreatments { get; set; } = [];
+
+		/// <summary>
+		/// What one press bought in extra damage on everything else the caster
+		/// does, as a fraction of its unbuffed output, from SfrOffenseProbe.
+		/// Zero when the probe found nothing or could not run.
+		/// </summary>
+		public float DamageAmplification { get; set; }
+
+		/// <summary>
 		/// How many times one press charges its own SP cost.
 		/// </summary>
 		/// <remarks>
@@ -472,9 +491,9 @@ namespace Melia.Test.Balance.Sfr
 			// Installed before anything is created, so every task the press
 			// starts inherits it: GameClock.Current is AsyncLocal, and an
 			// async flow carries the value it was started with. Started at the
-			// real local time rather than an epoch, so any timing site that
-			// still reads the wall clock compares against something sane.
-			GameClock.Use(new VirtualClock(DateTime.Now));
+			// clock's fixed epoch, so two presses of the same skill hold the
+			// same instants and not merely the same spans.
+			GameClock.Use(new VirtualClock());
 
 			// Seeded before anything is built, not just before the press.
 			// Creating the character, rolling its reference gear and placing
@@ -625,7 +644,12 @@ namespace Melia.Test.Balance.Sfr
 		/// a pool the three groups run at once. Null keeps the serial path,
 		/// which the single-skill diagnostic uses.
 		/// </param>
-		public static SfrMeasuredPress MeasureAll(string skillName, int? skillLevel = null, int characterLevel = 50, Map arena = null, bool measureDefense = true, ArenaPool pool = null)
+		/// <param name="measureOffense">
+		/// Whether to also run SfrOffenseProbe, which reads what the press adds
+		/// to the caster's other damage. Off in the single-skill loop for the
+		/// same reason the defence probe is; the roster pass wants it on.
+		/// </param>
+		public static SfrMeasuredPress MeasureAll(string skillName, int? skillLevel = null, int characterLevel = 50, Map arena = null, bool measureDefense = true, ArenaPool pool = null, bool measureOffense = true)
 		{
 			if (!ZoneServer.Instance.Data.SkillDb.TryFind(skillName, out var data))
 				throw new ArgumentException($"Unknown skill '{skillName}'.", nameof(skillName));
@@ -768,17 +792,37 @@ namespace Melia.Test.Balance.Sfr
 				var defense = SfrDefenseProbe.Measure(job, data.Id, level, charLevel, arena: arena, pool: pool);
 
 				if (defense.Error == null)
+				{
 					measured.SwingsPrevented = defense.SwingsPrevented;
+					measured.DefenseControls = defense.Controls;
+					measured.DefenseTreatments = defense.Treatments;
+				}
+			}
+
+			// The other half of the same question the defence probe asks: a
+			// press that leaves the rest of the rotation hitting harder spent
+			// part of its budget there, and nothing but running the caster's own
+			// swings twice can say how much.
+			void Offense()
+			{
+				if (!measureOffense)
+					return;
+
+				var offense = SfrOffenseProbe.Measure(job, data.Id, level, charLevel, arena: arena, pool: pool);
+
+				if (offense.Error == null)
+					measured.DamageAmplification = offense.Amplification;
 			}
 
 			if (pool == null)
 			{
 				Scenarios();
 				Defense();
+				Offense();
 			}
 			else
 			{
-				RunAll(Scenarios, Defense);
+				RunAll(Scenarios, Defense, Offense);
 			}
 
 			// Applied last rather than seeded by Scenarios, so the three groups

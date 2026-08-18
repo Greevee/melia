@@ -73,7 +73,10 @@ namespace Melia.Test.Balance.Sfr
 			// shift, not a discount, since Calibration pins it to AnchorFactor
 			// either way.
 			if (measured != null)
+			{
 				measured.SwingsPrevented = 0f;
+				measured.DamageAmplification = 0f;
+			}
 
 			lock (_syncLock)
 			{
@@ -182,8 +185,9 @@ namespace Melia.Test.Balance.Sfr
 		/// Every input that used to come from regex-scanning the handler -
 		/// hit count, pad/buff/DoT ticks, reach, rider value, whether a cast
 		/// is really a channel - is measured instead: hit count and reach
-		/// from SkillPressProbe, rider value from SfrDefenseProbe's live
-		/// control/treatment pair. What is left is the policy layer alone -
+		/// from SkillPressProbe, the defensive rider from SfrDefenseProbe's
+		/// live control/treatment pair and the amplifier rider from
+		/// SfrOffenseProbe's. What is left is the policy layer alone -
 		/// the cooldown curve, cast-time premiums, circle premium, width
 		/// exponent - applied to what the press actually did.
 		/// </remarks>
@@ -240,7 +244,7 @@ namespace Melia.Test.Balance.Sfr
 
 			var hits = Math.Max(1f, measured.HitEquivalents);
 
-			// The only rider left is the one that can be measured: what a
+			// The defensive rider, measured rather than named: what a
 			// live, hostile mob's own output dropped by after the press,
 			// in units of the caster's own basic swing. Silent - a
 			// multiplier of 1 - for any press SfrDefenseProbe found nothing
@@ -252,9 +256,17 @@ namespace Melia.Test.Balance.Sfr
 			// whole window is worth, and unfloored it takes the price to zero.
 			var riderMultiplier = RiderMultiplier(measured.SwingsPrevented);
 
-			var riderKinds = measured.SwingsPrevented > 0
-				? new[] { $"defensive (measured, {measured.SwingsPrevented:0.00} swings prevented)" }
-				: Array.Empty<string>();
+			// The same trade on the attacking side: what the press added to
+			// every other press is budget it did not spend on its own number.
+			var amplifierMultiplier = AmplifierMultiplier(measured.DamageAmplification);
+
+			var riderKinds = new List<string>();
+
+			if (measured.SwingsPrevented > 0)
+				riderKinds.Add($"defensive (measured, {measured.SwingsPrevented:0.00} swings prevented)");
+
+			if (measured.DamageAmplification > 0)
+				riderKinds.Add($"amplifier (measured, +{measured.DamageAmplification:P0} on other damage, x{amplifierMultiplier:0.00})");
 
 			var (castPremium, premiumKinds) = CastPremium(entry, cast, channel);
 
@@ -262,16 +274,21 @@ namespace Melia.Test.Balance.Sfr
 			// only through the cycle and a cast lands at DPS parity with an
 			// instant press. The ceiling bounds efficiency, not the cast.
 			var efficiency = Math.Min(SfrDials.MaxEfficiency,
-				SfrDials.BaseInstantEfficiency * CycleGate(cycle - t) * riderMultiplier);
+				SfrDials.BaseInstantEfficiency * CycleGate(cycle - t) * riderMultiplier * amplifierMultiplier);
 
 			var cappedEfficiency = efficiency * castPremium;
 
 			var reach = new Dictionary<string, float>();
 			var targets = new Dictionary<string, (float Mine, float Theirs)>();
+			var fieldArea = new Dictionary<string, float>();
 
 			foreach (var spec in SfrGeometry.PricedScenarios)
 			{
 				var offsets = SfrGeometry.Placement(spec, cast, out var aim);
+
+				// Ground one monster has to itself in this placement, which is
+				// what turns a target count on a spread field into an area.
+				fieldArea[spec.Id] = SfrGeometry.FieldAreaPerMob(offsets);
 
 				// The yardstick stays resolved rather than measured: it is an
 				// average over the five base-job swings, a property of the
@@ -298,8 +315,19 @@ namespace Melia.Test.Balance.Sfr
 			var charged = SfrDials.WidthPeakShare * peak + (1f - SfrDials.WidthPeakShare) * weighted;
 			var width = MathF.Pow(Math.Max(charged, 1e-6f), SfrDials.AoeExponent);
 
+			// Area and count are separate axes and width only charges the first.
+			// The anchor is the zero point of this one, the same way it is
+			// priced without its own rider: it is a demanding press itself, so
+			// leaving it in would have calibration hand the premium straight
+			// back and turn a raise for packed AoE into a cut for everything
+			// else.
+			var capacity = TargetCapacity(measured);
+			var area = AreaCovered(measured, fieldArea);
+			var demand = area > 0 ? SfrGeometry.NaturalMobArea * capacity / area : 0f;
+			var gathering = skillName == SfrDials.AnchorSkill || area <= 0 ? 1f : GatheringPremium(demand);
+
 			var basicRate = SfrData.GenericBasicRate();
-			var baseSfr = Calibration() * cappedEfficiency * basicRate * cycle * 100f / width;
+			var baseSfr = Calibration() * cappedEfficiency * basicRate * cycle * 100f * gathering / width;
 
 			// The spread gate is the multi-target ceiling: whatever the skill
 			// does when everything is gathered may not exceed the cap times what
@@ -380,7 +408,13 @@ namespace Melia.Test.Balance.Sfr
 				CastPremiumKinds = premiumKinds,
 				IsChannel = channel,
 				RiderMultiplier = riderMultiplier,
-				RiderKinds = riderKinds,
+				RiderKinds = riderKinds.ToArray(),
+				AmplifierMultiplier = amplifierMultiplier,
+				DamageAmplification = measured.DamageAmplification,
+				GatheringPremium = gathering,
+				GatheringDemand = demand,
+				TargetCapacity = capacity,
+				AreaCovered = area,
 				BasicRate = basicRate,
 				Reach = reach,
 				Targets = targets,
@@ -540,6 +574,106 @@ namespace Melia.Test.Balance.Sfr
 		/// <param name="swingsPrevented"></param>
 		public static float RiderMultiplier(float swingsPrevented)
 			=> Math.Max(SfrDials.RiderFloor, 1f / (1f + SfrDials.DefenseValueScale * Math.Max(0f, swingsPrevented)));
+
+		/// <summary>
+		/// Returns the discount a press takes for the damage it adds to
+		/// everything else the caster does.
+		/// </summary>
+		/// <remarks>
+		/// The same hyperbola the defensive rider uses, for the same reason: a
+		/// press that spends part of its budget on a stacking self-buff, a
+		/// damage-taken debuff or an attack-speed gain is not paid for in its
+		/// own number alone. Scout_ObliqueFire's 4% per application and the
+		/// debuffs Barbarian_Cleave and Hoplite_SpearLunge leave behind are all
+		/// measured the same way - by running the caster's own swings twice -
+		/// so nothing here has to know which of them a skill carries.
+		/// </remarks>
+		/// <param name="amplification"></param>
+		public static float AmplifierMultiplier(float amplification)
+			=> Math.Max(SfrDials.AmplifierFloor, 1f / (1f + SfrDials.AmplifierValueScale * Math.Max(0f, amplification)));
+
+		/// <summary>
+		/// Returns the most targets a press was seen reaching anywhere in the
+		/// matrix, which is the count its geometry and splash budget allow.
+		/// </summary>
+		/// <remarks>
+		/// The best case across every scenario rather than one of them: what
+		/// caps a press's count is its own splash rate, target cap or projectile
+		/// budget, and which placement exposes that cap differs by skill - a
+		/// stacked pile for a box, a field for a long line.
+		/// </remarks>
+		/// <param name="measured"></param>
+		public static float TargetCapacity(SfrMeasuredPress measured)
+			=> measured.Targets.Values.DefaultIfEmpty(0f).Max();
+
+		/// <summary>
+		/// Returns the ground a press covers, in square world units.
+		/// </summary>
+		/// <remarks>
+		/// Targets reached on a field of known density is an area: a press that
+		/// catches a third of a spread field covered a third of its ground, so
+		/// the count times the ground one monster has to itself there is what
+		/// the press's own shape covers. Read only on the spread scenarios,
+		/// since a stacked pile puts every monster on one point and tells you
+		/// nothing about how much ground a press covers.
+		///
+		/// This is the axis width cannot see. Two presses reaching six targets
+		/// are charged the same width, and this is what separates the one whose
+		/// area found them from the one that needed them stacked.
+		/// </remarks>
+		/// <param name="measured"></param>
+		/// <param name="fieldArea"></param>
+		/// <returns>
+		/// Zero when no spread field was reached at all, which is an area the
+		/// probe could not resolve rather than a small one.
+		/// </returns>
+		public static float AreaCovered(SfrMeasuredPress measured, Dictionary<string, float> fieldArea)
+		{
+			var areas = SfrDials.GatheringAreaScenarios
+				.Where(s => measured.Targets.ContainsKey(s) && fieldArea.ContainsKey(s))
+				.Select(s => measured.Targets[s] * fieldArea[s])
+				.DefaultIfEmpty(0f)
+				.ToArray();
+
+			// A press that damaged nothing on either spread field says nothing
+			// about how much ground it covers, and floored it would divide its
+			// whole target count by the smallest area the model can express and
+			// take the largest premium in the roster for it - which is how a
+			// plain dagger swing came out the most gathering-dependent skill in
+			// the game.
+			if (areas.Max() <= 0f)
+				return 0f;
+
+			return Math.Max(areas.Average(), SfrDials.GatheringMinArea);
+		}
+
+		/// <summary>
+		/// Returns what a press earns for the density it demands.
+		/// </summary>
+		/// <remarks>
+		/// One at natural spawn density and below - a press that pays out on
+		/// monsters as they already stand needs no pull built for it, whatever
+		/// its area or its count.
+		///
+		/// Convex above that, because the marginal target is not equally easy to
+		/// gather: pulling a second monster onto the first is most of a step
+		/// from one to two, and pulling an eleventh onto ten is a pull that has
+		/// to be built.
+		///
+		/// Keyed on the density ratio alone, so splash rate, a hard target cap
+		/// and a bounce loop all earn it the same way - what is read is how
+		/// tightly the count has to be packed, never how a handler got there.
+		/// </remarks>
+		/// <param name="demand"></param>
+		public static float GatheringPremium(float demand)
+		{
+			if (demand <= 1f)
+				return 1f;
+
+			var scaled = (demand - 1f) / Math.Max(SfrDials.GatheringReference - 1f, 1e-6f);
+
+			return Math.Min(SfrDials.GatheringMax, 1f + SfrDials.GatheringPremium * MathF.Pow(scaled, SfrDials.GatheringExponent));
+		}
 
 		/// <summary>
 		/// Returns what waiting out a cooldown is worth, keyed on the wait
@@ -899,6 +1033,12 @@ namespace Melia.Test.Balance.Sfr
 
 				if (price.Overruns)
 					result.Overrunning.Add((skillName, price.FullDamageSpan, price.CountWindow, price.Hits));
+
+				if (price.DamageAmplification > 0)
+					result.Amplifiers.Add((skillName, price.DamageAmplification, price.AmplifierMultiplier));
+
+				if (price.GatheringPremium > 1f)
+					result.Gathered.Add((skillName, price.TargetCapacity, price.AreaCovered, price.GatheringDemand, price.GatheringPremium));
 			}
 
 			foreach (var skillName in spScope)
@@ -1083,6 +1223,39 @@ namespace Melia.Test.Balance.Sfr
 		public bool IsChannel { get; init; }
 		public float RiderMultiplier { get; init; }
 		public string[] RiderKinds { get; init; }
+
+		/// <summary>
+		/// What the press gave up for the damage it adds to everything else.
+		/// </summary>
+		public float AmplifierMultiplier { get; init; }
+
+		/// <summary>
+		/// The measured gain itself, as a fraction of the caster's unbuffed
+		/// output.
+		/// </summary>
+		public float DamageAmplification { get; init; }
+
+		/// <summary>
+		/// What the press earned for needing its targets stacked, 1.0 for one
+		/// whose area delivers its count on its own.
+		/// </summary>
+		public float GatheringPremium { get; init; }
+
+		/// <summary>
+		/// How many times natural spawn density the press has to be handed
+		/// before it reaches its own target count.
+		/// </summary>
+		public float GatheringDemand { get; init; }
+
+		/// <summary>
+		/// The most targets the press was seen reaching anywhere.
+		/// </summary>
+		public float TargetCapacity { get; init; }
+
+		/// <summary>
+		/// The ground it covers, in square world units.
+		/// </summary>
+		public float AreaCovered { get; init; }
 		public float BasicRate { get; init; }
 		public Dictionary<string, float> Reach { get; init; }
 		public Dictionary<string, (float Mine, float Theirs)> Targets { get; init; }
@@ -1182,6 +1355,18 @@ namespace Melia.Test.Balance.Sfr
 		/// the diagnostic that says which skills the bound is load-bearing for.
 		/// </remarks>
 		public List<(string Skill, float Span, float Cycle, float Hits)> Overrunning { get; } = [];
+
+		/// <summary>
+		/// Skills whose press was measured making the caster's other damage
+		/// land harder, with the gain and what it cost them in factor.
+		/// </summary>
+		public List<(string Skill, float Amplification, float Multiplier)> Amplifiers { get; } = [];
+
+		/// <summary>
+		/// Skills paid a gathering premium for the density they demand, with the
+		/// count, the ground it has to fit into, the ratio and the premium.
+		/// </summary>
+		public List<(string Skill, float Capacity, float Area, float Demand, float Premium)> Gathered { get; } = [];
 
 		/// <summary>
 		/// Skills that carried a factor of zero and now price at something,

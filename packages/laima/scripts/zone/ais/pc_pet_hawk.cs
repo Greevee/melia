@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Melia.Shared.Game.Const;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Scripting;
 using Melia.Zone.Scripting.AI;
@@ -304,7 +305,7 @@ public class PcPetHawkAiScript : AiScript, IHawkSkillQueue
 			_lastWanderTime = DateTime.UtcNow;
 
 			var hawkPos = this.Entity.Position;
-			var rnd = RandomProvider.Get();
+			var rnd = GameRandom.Get();
 
 			// Get angle from owner to hawk, then pick the opposite side
 			// with some randomness (+-70 degrees) so it flies across
@@ -457,8 +458,8 @@ public class PcPetHawkAiScript : AiScript, IHawkSkillQueue
 		if (reference == null)
 			return this.Entity.Position;
 
-		var angle = RandomProvider.Get().NextDouble() * Math.PI * 2;
-		var dist = RandomProvider.Get().Next(0, (int)Math.Max(1, range));
+		var angle = GameRandom.Get().NextDouble() * Math.PI * 2;
+		var dist = GameRandom.Get().Next(0, (int)Math.Max(1, range));
 
 		var candidate = new Position(
 			reference.Position.X + (float)(Math.Cos(angle) * dist),

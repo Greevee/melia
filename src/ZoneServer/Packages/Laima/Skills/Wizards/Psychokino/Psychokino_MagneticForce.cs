@@ -22,6 +22,7 @@ using Melia.Zone.Skills.Handlers;
 using Melia.Zone.Skills.SplashAreas;
 using System.Collections.Generic;
 using Melia.Shared.Data.Database;
+using Melia.Shared.Util;
 using Melia.Zone.World.Actors.CombatEntities.Components;
 using Melia.Zone.World;
 using Melia.Zone.Skills.Handlers.Common;
@@ -167,7 +168,7 @@ namespace Melia.Zone.Skills.HandlersOverrides.Wizards.Psychokino
 
 				target.StartBuff(BuffId.MagneticForce_Debuff, skillLevel, (int)HitType.Normal, TimeSpan.FromMilliseconds(300), caster);
 
-				if (stunChance > 0 && RandomProvider.Get().NextDouble() < stunChance)
+				if (stunChance > 0 && GameRandom.Get().NextDouble() < stunChance)
 				{
 					target.StartBuff(BuffId.Stun, 1, 0, TimeSpan.FromMilliseconds(1500), caster);
 				}

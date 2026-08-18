@@ -5,6 +5,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
@@ -142,12 +143,11 @@ namespace Melia.Zone.Skills.Handlers.Monsters.Boss
 			var targetPos = originPos.GetRelative(farPos);
 			await skill.Wait(TimeSpan.FromMilliseconds(2300));
 
-			var rnd = new Random();
 			for (var i = 0; i < 12; i++)
 			{
 				var hits = new List<SkillHitInfo>();
-				var angle = rnd.NextDouble() * Math.PI * 2;
-				var distance = rnd.NextDouble() * 30;
+				var angle = GameRandom.Get().NextDouble() * Math.PI * 2;
+				var distance = GameRandom.Get().NextDouble() * 30;
 				var missilePos = new Position(
 					target.Position.X + (float)(Math.Cos(angle) * distance),
 					target.Position.Y,

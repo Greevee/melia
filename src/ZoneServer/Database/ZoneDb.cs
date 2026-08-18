@@ -7,6 +7,7 @@ using Melia.Shared.Game.Const;
 using Melia.Shared.Game.Properties;
 using Melia.Shared.ObjectProperties;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.World;
 using Melia.Zone.World.Actors.Characters;
 using Melia.Zone.World.Storages;
@@ -244,7 +245,7 @@ namespace Melia.Zone.Database
 								CharacterLockManager.Release(acquiredLock, character.DbId, "SavePlayerData");
 								lockTaken = false;
 							}
-							Thread.Sleep(50 + RandomProvider.Get().Next(100));
+							Thread.Sleep(50 + GameRandom.Get().Next(100));
 						}
 						catch (Exception ex)
 						{

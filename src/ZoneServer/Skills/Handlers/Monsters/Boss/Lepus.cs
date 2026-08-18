@@ -5,6 +5,7 @@ using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.World;
+using Melia.Shared.Util;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
@@ -125,17 +126,17 @@ namespace Melia.Zone.Skills.Handlers.Monsters.Boss
 			await MissileThrow(skill, caster, position, missileConfig2);
 			await skill.Wait(TimeSpan.FromMilliseconds(2400));
 			position = originPos.GetRelative(farPos, distance: 40, angle: -39f);
-			MonsterSkillPadMissileBuck(caster, skill, position, PadName.shootpad_lepus, 0f, RandomProvider.Get().Next(100, 301), (int)RandomProvider.Get().Next(3, 6), RandomProvider.Get().Next(40, 81), 250f, 50f, 0f);
+			MonsterSkillPadMissileBuck(caster, skill, position, PadName.shootpad_lepus, 0f, GameRandom.Get().Next(100, 301), (int)GameRandom.Get().Next(3, 6), GameRandom.Get().Next(40, 81), 250f, 50f, 0f);
 			position = originPos.GetRelative(farPos, distance: 138, angle: 6f);
-			MonsterSkillPadMissileBuck(caster, skill, position, PadName.shootpad_lepus, 0.34906584f, RandomProvider.Get().Next(100, 301), (int)RandomProvider.Get().Next(3, 6), RandomProvider.Get().Next(40, 81), 250f, 50f, 0f);
+			MonsterSkillPadMissileBuck(caster, skill, position, PadName.shootpad_lepus, 0.34906584f, GameRandom.Get().Next(100, 301), (int)GameRandom.Get().Next(3, 6), GameRandom.Get().Next(40, 81), 250f, 50f, 0f);
 			position = originPos.GetRelative(farPos, distance: 80, angle: 25f);
-			MonsterSkillPadMissileBuck(caster, skill, position, PadName.shootpad_lepus, 0.69813168f, RandomProvider.Get().Next(100, 301), (int)RandomProvider.Get().Next(3, 6), RandomProvider.Get().Next(40, 81), 250f, 50f, 0f);
+			MonsterSkillPadMissileBuck(caster, skill, position, PadName.shootpad_lepus, 0.69813168f, GameRandom.Get().Next(100, 301), (int)GameRandom.Get().Next(3, 6), GameRandom.Get().Next(40, 81), 250f, 50f, 0f);
 			position = originPos.GetRelative(farPos, distance: 100);
-			MonsterSkillPadMissileBuck(caster, skill, position, PadName.shootpad_lepus, 1.0471976f, RandomProvider.Get().Next(100, 301), (int)RandomProvider.Get().Next(3, 6), RandomProvider.Get().Next(40, 81), 250f, 50f, 0f);
+			MonsterSkillPadMissileBuck(caster, skill, position, PadName.shootpad_lepus, 1.0471976f, GameRandom.Get().Next(100, 301), (int)GameRandom.Get().Next(3, 6), GameRandom.Get().Next(40, 81), 250f, 50f, 0f);
 			position = originPos.GetRelative(farPos, distance: 110, angle: -37f);
-			MonsterSkillPadMissileBuck(caster, skill, position, PadName.shootpad_lepus, 1.3962634f, RandomProvider.Get().Next(100, 301), (int)RandomProvider.Get().Next(3, 6), RandomProvider.Get().Next(40, 81), 250f, 50f, 0f);
+			MonsterSkillPadMissileBuck(caster, skill, position, PadName.shootpad_lepus, 1.3962634f, GameRandom.Get().Next(100, 301), (int)GameRandom.Get().Next(3, 6), GameRandom.Get().Next(40, 81), 250f, 50f, 0f);
 			position = originPos.GetRelative(farPos, distance: 150, angle: -22f);
-			MonsterSkillPadMissileBuck(caster, skill, position, PadName.shootpad_lepus, 1.7453293f, RandomProvider.Get().Next(100, 301), (int)RandomProvider.Get().Next(3, 6), RandomProvider.Get().Next(40, 81), 250f, 50f, 0f);
+			MonsterSkillPadMissileBuck(caster, skill, position, PadName.shootpad_lepus, 1.7453293f, GameRandom.Get().Next(100, 301), (int)GameRandom.Get().Next(3, 6), GameRandom.Get().Next(40, 81), 250f, 50f, 0f);
 		}
 	}
 
