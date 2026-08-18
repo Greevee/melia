@@ -527,9 +527,10 @@ public class CharacterCalculationsScript : GeneralScript
 		var stat = properties.GetFloat(PropertyName.MNA, 1);
 
 		var rateByJob = character.Job?.Data.SpRate ?? 1;
-		var byJob = Math.Floor(200 * rateByJob);
+		var byJob = Math.Floor(60 * rateByJob);
 
-		var byLevel = Math.Floor(byJob + ((level - 1) * 7 * rateByJob));
+		var levels = level - 1;
+		var byLevel = Math.Floor(byJob + (((levels * 1.625f) + (levels * levels * 0.065f)) * rateByJob));
 
 		var byStat = 0d;
 		if (!Feature.IsEnabled("NewSPRFormula"))
