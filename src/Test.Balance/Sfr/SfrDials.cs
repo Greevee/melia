@@ -514,7 +514,7 @@ namespace Melia.Test.Balance.Sfr
 		public const float MinSpChargeSlope = 0.25f;
 
 		/// <summary>
-		/// Floor on a written SP cost, and on its per-level growth.
+		/// Floor on a written SP cost.
 		/// </summary>
 		public const int MinSpCost = 1;
 

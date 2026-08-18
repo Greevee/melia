@@ -222,12 +222,12 @@ namespace Melia.Test.Balance.Sfr
 				Write("largest SP raises:");
 
 				foreach (var pair in result.SpChanges.OrderByDescending(c => c.Value.Ratio).Take(8))
-					Write($"   {pair.Key,-34} x{pair.Value.Ratio:0.00} -> basicSp {pair.Value.Sp}, lvUpSpendSp {pair.Value.SpByLevel}");
+					Write($"   {pair.Key,-34} x{pair.Value.Ratio:0.00} -> basicSp {pair.Value.Sp}, lvUpSpendSp {pair.Value.SpByLevel:0.##}");
 
 				Write("largest SP cuts:");
 
 				foreach (var pair in result.SpChanges.OrderBy(c => c.Value.Ratio).Take(8))
-					Write($"   {pair.Key,-34} x{pair.Value.Ratio:0.00} -> basicSp {pair.Value.Sp}, lvUpSpendSp {pair.Value.SpByLevel}");
+					Write($"   {pair.Key,-34} x{pair.Value.Ratio:0.00} -> basicSp {pair.Value.Sp}, lvUpSpendSp {pair.Value.SpByLevel:0.##}");
 			}
 
 			if (result.SpRepeatCharges.Count > 0)
@@ -589,7 +589,7 @@ namespace Melia.Test.Balance.Sfr
 			Write($"  SP target {r.Sp.Target:0.0} over {r.Sp.Charges:0.0} charge(s)"
 				+ $"{(r.Sp.Measured ? " (measured)" : " (assumed)")}"
 				+ $"  {(r.Sp.Kinds.Length > 0 ? string.Join(", ", r.Sp.Kinds) : "plain")}");
-			Write($"  basicSp: {r.Sp.Cost}, lvUpSpendSp: {r.Sp.CostByLevel}");
+			Write($"  basicSp: {r.Sp.Cost}, lvUpSpendSp: {r.Sp.CostByLevel:0.##}");
 
 			_output.WriteLine("report saved to " + SaveReport());
 		}

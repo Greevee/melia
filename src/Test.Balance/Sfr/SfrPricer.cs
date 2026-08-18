@@ -540,8 +540,10 @@ namespace Melia.Test.Balance.Sfr
 				Kinds = kinds.ToArray(),
 				Cost = cost,
 				// Mirrors the factor split: SP tracks the same slope share, so
-				// damage per SP is flat across levels and circles.
-				CostByLevel = Math.Max(SfrDials.MinSpCost, (int)Math.Round(cost * spGrowth)),
+				// damage per SP is flat across levels and circles. Fractional
+				// because SCR_Get_SpendSP floors the total, not the slope, and
+				// a floor of 1 here would overcharge a 15-level skill fourfold.
+				CostByLevel = MathF.Round(cost * spGrowth, 2),
 			};
 		}
 
@@ -1085,7 +1087,7 @@ namespace Melia.Test.Balance.Sfr
 					if (spPriced.TryGetValue(name.Groups[1].Value, out var sp))
 					{
 						line = SetField(line, "basicSp", sp.Cost.ToString(CultureInfo.InvariantCulture));
-						line = SetField(line, "lvUpSpendSp", sp.CostByLevel.ToString(CultureInfo.InvariantCulture), after: "basicSp");
+						line = SetField(line, "lvUpSpendSp", sp.CostByLevel.ToString("0.##", CultureInfo.InvariantCulture), after: "basicSp");
 					}
 
 					if (!priced.TryGetValue(name.Groups[1].Value, out var price))
@@ -1321,7 +1323,7 @@ namespace Melia.Test.Balance.Sfr
 		/// <summary>
 		/// The lvUpSpendSp written alongside it.
 		/// </summary>
-		public int CostByLevel { get; init; }
+		public float CostByLevel { get; init; }
 	}
 
 	/// <summary>
@@ -1383,7 +1385,7 @@ namespace Melia.Test.Balance.Sfr
 		/// the buffs, heals and unmeasurable presses the damage model holds
 		/// back, since a press with no charge measurement simply charges once.
 		/// </remarks>
-		public Dictionary<string, (int Sp, int SpByLevel, float Ratio)> SpChanges { get; } = [];
+		public Dictionary<string, (int Sp, float SpByLevel, float Ratio)> SpChanges { get; } = [];
 
 		/// <summary>
 		/// Skills whose press was measured charging its cost more than once,
