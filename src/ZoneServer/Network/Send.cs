@@ -880,7 +880,8 @@ namespace Melia.Zone.Network
 		/// <param name="targetPos"></param>
 		/// <param name="forceId"></param>
 		/// <param name="hits"></param>
-		public static void ZC_SKILL_MELEE_GROUND(ICombatEntity entity, Skill skill, Position targetPos, int forceId, IEnumerable<SkillHitInfo> hits)
+		/// <param name="includeCaster"></param>
+		public static void ZC_SKILL_MELEE_GROUND(ICombatEntity entity, Skill skill, Position targetPos, int forceId, IEnumerable<SkillHitInfo> hits, bool includeCaster = true)
 		{
 			var shootTime = skill.Properties.GetFloat(PropertyName.ShootTime);
 			var sklSpdRate = skill.Properties.GetFloatSafe(PropertyName.SklSpdRate);
@@ -922,7 +923,7 @@ namespace Melia.Zone.Network
 					packet.AddSkillHitInfo(hit);
 			}
 
-			entity.Map.Broadcast(packet, entity);
+			entity.Map.Broadcast(packet, entity, includeCaster);
 		}
 
 		/// <summary>

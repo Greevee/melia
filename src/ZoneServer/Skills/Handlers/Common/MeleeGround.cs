@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Melia.Shared.Game.Const;
@@ -41,7 +41,7 @@ namespace Melia.Zone.Skills.Handlers.Common
 			skill.IncreaseOverheat();
 			caster.SetAttackState(true);
 
-			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
+			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos, 0, null, includeCaster: false);
 
 			if (caster is Character character && Feature.IsEnabled("BattleManager") && targets.Count > 0)
 				ZoneServer.Instance.World.BattleManager.StartBattle(character, targets[0]);
