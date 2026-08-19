@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -98,6 +98,12 @@ namespace Melia.Zone.Network
 		string SelectedLanguage { get; set; }
 
 		/// <summary>
+		/// Gets or sets the delay measured between the client sending a
+		/// packet and the server processing it.
+		/// </summary>
+		TimeSpan ClientLatency { get; set; }
+
+		/// <summary>
 		/// Generate a session key.
 		/// </summary>
 		/// <returns></returns>
@@ -125,6 +131,7 @@ namespace Melia.Zone.Network
 		public Trade ActiveTrade { get; set; }
 		public Duel ActiveDuel { get; set; }
 		public string SelectedLanguage { get; set; }
+		public TimeSpan ClientLatency { get; set; }
 
 		public int IntegritySeed { get; set; }
 
@@ -226,6 +233,12 @@ namespace Melia.Zone.Network
 		/// Gets or sets the client's selected language name (e.g. "pt-BR").
 		/// </summary>
 		public string SelectedLanguage { get; set; }
+
+		/// <summary>
+		/// Gets or sets the delay measured between the client sending a
+		/// packet and the server processing it.
+		/// </summary>
+		public TimeSpan ClientLatency { get; set; }
 
 		/// <summary>
 		/// Generates a session key

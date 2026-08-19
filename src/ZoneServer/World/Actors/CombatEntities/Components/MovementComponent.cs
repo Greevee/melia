@@ -37,6 +37,7 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 		private static readonly TimeSpan MaxExtrapolationTime = TimeSpan.FromMilliseconds(500);
 		private static readonly TimeSpan LagCompensationTime = TimeSpan.FromMilliseconds(100);
 		private static readonly TimeSpan MaxLagCompensationJitter = TimeSpan.FromMilliseconds(150);
+		private static readonly TimeSpan MaxPlausibleLatency = TimeSpan.FromSeconds(3);
 		private const double MoveIntervalAlpha = 1 / 16.0;
 		private const double MinOffsetCreepPerSample = 0.0005;
 		private const float SameDirectionThreshold = 0.99f;
@@ -51,6 +52,8 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 		private readonly DateTime _epoch = GameClock.Now;
 		private double _minClientOffset;
 		private double _clientJitter;
+		private double _latencyBaseline;
+		private bool _hasLatencyBaseline;
 
 		/// <summary>
 		/// Returns the entity's current destination, if it's moving to
@@ -843,6 +846,7 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 				}
 
 				this.UpdateClientJitter(clientTime);
+				this.UpdateClientLatency(clientTime);
 
 				_lastClientTime = clientTime;
 				_lastClientDir = dir;
@@ -876,6 +880,31 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 				jitter = 0;
 
 			_clientJitter += (jitter - _clientJitter) * MoveIntervalAlpha;
+		}
+
+		/// <summary>
+		/// Updates the character's measured latency, the delay between the
+		/// client sending a packet and the server processing it.
+		/// </summary>
+		/// <param name="clientTime"></param>
+		private void UpdateClientLatency(float clientTime)
+		{
+			if (this.Entity is not Character character)
+				return;
+
+			var offset = (GameClock.Now - _epoch).TotalSeconds - clientTime;
+			var latency = offset - _latencyBaseline;
+
+			// A new low is the best route seen, and a reading no delay could
+			// explain means the client clock restarted on a relog or warp.
+			if (!_hasLatencyBaseline || latency < 0 || latency > MaxPlausibleLatency.TotalSeconds)
+			{
+				_latencyBaseline = offset;
+				_hasLatencyBaseline = true;
+				latency = 0;
+			}
+
+			character.Connection.ClientLatency = TimeSpan.FromSeconds(latency);
 		}
 
 		/// <summary>

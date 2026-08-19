@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Melia.Shared.Packages;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
@@ -7,6 +7,7 @@ using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Archers.Ranger;
 using Melia.Zone.Skills.Handlers.Base;
+using Melia.Zone.Skills.Helpers;
 using Melia.Zone.World.Actors;
 using static Melia.Zone.Skills.SkillUseFunctions;
 
@@ -24,13 +25,6 @@ namespace Melia.Zone.Skills.Handlers.Archers.Archer
 		/// </summary>
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
-			if (!caster.TrySpendSp(skill))
-			{
-				caster.ServerMessage(Localization.Get("Not enough SP."));
-				return;
-			}
-
-			skill.IncreaseOverheat();
 			caster.TurnTowards(target);
 			caster.SetAttackState(true);
 
@@ -47,6 +41,26 @@ namespace Melia.Zone.Skills.Handlers.Archers.Archer
 				return;
 			}
 
+			SkillRepeatHelper.Request(skill, caster, target, hitTarget => Attack(skill, caster, hitTarget), () => Send.ZC_SKILL_FORCE_TARGET(caster, target, skill, ForceId.GetNew(), null));
+		}
+
+		/// <summary>
+		/// Executes a single hit against the target, returning false if the
+		/// caster can't pay for it.
+		/// </summary>
+		/// <param name="skill"></param>
+		/// <param name="caster"></param>
+		/// <param name="target"></param>
+		private static bool Attack(Skill skill, ICombatEntity caster, ICombatEntity target)
+		{
+			if (!caster.TrySpendSp(skill))
+			{
+				caster.ServerMessage(Localization.Get("Not enough SP."));
+				return false;
+			}
+
+			skill.IncreaseOverheat();
+
 			var aniTime = TimeSpan.FromMilliseconds(45);
 			var skillHitDelay = skill.Properties.HitDelay;
 
@@ -60,6 +74,8 @@ namespace Melia.Zone.Skills.Handlers.Archers.Archer
 			Send.ZC_SKILL_FORCE_TARGET(caster, target, skill, skillHit);
 
 			Ranger_CriticalShotOverride.TryActivateDoubleTake(skill, caster, target);
+
+			return true;
 		}
 	}
 }

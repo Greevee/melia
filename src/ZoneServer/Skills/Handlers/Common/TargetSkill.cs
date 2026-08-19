@@ -4,7 +4,9 @@ using Melia.Shared.L10N;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
+using Melia.Zone.Skills.Helpers;
 using Melia.Zone.World.Actors;
+using Melia.Zone.World.Actors.Characters;
 using Yggdrasil.Util;
 using static Melia.Zone.Skills.SkillUseFunctions;
 using Melia.Shared.World;
@@ -42,7 +44,7 @@ namespace Melia.Zone.Skills.Handlers.Common
 			caster.TurnTowards(target);
 			caster.SetAttackState(true);
 
-			//Send.ZC_SKILL_READY(caster, skill, target.Position, Position.Zero);
+			Send.ZC_SKILL_READY(caster, skill, target.Position, Position.Zero);
 			//Send.ZC_NORMAL.Unkown_1c(caster, target.Handle, target.Position, caster.Position.GetDirection(target.Position), Position.Zero);
 
 			if (target == null)
@@ -105,7 +107,7 @@ namespace Melia.Zone.Skills.Handlers.Common
 			// related values in older skill_bytool files.
 			var aniTime = TimeSpan.FromMilliseconds(skill.Id != SkillId.Common_DaggerAries ? 330 : 250);
 			var skillHitDelay = skill.Properties.HitDelay;
-
+			
 			// This part is somewhat guessed. The damage delay does seem to
 			// decrease with the speed rate, but the hit delay doesn't. If
 			// we don't decrease the hit delay though, the client can't
@@ -115,6 +117,19 @@ namespace Melia.Zone.Skills.Handlers.Common
 			aniTime = TimeSpan.FromMilliseconds(aniTime.TotalMilliseconds / skill.Properties.GetFloatSafe(PropertyName.SklSpdRate));
 			skillHitDelay = TimeSpan.FromMilliseconds(skillHitDelay.TotalMilliseconds / skill.Properties.GetFloatSafe(PropertyName.SklSpdRate));
 
+			SkillRepeatHelper.Request(skill, caster, target, hitTarget => Attack(skill, caster, hitTarget, aniTime, skillHitDelay), () => Send.ZC_SKILL_FORCE_TARGET(caster, target, skill, ForceId.GetNew(), null));
+		}
+
+		/// <summary>
+		/// Executes a single hit against the target.
+		/// </summary>
+		/// <param name="skill"></param>
+		/// <param name="caster"></param>
+		/// <param name="target"></param>
+		/// <param name="aniTime"></param>
+		/// <param name="skillHitDelay"></param>
+		private static bool Attack(Skill skill, ICombatEntity caster, ICombatEntity target, TimeSpan aniTime, TimeSpan skillHitDelay)
+		{
 			var modifier = SkillModifier.Default;
 
 			// Random chance to trigger double hit while buff is active
@@ -130,6 +145,8 @@ namespace Melia.Zone.Skills.Handlers.Common
 			var skillHit = new SkillHitInfo(caster, target, skill, skillHitResult, aniTime, skillHitDelay);
 
 			Send.ZC_SKILL_FORCE_TARGET(caster, target, skill, skillHit);
+
+			return true;
 		}
 	}
 }
