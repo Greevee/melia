@@ -25,6 +25,7 @@ using Melia.Zone.World.Items;
 using Melia.Zone.World.Maps;
 using Yggdrasil.Composition;
 using Yggdrasil.Extensions;
+using Yggdrasil.Geometry;
 using Yggdrasil.Geometry.Shapes;
 using Yggdrasil.Logging;
 using Yggdrasil.Util;
@@ -1144,6 +1145,50 @@ namespace Melia.Zone.World.Actors
 		{
 			var isHitByPad = ZoneServer.Instance.Data.FactionDb.IsHitByPad(entity.Faction);
 			return isHitByPad;
+		}
+
+		/// <summary>
+		/// Returns whether the entity is covered by the given attack shape.
+		/// </summary>
+		/// <remarks>
+		/// An entity moving under client control has to be covered both where
+		/// the server currently has it and where it's projected to be after the
+		/// lag compensation time, so an attack the player already ran out of on
+		/// their screen doesn't land.
+		/// </remarks>
+		/// <param name="entity"></param>
+		/// <param name="shape"></param>
+		public static bool IsCoveredBy(this ICombatEntity entity, IShapeF shape)
+		{
+			var radius = entity.AgentRadius + entity.HitRadiusBonus;
+
+			if (!shape.IsInsideOrInRange(entity.Position, radius))
+				return false;
+
+			if (!entity.Components.TryGet<MovementComponent>(out var movement))
+				return true;
+
+			return shape.IsInsideOrInRange(movement.GetLeadPosition(), radius);
+		}
+
+		/// <summary>
+		/// Returns whether the entity is covered by the given attack circle.
+		/// </summary>
+		/// <param name="entity"></param>
+		/// <param name="center"></param>
+		/// <param name="radius"></param>
+		public static bool IsCoveredBy(this ICombatEntity entity, Position center, float radius)
+		{
+			var effectiveRadius = radius + entity.AgentRadius + entity.HitRadiusBonus;
+			var rangeSquared = effectiveRadius * effectiveRadius;
+
+			if (center.Get2DDistanceSquared(entity.Position) > rangeSquared)
+				return false;
+
+			if (!entity.Components.TryGet<MovementComponent>(out var movement))
+				return true;
+
+			return center.Get2DDistanceSquared(movement.GetLeadPosition()) <= rangeSquared;
 		}
 
 		/// <summary>

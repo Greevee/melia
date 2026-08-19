@@ -19,5 +19,5 @@ ClientHeaderFixed header;
 //byte b1;
 position pos;
 direction dir;
-float f1;
+float clientTime;
 byte bin1[27];

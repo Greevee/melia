@@ -520,6 +520,19 @@ namespace Melia.Test.Balance.Sfr
 		public const int MinSpCost = 1;
 
 		/// <summary>
+		/// Hard SP multiplier applied to a named skill after the model prices
+		/// its cost, for a press the model has no term for.
+		/// </summary>
+		/// <remarks>
+		/// A design override, not a measurement. 0 writes a free press, which
+		/// is the only way past the MinSpCost floor.
+		/// </remarks>
+		public static readonly Dictionary<string, float> SkillSpMultipliers = new()
+		{
+			["Highlander_CrossGuard"] = 0f,
+		};
+
+		/// <summary>
 		/// Hard SFR multiplier applied to a named skill after the model prices
 		/// it, for a cut the model itself has no term for.
 		/// </summary>

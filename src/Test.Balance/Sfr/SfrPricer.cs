@@ -522,10 +522,18 @@ namespace Melia.Test.Balance.Sfr
 				kinds.Add("channel");
 			}
 
+			if (SfrDials.SkillSpMultipliers.TryGetValue(skillName, out var hardMultiplier))
+			{
+				target *= hardMultiplier;
+				kinds.Add($"override x{hardMultiplier:0.##}");
+			}
+
 			var charges = measured is { SpMeasured: true } ? measured.SpChargeSlope : 1f;
 			var levels = SfrData.SkillMaxLevel(skillName);
 
-			var cost = Math.Max(SfrDials.MinSpCost, (int)Math.Round(target / Math.Max(charges, SfrDials.MinSpChargeSlope)));
+			// The floor holds a priced press above zero, but an override to
+			// zero is a free press by design and passes under it.
+			var cost = target <= 0f ? 0 : Math.Max(SfrDials.MinSpCost, (int)Math.Round(target / Math.Max(charges, SfrDials.MinSpChargeSlope)));
 
 			// SCR_Get_SpendSP reads level minus one where the factor reads the
 			// level itself, so this share is what holds SP proportional to SFR

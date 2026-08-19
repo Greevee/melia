@@ -19,6 +19,6 @@ byte extra[12];
 byte b1;
 position pos;
 direction dir;
-float f1;
+float clientTime;
 byte bin[13];
 int64 l1;

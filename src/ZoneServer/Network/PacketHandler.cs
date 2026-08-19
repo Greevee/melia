@@ -729,7 +729,7 @@ namespace Melia.Zone.Network
 			{
 				var position = packet.GetPosition();
 				var direction = packet.GetDirection();
-				var unkFloat = packet.GetFloat(); // timestamp?
+				var clientTime = packet.GetFloat();
 				var bin = packet.GetBin(13);
 				var unkByte2 = packet.GetByte();
 
@@ -738,7 +738,7 @@ namespace Melia.Zone.Network
 				if (character.IsDead || character.IsWarping)
 					return;
 
-				character.Movement.NotifyJump(position, direction, unkFloat, unkByte2);
+				character.Movement.NotifyJump(position, direction, clientTime, unkByte2);
 			}
 			else
 			{
@@ -765,7 +765,7 @@ namespace Melia.Zone.Network
 			var direction = packet.GetDirection();
 			if (Versions.Protocol < 500)
 				packet.GetBin(6);
-			var f1 = packet.GetFloat(); // timestamp?
+			var clientTime = packet.GetFloat();
 			if (Versions.Protocol > 500)
 				packet.GetBin(31);
 
@@ -785,7 +785,7 @@ namespace Melia.Zone.Network
 				return;
 			}
 
-			character.Movement.NotifyMove(position, direction, f1);
+			character.Movement.NotifyMove(position, direction, clientTime);
 			character.Components.Get<TimeActionComponent>().End(TimeActionResult.CancelledByMove);
 		}
 
@@ -800,7 +800,7 @@ namespace Melia.Zone.Network
 			var unkByte = packet.GetByte();
 			var position = packet.GetPosition();
 			var direction = packet.GetDirection();
-			var unkFloat = packet.GetFloat(); // timestamp?
+			var clientTime = packet.GetFloat();
 
 			var character = conn.SelectedCharacter;
 
@@ -5519,6 +5519,9 @@ namespace Melia.Zone.Network
 			character.Direction = direction;
 
 			if (active && !character.CanGuard())
+				return;
+
+			if (character.IsGuarding() == active)
 				return;
 
 			character.SetGuardState(active);

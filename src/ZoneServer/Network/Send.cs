@@ -2094,9 +2094,9 @@ namespace Melia.Zone.Network
 		/// <param name="character"></param>
 		/// <param name="pos"></param>
 		/// <param name="dir"></param>
-		/// <param name="unkFloat"></param>
+		/// <param name="clientTime"></param>
 		/// <param name="unkByte"></param>
-		public static void ZC_JUMP(Character character, Position pos, Direction dir, float unkFloat, byte unkByte)
+		public static void ZC_JUMP(Character character, Position pos, Direction dir, float clientTime, byte unkByte)
 		{
 			using var packet = Packet.Rent(Op.ZC_JUMP);
 
@@ -2108,7 +2108,7 @@ namespace Melia.Zone.Network
 			{
 				packet.PutPosition(pos);
 				packet.PutDirection(dir);
-				packet.PutFloat(unkFloat);
+				packet.PutFloat(clientTime);
 				packet.PutEmptyBin(13);
 				packet.PutLong(unkByte);
 				packet.PutShort(0);
@@ -3649,8 +3649,8 @@ namespace Melia.Zone.Network
 		/// <param name="entity"></param>
 		/// <param name="pos"></param>
 		/// <param name="dir"></param>
-		/// <param name="unkFloat"></param>
-		public static void ZC_MOVE_DIR(ICombatEntity entity, Position pos, Direction dir, float unkFloat)
+		/// <param name="clientTime"></param>
+		public static void ZC_MOVE_DIR(ICombatEntity entity, Position pos, Direction dir, float clientTime)
 		{
 			using var packet = Packet.Rent(Op.ZC_MOVE_DIR);
 
@@ -3661,7 +3661,7 @@ namespace Melia.Zone.Network
 			packet.PutFloat(entity.Properties.GetFloat(PropertyName.MSPD));
 			if (Versions.Protocol > 500)
 			{
-				packet.PutFloat(unkFloat);
+				packet.PutFloat(clientTime);
 				packet.PutEmptyBin(24);
 				packet.PutInt(6);
 				packet.PutInt(0);
@@ -3670,7 +3670,7 @@ namespace Melia.Zone.Network
 			else
 			{
 				packet.PutByte(1);
-				packet.PutFloat(unkFloat);
+				packet.PutFloat(clientTime);
 			}
 
 			entity.Map.Broadcast(packet, entity);

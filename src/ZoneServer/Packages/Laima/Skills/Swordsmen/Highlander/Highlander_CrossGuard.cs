@@ -24,6 +24,14 @@ namespace Melia.Zone.Skills.Handlers.Swordsman.Highlander
 		public void StartDynamicCast(Skill skill, ICombatEntity caster, float maxCastTime)
 		{
 			caster.StartBuff(BuffId.CrossGuard_Buff, skill.Level, 0, TimeSpan.Zero, caster, skill.Id);
+
+			if (!caster.TrySpendSp(skill))
+			{
+				caster.ServerMessage(Localization.Get("Not enough SP."));
+				return;
+			}
+			skill.IncreaseOverheat();
+			caster.SetAttackState(true);
 		}
 
 		/// <summary>
@@ -39,14 +47,6 @@ namespace Melia.Zone.Skills.Handlers.Swordsman.Highlander
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
-			if (!caster.TrySpendSp(skill))
-			{
-				caster.ServerMessage(Localization.Get("Not enough SP."));
-				return;
-			}
-			skill.IncreaseOverheat();
-			caster.SetAttackState(true);
-
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
 			Send.ZC_SKILL_CAST_CANCEL(caster);
 		}

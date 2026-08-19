@@ -1054,7 +1054,7 @@ namespace Melia.Zone.World.Maps
 					if (!attacker.CanDamage(entity))
 						continue;
 
-					if (!shape.IsInside(entity.Position))
+					if (!entity.IsCoveredBy(shape))
 						continue;
 
 					result.Add(entity);
@@ -1526,10 +1526,7 @@ namespace Melia.Zone.World.Maps
 			var result = new List<ICombatEntity>();
 			foreach (var e in candidates)
 			{
-				var effectiveRadius = radius + e.AgentRadius + e.HitRadiusBonus;
-				var dx = e.Position.X - position.X;
-				var dz = e.Position.Z - position.Z;
-				if (dx * dx + dz * dz <= effectiveRadius * effectiveRadius && attacker.CanDamage(e))
+				if (e.IsCoveredBy(position, radius) && attacker.CanDamage(e))
 				{
 					if (e.IsHighFlying())
 						continue;
@@ -1574,11 +1571,7 @@ namespace Melia.Zone.World.Maps
 
 			foreach (var e in candidates)
 			{
-				var effectiveRadius = radius + e.AgentRadius + e.HitRadiusBonus;
-				var dx = e.Position.X - position.X;
-				var dz = e.Position.Z - position.Z;
-
-				if (dx * dx + dz * dz <= effectiveRadius * effectiveRadius && attacker.CanDamage(e))
+				if (e.IsCoveredBy(position, radius) && attacker.CanDamage(e))
 				{
 					if (e.IsHighFlying())
 						continue;
@@ -1643,7 +1636,7 @@ namespace Melia.Zone.World.Maps
 			{
 				if (!attacker.CanDamage(e))
 					continue;
-				if (!shape.IsInsideOrInRange(e.Position, e.AgentRadius + e.HitRadiusBonus))
+				if (!e.IsCoveredBy(shape))
 					continue;
 				if (e.IsHighFlying())
 					continue;
@@ -1699,7 +1692,7 @@ namespace Melia.Zone.World.Maps
 					continue;
 				if (!attacker.CanDamage(e))
 					continue;
-				if (!shape.IsInsideOrInRange(e.Position, e.AgentRadius + e.HitRadiusBonus))
+				if (!e.IsCoveredBy(shape))
 					continue;
 				if (e.IsHighFlying())
 					continue;
@@ -1757,7 +1750,7 @@ namespace Melia.Zone.World.Maps
 			{
 				if (!entity.IsAlly(ally) || entity == ally || entity.IsDead)
 					continue;
-				if (!shape.IsInsideOrInRange(entity.Position, entity.AgentRadius + entity.HitRadiusBonus))
+				if (!entity.IsCoveredBy(shape))
 					continue;
 				result.Add(entity);
 			}
@@ -1813,7 +1806,7 @@ namespace Melia.Zone.World.Maps
 			{
 				if (!entity.IsDeadAlly(ally) || entity == ally)
 					continue;
-				if (!shape.IsInsideOrInRange(entity.Position, entity.AgentRadius + entity.HitRadiusBonus))
+				if (!entity.IsCoveredBy(shape))
 					continue;
 				result.Add(entity);
 			}
