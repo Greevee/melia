@@ -285,9 +285,10 @@ namespace Melia.Test.Balance.Sfr
 		/// <remarks>
 		/// Grows with the wind-up because a longer one is harder to land: more
 		/// time to be walked out of, LoS-broken or peeled off. Written as
-		/// (1 + cast)^k so it starts at 1.0 and never discounts a short cast.
+		/// (1 + cast)^(0.5 + a * cast) so it starts at 1.0, never discounts a
+		/// short cast, and steepens as the wind-up gets longer.
 		/// </remarks>
-		public const float CastLengthExponent = 0.50f;
+		public const float CastLengthSlope = 0.05f;
 
 		/// <summary>
 		/// Blanket DoT rider applied when the multiple is unknown.
@@ -530,7 +531,28 @@ namespace Melia.Test.Balance.Sfr
 		public static readonly Dictionary<string, float> SkillSfrMultipliers = new()
 		{
 			["Linker_JointPenalty"] = 0.1f,
+			["Rodelero_ShieldCharge"] = 0.1f,
 		};
+
+		/// <summary>
+		/// Skills that only plant something, and the skill that sets it off.
+		/// </summary>
+		/// <remarks>
+		/// The press probe places its pull and leaves it standing, so a trap
+		/// waiting to be stepped on or blown up lands nothing and prices as a
+		/// skill that damaged nothing. The partner is pressed inside the same
+		/// window, which is how the pair is used in play: the damage is the
+		/// planted skill's, and it is charged to the planted skill.
+		/// </remarks>
+		public static readonly Dictionary<string, string> PressTriggers = new()
+		{
+			["Sapper_Claymore"] = "Sapper_DetonateTraps",
+		};
+
+		/// <summary>
+		/// How long after the press its trigger partner is pressed.
+		/// </summary>
+		public const int TriggerPressDelayMs = 1000;
 
 		/// <summary>
 		/// Rider multipliers for the non-damage payload the direct-hit model

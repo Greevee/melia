@@ -226,10 +226,12 @@ namespace Melia.Test.Balance.Sfr
 			if (!measured.HitsFromDamage)
 				throw new InvalidOperationException($"{skillName}: no factor-scaled HP loss was observed, so the press could not be measured.");
 
-			// A press still running when the window closed delivered more than
-			// was counted, so its hit count is a floor and the price a ceiling.
+			// A press still delivering when the window closed without its own
+			// cycle having elapsed delivered more than was counted, so its hit
+			// count is a floor and the price a ceiling. One that outlives only
+			// its cycle is counted over the cycle and priced.
 			if (measured.Truncated)
-				throw new InvalidOperationException($"{skillName}: the press outran the {SkillPressProbe.MaxPressMs} ms window, so its hit count is truncated.");
+				throw new InvalidOperationException($"{skillName}: the press was still delivering when the {SkillPressProbe.MaxPressMs} ms window closed and its cycle had not elapsed, so its hit count is truncated.");
 
 			var levels = maxLevel ?? SfrData.SkillMaxLevel(skillName);
 			var cast = entry.Num("basicCast") / 1000f;
@@ -735,7 +737,7 @@ namespace Melia.Test.Balance.Sfr
 			if (channel || castSeconds <= 0)
 				return (1f, []);
 
-			var premium = MathF.Pow(1f + castSeconds, SfrDials.CastLengthExponent);
+			var premium = MathF.Pow(1f + castSeconds, 0.5f + SfrDials.CastLengthSlope * castSeconds);
 			var kinds = new List<string> { $"cast {castSeconds:0.0}s x{premium:0.00}" };
 
 			if (entry.Flag("castInterruptible"))

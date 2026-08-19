@@ -730,7 +730,7 @@ public class CharacterCalculationsScript : GeneralScript
 
 		var byStat = 0d;
 		if (!Feature.IsEnabled("NewCONFormula"))
-			byStat = Math.Floor(stat * 2.6f);
+			byStat = Math.Floor(stat * 1.5f);
 
 		var byDefault = Math.Floor(mhp / 100f * jobHpRate);
 		var byItems = character.Inventory.GetEquipProperties(PropertyName.RHP);
@@ -791,7 +791,7 @@ public class CharacterCalculationsScript : GeneralScript
 
 		var byStat = 0d;
 		if (!Feature.IsEnabled("NewSPRFormula"))
-			byStat = Math.Floor(stat * 2.6f);
+			byStat = Math.Floor(stat * 1.5f);
 
 		var byDefault = Math.Floor(msp * 0.03f * jobSpRate);
 		var byItems = character.Inventory.GetEquipProperties(PropertyName.RSP);

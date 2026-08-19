@@ -623,6 +623,8 @@ public class WhackAMoleInstance : MinigameBase
 		mole.Position = startSpot;
 		mole.SpawnPosition = startSpot;
 		mole.Direction = new Direction(this.Rnd.Next(360));
+		mole.HasExp = false;
+		mole.HasDrops = false;
 
 		// Apply property overrides to make moles take 1 damage and have 1 HP
 		var moleHp = 1;

@@ -513,6 +513,8 @@ namespace Melia.Test.Balance.Sfr
 				var skill = SyntheticActors.GiveSkill(character, skillId, skillLevel);
 				className = skill.Data.ClassName;
 
+				var trigger = TriggerFor(character, className);
+
 				var cycle = CastCycleModel.Measure(character, skill);
 
 				var tolerance = spec.Rank == MonsterRank.Normal ? 8 : 30;
@@ -548,15 +550,14 @@ namespace Melia.Test.Balance.Sfr
 				using (var spScope = basicSp != null ? new SfrSpScope(skill, basicSp.Value) : null)
 				using (var recorder = new SfrPressRecorder(character))
 				{
-					var timeline = fullWindow ? new List<(int, float)>() : null;
+					var timeline = fullWindow ? new List<(int ElapsedMs, float Loss, float[] PerMob)>() : null;
 					var spBefore = character.Properties.GetFloat(PropertyName.SP);
-					var truncated = Press(skill, character, aimPos, mobs, map, recorder, fullWindow, timeline);
+					var truncated = Press(skill, character, aimPos, mobs, map, recorder, fullWindow, timeline, trigger);
 					var spSpent = Math.Max(0f, spBefore - character.Properties.GetFloat(PropertyName.SP));
 
 					// The pricer's budget is one cycle, so the delivery it
-					// divides by is read over one cycle too. The press itself
-					// still ran to the end, so Truncated still means what it
-					// meant.
+					// divides by is read over one cycle too, per mob as well as
+					// in total. The press itself is still waited out in full.
 					var counted = Bound(timeline, countWindowMs);
 					var shape = Shape(counted);
 					var fullShape = Shape(timeline);
@@ -566,9 +567,20 @@ namespace Melia.Test.Balance.Sfr
 					var hpLoss = counted != null && counted.Count > 0
 						? counted[counted.Count - 1].Loss
 						: HpLost(mobs);
+					var hpLossPerMob = counted != null && counted.Count > 0
+						? counted[counted.Count - 1].PerMob
+						: HpLostPerMob(mobs);
+
+					// A trap or DoT still alive past the window is only
+					// undercounted if the count window itself was not reached:
+					// what it does after one cycle belongs to the next press,
+					// which is what Overruns already says.
+					var covered = countWindowMs != null && timeline != null && timeline.Count > 0
+						&& timeline[timeline.Count - 1].ElapsedMs >= countWindowMs.Value;
+
 					// Only the hit-count pass is undercounted by a tail still
 					// running; a reach pass has already counted the target.
-					var outlivingReason = fullWindow ? OutlivingTickReason(character, mobs) ?? OutlivingPadReason(map, character) : null;
+					var outlivingReason = fullWindow && !covered ? OutlivingTickReason(character, mobs) ?? OutlivingPadReason(map, character) : null;
 
 					return new SkillPressResult
 					{
@@ -582,7 +594,7 @@ namespace Melia.Test.Balance.Sfr
 						TargetsDamaged = damaged.Length,
 						HitsOnPrimary = hitsOnPrimary,
 						HpLossDamage = hpLoss,
-						HpLossPerMob = mobs.Select(m => m.IsDead ? 0f : Math.Max(0f, m.Properties.GetFloat(PropertyName.MHP) - m.Properties.GetFloat(PropertyName.HP))).ToArray(),
+						HpLossPerMob = hpLossPerMob,
 						MitigatedPerMob = mobs.Select(m => SfrDamageCurve.MitigatedAttack(AttackPower(character, skill), Defense(m, skill))).ToArray(),
 						ReferenceMob = isReference,
 						MaxHitsOnTarget = damaged.Length > 0 ? damaged.Max(recorder.HitsOn) : 0,
@@ -595,7 +607,7 @@ namespace Melia.Test.Balance.Sfr
 						AttackPower = AttackPower(character, skill),
 						TargetDefense = Defense(primary, skill),
 						MitigatedAttack = SfrDamageCurve.MitigatedAttack(AttackPower(character, skill), Defense(primary, skill)),
-						Truncated = truncated || outlivingReason != null,
+						Truncated = (truncated && !covered) || outlivingReason != null,
 						TruncationReason = outlivingReason,
 						DamageSpanSeconds = shape.SpanSeconds,
 						BurstFraction = shape.BurstFraction,
@@ -694,6 +706,16 @@ namespace Melia.Test.Balance.Sfr
 				//
 				// fullWindow throughout, so a DoT or pad tail is inside the count
 				// the same way the old single-scenario pass had it.
+				//
+				// Counted over the skill's own cycle, since that is the budget
+				// the price divides: a trap that keeps ticking for two minutes
+				// is delivering for later presses too, and counting all of it
+				// against one press reads as a press that hits a hundred times.
+				var countWindowMs = (int?)((SfrData.CycleFor(skillName) ?? 0f) * 1000f);
+
+				if (countWindowMs <= 0)
+					countWindowMs = null;
+
 				var work = new List<Action>();
 
 				for (var trial = 0; trial < trials; ++trial)
@@ -716,8 +738,8 @@ namespace Melia.Test.Balance.Sfr
 				// gives the factor line and the SP line at once.
 				SkillPressResult Run(ScenarioSpec spec, float factor, float basicSp)
 					=> pool == null
-						? Measure(job, data.Id, level, spec, charLevel, factor, arena, fullWindow: true, basicSp: basicSp)
-						: pool.Use(a => Measure(job, data.Id, level, spec, charLevel, factor, a, fullWindow: true, basicSp: basicSp));
+						? Measure(job, data.Id, level, spec, charLevel, factor, arena, fullWindow: true, countWindowMs: countWindowMs, basicSp: basicSp)
+						: pool.Use(a => Measure(job, data.Id, level, spec, charLevel, factor, a, fullWindow: true, countWindowMs: countWindowMs, basicSp: basicSp));
 
 				if (pool == null)
 				{
@@ -1107,19 +1129,35 @@ namespace Melia.Test.Balance.Sfr
 		/// or a pad - so its whole tail has landed before the HP it took is
 		/// read, rather than exiting the moment the handler returns.
 		/// </param>
-		private static bool Press(Skill skill, Character caster, Position aimPos, List<Mob> mobs, Map map, SfrPressRecorder recorder, bool fullWindow = false, List<(int ElapsedMs, float Loss)> timeline = null)
+		/// <param name="timeline"></param>
+		/// <param name="trigger"></param>
+		private static bool Press(Skill skill, Character caster, Position aimPos, List<Mob> mobs, Map map, SfrPressRecorder recorder, bool fullWindow = false, List<(int ElapsedMs, float Loss, float[] PerMob)> timeline = null, Skill trigger = null)
 		{
 			if (!Dispatch(skill, caster, aimPos, mobs))
 				return false;
 
 			var tick = TimeSpan.FromMilliseconds(TickMs);
 			var clock = GameClock.Current;
+			var triggered = trigger == null;
 
 			for (var elapsed = 0; elapsed < MaxPressMs; elapsed += TickMs)
 			{
 				Step(clock, tick);
 				map.Update(tick);
-				timeline?.Add((elapsed, HpLost(mobs)));
+
+				if (timeline != null)
+				{
+					var losses = HpLostPerMob(mobs);
+					timeline.Add((elapsed, losses.Sum(), losses));
+				}
+
+				// A trap sits armed until something sets it off, so the press
+				// that plants it lands nothing on its own.
+				if (!triggered && elapsed >= SfrDials.TriggerPressDelayMs)
+				{
+					Dispatch(trigger, caster, aimPos, mobs);
+					triggered = true;
+				}
 
 				// A handler that paces itself with skill.Wait is still this
 				// press until its runners return; one that scheduled nothing
@@ -1137,7 +1175,7 @@ namespace Melia.Test.Balance.Sfr
 				// Sleeping it out unconditionally cost a clean burst 10 s where
 				// it needed 1.5, on every one of the 18 windows a skill now
 				// runs, and is what took the roster pass from 3.5 min to 12.
-				if (!skill.IsRunning && elapsed >= SettleMs
+				if (triggered && !skill.IsRunning && elapsed >= SettleMs
 					&& (recorder.TotalDamage() > 0 || elapsed >= SfrDials.EmptyPressSettleMs)
 					&& !HasLiveSummon(map, caster)
 					&& (!fullWindow || (OutlivingTickReason(caster, mobs) == null && OutlivingPadReason(map, caster) == null)))
@@ -1154,7 +1192,12 @@ namespace Melia.Test.Balance.Sfr
 
 				Step(clock, tick);
 				map.Update(tick);
-				timeline?.Add((MaxPressMs + drained, HpLost(mobs)));
+
+				if (timeline != null)
+				{
+					var drainLosses = HpLostPerMob(mobs);
+					timeline.Add((MaxPressMs + drained, drainLosses.Sum(), drainLosses));
+				}
 			}
 
 			return skill.IsRunning || OutlivingTickReason(caster, mobs) != null || OutlivingPadReason(map, caster) != null;
@@ -1370,11 +1413,43 @@ namespace Melia.Test.Balance.Sfr
 			=> mobs.Where(m => !m.IsDead).Sum(m => Math.Max(0f, m.Properties.GetFloat(PropertyName.MHP) - m.Properties.GetFloat(PropertyName.HP)));
 
 		/// <summary>
+		/// Returns the HP each mob has lost so far, in the order they were
+		/// placed, so the count can be read at the cycle boundary rather than
+		/// only at the end of the press.
+		/// </summary>
+		/// <param name="mobs"></param>
+		private static float[] HpLostPerMob(List<Mob> mobs)
+			=> mobs.Select(m => m.IsDead ? 0f : Math.Max(0f, m.Properties.GetFloat(PropertyName.MHP) - m.Properties.GetFloat(PropertyName.HP))).ToArray();
+
+		/// <summary>
+		/// Returns the skill that sets off what this press only plants, given
+		/// to the caster so the press can be measured at all.
+		/// </summary>
+		/// <remarks>
+		/// A trap does no damage until something detonates it, and the probe
+		/// has nothing walking onto it. The partner is pressed at level one so
+		/// what is measured is the trap's own damage and not the riders the
+		/// partner's own levels add on top.
+		/// </remarks>
+		/// <param name="character"></param>
+		/// <param name="skillName"></param>
+		private static Skill TriggerFor(Character character, string skillName)
+		{
+			if (!SfrDials.PressTriggers.TryGetValue(skillName, out var triggerName))
+				return null;
+
+			if (!ZoneServer.Instance.Data.SkillDb.TryFind(triggerName, out var triggerData))
+				return null;
+
+			return SyntheticActors.GiveSkill(character, triggerData.Id, 1);
+		}
+
+		/// <summary>
 		/// Returns the timeline cut off at the count window.
 		/// </summary>
 		/// <param name="timeline"></param>
 		/// <param name="windowMs"></param>
-		private static List<(int ElapsedMs, float Loss)> Bound(List<(int ElapsedMs, float Loss)> timeline, int? windowMs)
+		private static List<(int ElapsedMs, float Loss, float[] PerMob)> Bound(List<(int ElapsedMs, float Loss, float[] PerMob)> timeline, int? windowMs)
 		{
 			if (timeline == null || windowMs == null)
 				return timeline;
@@ -1389,7 +1464,7 @@ namespace Melia.Test.Balance.Sfr
 		/// share of it landing inside one burst window.
 		/// </summary>
 		/// <param name="timeline"></param>
-		private static (float SpanSeconds, float BurstFraction) Shape(List<(int ElapsedMs, float Loss)> timeline)
+		private static (float SpanSeconds, float BurstFraction) Shape(List<(int ElapsedMs, float Loss, float[] PerMob)> timeline)
 		{
 			if (timeline == null || timeline.Count == 0)
 				return (0f, 1f);
