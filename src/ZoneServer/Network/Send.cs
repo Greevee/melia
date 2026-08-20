@@ -18,6 +18,7 @@ using Melia.Zone.Events;
 using Melia.Zone.Network.Helpers;
 using Melia.Zone.Skills;
 using Melia.Zone.Skills.Combat;
+using Melia.Zone.Skills.Helpers;
 using Melia.Zone.Skills.SplashAreas;
 using Melia.Zone.World;
 using Melia.Zone.World.Actors;
@@ -717,7 +718,7 @@ namespace Melia.Zone.Network
 		/// <param name="hits"></param>
 		public static void ZC_SKILL_FORCE_TARGET(ICombatEntity entity, ICombatEntity target, Skill skill, int forceId, IEnumerable<SkillHitInfo> hits)
 		{
-			var shootTime = skill.Properties.GetFloatSafe(PropertyName.ShootTime);
+			var shootTime = SkillTimingHelper.GetClientShootTime(entity, skill, skill.Properties.GetFloatSafe(PropertyName.ShootTime));
 			var sklSpdRate = skill.Properties.GetFloatSafe(PropertyName.SklSpdRate);
 
 			using var packet = Packet.Rent(Op.ZC_SKILL_FORCE_TARGET);
@@ -766,7 +767,7 @@ namespace Melia.Zone.Network
 		/// <param name="hits"></param>
 		public static void ZC_SKILL_FORCE_TARGET_DUMMY(ICombatEntity entity, ICombatEntity target, Skill skill, SkillId visualSkillId, int forceId, IEnumerable<SkillHitInfo> hits)
 		{
-			var shootTime = skill.Properties.GetFloat(PropertyName.ShootTime);
+			var shootTime = SkillTimingHelper.GetClientShootTime(entity, skill, skill.Properties.GetFloat(PropertyName.ShootTime));
 			var sklSpdRate = skill.Properties.GetFloat(PropertyName.SklSpdRate);
 
 			using var packet = Packet.Rent(Op.ZC_SKILL_FORCE_TARGET);
@@ -808,7 +809,7 @@ namespace Melia.Zone.Network
 		/// <param name="hits"></param>
 		public static void ZC_SKILL_FORCE_GROUND(ICombatEntity entity, Skill skill, Position targetPos, int forceId, IEnumerable<SkillHitInfo> hits)
 		{
-			var shootTime = skill.Properties.GetFloat(PropertyName.ShootTime);
+			var shootTime = SkillTimingHelper.GetClientShootTime(entity, skill, skill.Properties.GetFloat(PropertyName.ShootTime));
 			var sklSpdRate = skill.Properties.GetFloat(PropertyName.SklSpdRate);
 
 			using var packet = Packet.Rent(Op.ZC_SKILL_FORCE_GROUND);
@@ -883,7 +884,7 @@ namespace Melia.Zone.Network
 		/// <param name="includeCaster"></param>
 		public static void ZC_SKILL_MELEE_GROUND(ICombatEntity entity, Skill skill, Position targetPos, int forceId, IEnumerable<SkillHitInfo> hits, bool includeCaster = true)
 		{
-			var shootTime = skill.Properties.GetFloat(PropertyName.ShootTime);
+			var shootTime = SkillTimingHelper.GetClientShootTime(entity, skill, skill.Properties.GetFloat(PropertyName.ShootTime));
 			var sklSpdRate = skill.Properties.GetFloatSafe(PropertyName.SklSpdRate);
 			var enableCastMove = skill.Properties.GetFloat(PropertyName.EnableShootMove) == 1f;
 
@@ -945,7 +946,7 @@ namespace Melia.Zone.Network
 		/// <param name="hits"></param>
 		public static void ZC_SKILL_MELEE_TARGET(ICombatEntity entity, Skill skill, ICombatEntity target, IEnumerable<SkillHitInfo> hits)
 		{
-			var shootTime = skill.Properties.GetFloat(PropertyName.ShootTime);
+			var shootTime = SkillTimingHelper.GetClientShootTime(entity, skill, skill.Properties.GetFloat(PropertyName.ShootTime));
 			var sklSpdRate = skill.Properties.GetFloat(PropertyName.SklSpdRate);
 			var forceId = hits?.FirstOrDefault()?.ForceId ?? 0;
 

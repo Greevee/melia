@@ -11,6 +11,7 @@ using Melia.Zone.Network;
 using Melia.Zone.Scripting.AI;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
+using Melia.Zone.Skills.Helpers;
 using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.Characters;
 using Melia.Zone.World.Actors.CombatEntities.Components;
@@ -40,14 +41,29 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Bokor
 		/// <param name="targets"></param>
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
+			caster.SetAttackState(true);
+
+			SkillRepeatHelper.Request(skill, caster, () => this.Attack(skill, caster, originPos, farPos, target));
+		}
+
+		/// <summary>
+		/// Executes a single use of the skill, returning false if the caster
+		/// can't pay for it.
+		/// </summary>
+		/// <param name="skill"></param>
+		/// <param name="caster"></param>
+		/// <param name="originPos"></param>
+		/// <param name="farPos"></param>
+		/// <param name="target"></param>
+		private bool Attack(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
+		{
 			if (!caster.TrySpendSp(skill))
 			{
 				caster.ServerMessage(Localization.Get("Not enough SP."));
-				return;
+				return false;
 			}
 
 			skill.IncreaseOverheat();
-			caster.SetAttackState(true);
 
 			var skillHandle = ZoneServer.Instance.World.CreateSkillHandle();
 
@@ -57,6 +73,8 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Bokor
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos, ForceId.GetNew(), null);
 
 			skill.Run(this.HandleSkill(caster, skill, originPos, farPos));
+
+			return true;
 		}
 
 		private async Task HandleSkill(ICombatEntity caster, Skill skill, Position originPos, Position farPos)

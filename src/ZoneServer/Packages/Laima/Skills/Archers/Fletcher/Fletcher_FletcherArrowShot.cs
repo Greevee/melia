@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using Melia.Shared.Packages;
 using Melia.Shared.Data.Database;
@@ -8,6 +8,7 @@ using Melia.Shared.World;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
+using Melia.Zone.Skills.Helpers;
 using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.CombatEntities.Components;
 using static Melia.Zone.Skills.SkillUseFunctions;
@@ -86,6 +87,25 @@ namespace Melia.Zone.Skills.Handlers.Archers.Fletcher
 		/// </summary>
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
+			if (target == null || !caster.InSkillUseRange(skill, target))
+			{
+				caster.ServerMessage(Localization.Get("Too far away."));
+				Send.ZC_SKILL_FORCE_TARGET(caster, null, skill);
+				return;
+			}
+
+			SkillRepeatHelper.Request(skill, caster, target, hitTarget => this.Attack(skill, caster, hitTarget), () => Send.ZC_SKILL_FORCE_TARGET(caster, target, skill, ForceId.GetNew(), null));
+		}
+
+		/// <summary>
+		/// Fires a single arrow at the target, returning false if the caster
+		/// has none left or can't pay for it.
+		/// </summary>
+		/// <param name="skill"></param>
+		/// <param name="caster"></param>
+		/// <param name="target"></param>
+		private bool Attack(Skill skill, ICombatEntity caster, ICombatEntity target)
+		{
 			var buffComponent = caster.Components.Get<BuffComponent>();
 			Buff selectedBuff = null;
 
@@ -105,14 +125,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Fletcher
 			{
 				caster.ServerMessage(Localization.Get("No arrows found."));
 				Send.ZC_SKILL_FORCE_TARGET(caster, null, skill);
-				return;
-			}
-
-			if (target == null || !caster.InSkillUseRange(skill, target))
-			{
-				caster.ServerMessage(Localization.Get("Too far away."));
-				Send.ZC_SKILL_FORCE_TARGET(caster, null, skill);
-				return;
+				return false;
 			}
 
 			Skill buffSkill;
@@ -132,20 +145,20 @@ namespace Melia.Zone.Skills.Handlers.Archers.Fletcher
 					break;
 				default:
 					Send.ZC_SKILL_FORCE_TARGET(caster, null, skill);
-					return;
+					return false;
 			}
 
 			if (buffSkill == null)
 			{
 				caster.StopBuff(selectedBuff.Id);
-				return;
+				return false;
 			}
 
 			if (!caster.TrySpendSp(buffSkill))
 			{
 				caster.ServerMessage(Localization.Get("Not enough SP."));
 				Send.ZC_SKILL_FORCE_TARGET(caster, null, skill);
-				return;
+				return false;
 			}
 
 			skill.IncreaseOverheat();
@@ -168,6 +181,8 @@ namespace Melia.Zone.Skills.Handlers.Archers.Fletcher
 				this.HandleDivineMachineArrow(skill, buffSkill, caster, target);
 
 			TryFillQuiver(caster);
+
+			return true;
 		}
 
 		private static float GetFasBonus(Skill fletcherSkill)

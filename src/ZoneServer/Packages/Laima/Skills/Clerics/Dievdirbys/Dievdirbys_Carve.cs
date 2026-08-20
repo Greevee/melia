@@ -12,6 +12,7 @@ using Melia.Zone.Network;
 using Melia.Zone.Pads;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
+using Melia.Zone.Skills.Helpers;
 using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.Components;
 using Melia.Zone.World.Actors.Monsters;
@@ -55,14 +56,28 @@ namespace Melia.Zone.Skills.HandlersOverrides.Clerics.Dievdirbys
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
+			caster.SetAttackState(true);
+
+			SkillRepeatHelper.Request(skill, caster, () => this.Attack(skill, caster, originPos, farPos));
+		}
+
+		/// <summary>
+		/// Executes a single use of the skill, returning false if the caster
+		/// can't pay for it.
+		/// </summary>
+		/// <param name="skill"></param>
+		/// <param name="caster"></param>
+		/// <param name="originPos"></param>
+		/// <param name="farPos"></param>
+		private bool Attack(Skill skill, ICombatEntity caster, Position originPos, Position farPos)
+		{
 			if (!caster.TrySpendSp(skill))
 			{
 				caster.ServerMessage(Localization.Get("Not enough SP."));
-				return;
+				return false;
 			}
 
 			skill.IncreaseOverheat();
-			caster.SetAttackState(true);
 
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, caster.Handle, caster.Position, caster.Direction, Position.Zero);
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
@@ -110,6 +125,8 @@ namespace Melia.Zone.Skills.HandlersOverrides.Clerics.Dievdirbys
 				// Each level of the ability increases drop rate by 10%
 				AddDropWood(caster, 1, caster.GetAbilityLevel(AbilityId.Dievdirbys18) * 10);
 			}
+
+			return true;
 		}
 
 		/// <summary>

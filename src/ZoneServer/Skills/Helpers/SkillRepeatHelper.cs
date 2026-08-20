@@ -20,7 +20,7 @@ namespace Melia.Zone.Skills.Helpers
 		private static readonly TimeSpan ChainGapMargin = TimeSpan.FromMilliseconds(250);
 		private static readonly TimeSpan MinRoundTripAllowance = TimeSpan.FromMilliseconds(400);
 		private static readonly TimeSpan MaxRoundTripAllowance = TimeSpan.FromMilliseconds(2000);
-		private const double AllowanceTolerance = 1.3;
+		private const double AllowanceTolerance = 1.4;
 
 		/// <summary>
 		/// Executes the attack and keeps repeating it at the skill's interval
@@ -32,6 +32,29 @@ namespace Melia.Zone.Skills.Helpers
 		/// <param name="attack"></param>
 		/// <param name="probe"></param>
 		public static void Request(Skill skill, ICombatEntity caster, ICombatEntity target, Func<ICombatEntity, bool> attack, Action probe = null)
+			=> Request(skill, caster, () => attack(target), () => CanAttack(skill, caster, target), probe);
+
+		/// <summary>
+		/// Executes the attack and keeps repeating it at the skill's interval
+		/// for as long as the client keeps requesting the skill.
+		/// </summary>
+		/// <param name="skill"></param>
+		/// <param name="caster"></param>
+		/// <param name="attack"></param>
+		/// <param name="probe"></param>
+		public static void Request(Skill skill, ICombatEntity caster, Func<bool> attack, Action probe = null)
+			=> Request(skill, caster, attack, () => true, probe);
+
+		/// <summary>
+		/// Executes the attack and keeps repeating it at the skill's interval
+		/// for as long as the client keeps requesting the skill.
+		/// </summary>
+		/// <param name="skill"></param>
+		/// <param name="caster"></param>
+		/// <param name="attack"></param>
+		/// <param name="canAttack"></param>
+		/// <param name="probe"></param>
+		private static void Request(Skill skill, ICombatEntity caster, Func<bool> attack, Func<bool> canAttack, Action probe)
 		{
 			var now = GameClock.Now;
 			var interval = GetInterval(skill);
@@ -50,7 +73,7 @@ namespace Melia.Zone.Skills.Helpers
 
 			// Only the request that starts a chain fires directly, the loop
 			// paces every attack after it so the two can't bunch up.
-			if (!running && !attack(target))
+			if (!running && !attack())
 				return;
 
 			// A single tap is only ever one attack, repeating starts once a
@@ -73,8 +96,17 @@ namespace Melia.Zone.Skills.Helpers
 				return;
 
 			skill.Vars.SetBool(RepeatRunningVar, true);
-			skill.Run(Repeat(skill, caster, target, attack));
+			skill.Run(Repeat(skill, caster, attack, canAttack));
 		}
+
+		/// <summary>
+		/// Returns whether the target can still be attacked with the skill.
+		/// </summary>
+		/// <param name="skill"></param>
+		/// <param name="caster"></param>
+		/// <param name="target"></param>
+		private static bool CanAttack(Skill skill, ICombatEntity caster, ICombatEntity target)
+			=> !target.IsDead && caster.CanDamage(target) && caster.InSkillUseRange(skill, target);
 
 		/// <summary>
 		/// Returns how far apart two requests may be and still count as the
@@ -121,9 +153,9 @@ namespace Melia.Zone.Skills.Helpers
 		/// </summary>
 		/// <param name="skill"></param>
 		/// <param name="caster"></param>
-		/// <param name="target"></param>
 		/// <param name="attack"></param>
-		private static async Task Repeat(Skill skill, ICombatEntity caster, ICombatEntity target, Func<ICombatEntity, bool> attack)
+		/// <param name="canAttack"></param>
+		private static async Task Repeat(Skill skill, ICombatEntity caster, Func<bool> attack, Func<bool> canAttack)
 		{
 			try
 			{
@@ -134,13 +166,15 @@ namespace Melia.Zone.Skills.Helpers
 					if (!skill.Vars.TryGet<DateTime>(RepeatUntilVar, out var repeatUntil) || GameClock.Now >= repeatUntil)
 						break;
 
-					if (caster.IsDead || target.IsDead || !caster.CanDamage(target))
+					if (caster.IsDead || !canAttack())
 						break;
 
-					if (!caster.InSkillUseRange(skill, target))
+					// Overheat charges run out mid chain, and the client is
+					// refused the skill on cooldown, so the loop must be too.
+					if (skill.IsOnCooldown)
 						break;
 
-					if (!attack(target))
+					if (!attack())
 						break;
 				}
 			}

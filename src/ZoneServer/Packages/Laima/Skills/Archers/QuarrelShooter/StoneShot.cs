@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Melia.Shared.Packages;
@@ -11,6 +11,7 @@ using Melia.Zone.Network;
 using Melia.Zone.Pads;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
+using Melia.Zone.Skills.Helpers;
 using Melia.Zone.World.Actors;
 using Yggdrasil.Geometry.Shapes;
 using Yggdrasil.Util;
@@ -30,12 +31,6 @@ namespace Melia.Zone.Skills.Handlers.Archers.QuarrelShooter
 	{
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
-			if (!caster.TrySpendSp(skill))
-			{
-				caster.ServerMessage(Localization.Get("Not enough SP."));
-				return;
-			}
-			skill.IncreaseOverheat();
 			caster.TurnTowards(target);
 			caster.SetAttackState(true);
 
@@ -52,6 +47,26 @@ namespace Melia.Zone.Skills.Handlers.Archers.QuarrelShooter
 				Send.ZC_SKILL_FORCE_TARGET(caster, null, skill, null);
 				return;
 			}
+
+			SkillRepeatHelper.Request(skill, caster, target, hitTarget => Attack(skill, caster, hitTarget), () => Send.ZC_SKILL_FORCE_TARGET(caster, target, skill, ForceId.GetNew(), null));
+		}
+
+		/// <summary>
+		/// Executes a single hit against the target, returning false if the
+		/// caster can't pay for it.
+		/// </summary>
+		/// <param name="skill"></param>
+		/// <param name="caster"></param>
+		/// <param name="target"></param>
+		private static bool Attack(Skill skill, ICombatEntity caster, ICombatEntity target)
+		{
+			if (!caster.TrySpendSp(skill))
+			{
+				caster.ServerMessage(Localization.Get("Not enough SP."));
+				return false;
+			}
+
+			skill.IncreaseOverheat();
 
 			var aniTime = TimeSpan.Zero;
 			var skillHitDelay = TimeSpan.Zero;
@@ -78,6 +93,8 @@ namespace Melia.Zone.Skills.Handlers.Archers.QuarrelShooter
 					target.StartBuff(BuffId.Stun, TimeSpan.FromSeconds(1.5), caster);
 				}
 			}
+
+			return true;
 		}
 	}
 }

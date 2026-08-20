@@ -38,6 +38,7 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 		private static readonly TimeSpan LagCompensationTime = TimeSpan.FromMilliseconds(100);
 		private static readonly TimeSpan MaxLagCompensationJitter = TimeSpan.FromMilliseconds(150);
 		private static readonly TimeSpan MaxPlausibleLatency = TimeSpan.FromSeconds(3);
+		private const double LatencyAlpha = 1 / 4.0;
 		private const double MoveIntervalAlpha = 1 / 16.0;
 		private const double MinOffsetCreepPerSample = 0.0005;
 		private const float SameDirectionThreshold = 0.99f;
@@ -53,6 +54,7 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 		private double _minClientOffset;
 		private double _clientJitter;
 		private double _latencyBaseline;
+		private double _smoothedLatency;
 		private bool _hasLatencyBaseline;
 
 		/// <summary>
@@ -895,16 +897,26 @@ namespace Melia.Zone.World.Actors.CombatEntities.Components
 			var offset = (GameClock.Now - _epoch).TotalSeconds - clientTime;
 			var latency = offset - _latencyBaseline;
 
-			// A new low is the best route seen, and a reading no delay could
-			// explain means the client clock restarted on a relog or warp.
-			if (!_hasLatencyBaseline || latency < 0 || latency > MaxPlausibleLatency.TotalSeconds)
+			// A reading no delay could explain means the client clock restarted on a relog or warp.
+			if (!_hasLatencyBaseline || latency > MaxPlausibleLatency.TotalSeconds)
 			{
 				_latencyBaseline = offset;
 				_hasLatencyBaseline = true;
-				latency = 0;
+				_smoothedLatency = 0;
+			}
+			else if (latency < 0)
+			{
+				// A better route than any seen means every earlier reading was overstated as much.
+				_latencyBaseline = offset;
+				_smoothedLatency = Math.Max(0, _smoothedLatency + latency);
+			}
+			else
+			{
+				// Single samples carry the full network jitter, which both consumers need smoothed.
+				_smoothedLatency += (latency - _smoothedLatency) * LatencyAlpha;
 			}
 
-			character.Connection.ClientLatency = TimeSpan.FromSeconds(latency);
+			character.Connection.ClientLatency = TimeSpan.FromSeconds(_smoothedLatency);
 		}
 
 		/// <summary>
