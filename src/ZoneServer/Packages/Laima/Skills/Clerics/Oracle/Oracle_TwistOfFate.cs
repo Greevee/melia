@@ -31,7 +31,6 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Oracle
 				return;
 			}
 			skill.IncreaseOverheat();
-			caster.TurnTowards(target);
 			caster.SetAttackState(true);
 
 			if (target == null)

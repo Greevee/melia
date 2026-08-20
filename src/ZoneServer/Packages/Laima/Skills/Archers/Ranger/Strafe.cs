@@ -91,7 +91,6 @@ namespace Melia.Zone.Skills.Handlers.Archers.Ranger
 
 			await skill.Wait(animationDelay);
 
-			caster.TurnTowards(target);
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, target.Position);
 
 			Ranger_CriticalShotOverride.TryActivateDoubleTake(skill, caster, target);

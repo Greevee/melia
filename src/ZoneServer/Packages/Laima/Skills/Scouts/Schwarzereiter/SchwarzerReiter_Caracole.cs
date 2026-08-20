@@ -43,7 +43,6 @@ namespace Melia.Zone.Skills.Handlers.Scouts.Schwarzereiter
 				return;
 			}
 			skill.IncreaseOverheat();
-			caster.TurnTowards(farPos);
 			caster.SetAttackState(true);
 
 			var targetHandle = target?.Handle ?? 0;

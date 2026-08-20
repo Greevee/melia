@@ -30,7 +30,6 @@ namespace Melia.Zone.Skills.Handlers.Archers.Archer
 			}
 
 			skill.IncreaseOverheat();
-			caster.TurnTowards(target);
 			caster.SetAttackState(true);
 
 			if (target == null)

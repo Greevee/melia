@@ -45,7 +45,6 @@ namespace Melia.Zone.Skills.Handlers.Swordsmen.Peltasta
 			}
 
 			skill.IncreaseOverheat();
-			caster.TurnTowards(farPos);
 			caster.SetAttackState(true);
 
 			var splashParam = skill.GetSplashParameters(caster, originPos, farPos, length: 55, width: 25, angle: 0);

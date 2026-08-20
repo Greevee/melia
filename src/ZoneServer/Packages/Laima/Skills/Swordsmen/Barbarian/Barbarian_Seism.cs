@@ -49,7 +49,6 @@ namespace Melia.Zone.Skills.Handlers.Barbarian
 			}
 
 			skill.IncreaseOverheat();
-			caster.TurnTowards(farPos);
 			caster.SetAttackState(true);
 
 			var splashParam = skill.GetSplashParameters(caster, originPos, farPos, length: 80, width: 40, angle: 0);

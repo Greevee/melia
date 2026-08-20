@@ -31,7 +31,6 @@ namespace Melia.Zone.Skills.Handlers.Archers.Archer
 		/// </summary>
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
-			caster.TurnTowards(target);
 			caster.SetAttackState(true);
 
 			if (target == null)

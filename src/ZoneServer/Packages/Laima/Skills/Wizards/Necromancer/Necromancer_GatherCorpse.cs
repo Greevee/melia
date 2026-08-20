@@ -38,7 +38,6 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Necromancer
 				return;
 			}
 
-			caster.TurnTowards(designatedTarget);
 			caster.SetAttackState(true);
 
 			Send.ZC_SKILL_READY(caster, skill, designatedTarget.Position, Position.Zero);

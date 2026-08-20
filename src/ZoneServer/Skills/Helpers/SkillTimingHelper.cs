@@ -42,7 +42,6 @@ namespace Melia.Zone.Skills.Helpers
 			SkillId.Corsair_ImpaleDagger,
 			SkillId.Corsair_PistolShot,
 			SkillId.Dievdirbys_Carve,
-			SkillId.Sadhu_EctoplasmAttack,
 			SkillId.Bokor_Effigy,
 		};
 

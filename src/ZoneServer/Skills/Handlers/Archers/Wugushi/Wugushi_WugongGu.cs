@@ -44,8 +44,6 @@ namespace Melia.Zone.Skills.Handlers.Archers.Wugushi
 				return;
 			}
 
-			caster.TurnTowards(target.Position);
-
 			var aniTime = TimeSpan.FromMilliseconds(600);
 			var skillHitResult = SCR_SkillHit(caster, target, skill);
 

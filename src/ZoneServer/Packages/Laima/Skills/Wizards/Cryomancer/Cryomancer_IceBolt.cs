@@ -37,7 +37,6 @@ namespace Melia.Zone.Skills.Handlers.Cryomancer
 			}
 
 			skill.IncreaseOverheat();
-			caster.TurnTowards(target);
 			caster.SetAttackState(true);
 
 			if (target == null)

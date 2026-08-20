@@ -43,7 +43,6 @@ namespace Melia.Zone.Skills.HandlersOverrides.Swordsmen.Swordsman
 			}
 
 			skill.IncreaseOverheat();
-			caster.TurnTowards(farPos);
 			caster.SetAttackState(true);
 
 			Send.ZC_SKILL_READY(caster, skill, originPos, farPos);

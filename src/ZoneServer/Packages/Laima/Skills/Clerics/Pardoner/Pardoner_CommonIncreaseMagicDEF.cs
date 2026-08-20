@@ -29,7 +29,6 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Pardoner
 				return;
 			}
 			skill.IncreaseOverheat();
-			caster.TurnTowards(farPos);
 			caster.SetAttackState(true);
 
 			var targetHandle = target?.Handle ?? 0;

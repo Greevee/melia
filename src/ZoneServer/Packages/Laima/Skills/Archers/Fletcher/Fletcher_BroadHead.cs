@@ -38,7 +38,6 @@ namespace Melia.Zone.Skills.Handlers.Archers.Fletcher
 				return;
 			}
 			skill.IncreaseOverheat();
-			caster.TurnTowards(target);
 			caster.SetAttackState(true);
 
 			Send.ZC_SKILL_FORCE_TARGET(caster, target, skill);

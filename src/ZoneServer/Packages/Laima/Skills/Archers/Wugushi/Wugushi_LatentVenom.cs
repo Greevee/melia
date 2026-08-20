@@ -39,7 +39,6 @@ namespace Melia.Zone.Skills.Handlers.Archers.Wugushi
 			}
 
 			skill.IncreaseOverheat();
-			caster.TurnTowards(target);
 			caster.SetAttackState(true);
 
 			if (target == null)

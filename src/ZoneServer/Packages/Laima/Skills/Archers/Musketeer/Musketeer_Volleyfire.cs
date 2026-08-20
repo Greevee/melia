@@ -27,7 +27,6 @@ namespace Melia.Zone.Skills.Handlers.Archers.Musketeer
 				return;
 			}
 			skill.IncreaseOverheat();
-			caster.TurnTowards(target);
 			caster.SetAttackState(true);
 
 			var targetHandle = target?.Handle ?? 0;

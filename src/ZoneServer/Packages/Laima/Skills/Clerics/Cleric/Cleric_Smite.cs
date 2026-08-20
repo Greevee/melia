@@ -38,7 +38,6 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Cleric
 			}
 
 			skill.IncreaseOverheat();
-			caster.TurnTowards(farPos);
 			caster.SetAttackState(true);
 
 			var splashParam = skill.GetSplashParameters(caster, originPos, farPos, length: 30, width: 40, angle: 0);

@@ -42,7 +42,6 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Elementalist
 				return;
 			}
 			skill.IncreaseOverheat();
-			caster.TurnTowards(target);
 			caster.SetAttackState(true);
 
 			var skillHandle = ZoneServer.Instance.World.CreateSkillHandle();

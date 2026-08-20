@@ -56,7 +56,6 @@ namespace Melia.Zone.Skills.Handlers.Swordsman.Highlander
 				return;
 			}
 			skill.IncreaseOverheat();
-			caster.TurnTowards(farPos);
 			caster.SetAttackState(true);
 
 			// I couldn't really understand why this skill freezes the client

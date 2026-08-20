@@ -39,7 +39,6 @@ namespace Melia.Zone.Skills.HandlersOverrides.Wizards.Psychokino
 				return;
 			}
 			skill.IncreaseOverheat();
-			caster.TurnTowards(farPos);
 			caster.SetAttackState(true);
 
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);

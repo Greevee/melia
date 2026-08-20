@@ -38,7 +38,6 @@ namespace Melia.Zone.Skills.Handlers.Swordsmen.Peltasta
 			}
 
 			skill.IncreaseOverheat();
-			caster.TurnTowards(farPos);
 			caster.SetAttackState(true);
 
 			Send.ZC_SKILL_READY(caster, skill, originPos, farPos);

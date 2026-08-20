@@ -545,6 +545,7 @@ namespace Melia.Test.Balance.Sfr
 		{
 			["Linker_JointPenalty"] = 0.1f,
 			["Rodelero_ShieldCharge"] = 0.1f,
+			["Peltasta_ShieldLob"] = 2.1f,
 		};
 
 		/// <summary>

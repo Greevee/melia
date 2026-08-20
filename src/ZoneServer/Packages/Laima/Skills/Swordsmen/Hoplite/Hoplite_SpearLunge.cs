@@ -53,7 +53,6 @@ namespace Melia.Zone.Skills.HandlersOverrides.Swordsmen.Hoplite
 			}
 
 			skill.IncreaseOverheat();
-			caster.TurnTowards(farPos);
 			caster.SetAttackState(true);
 
 			var splashParam = skill.GetSplashParameters(caster, originPos, farPos, length: 70, width: 20, angle: 0);

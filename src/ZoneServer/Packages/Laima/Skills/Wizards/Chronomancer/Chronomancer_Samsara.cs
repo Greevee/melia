@@ -34,7 +34,6 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Chronomancer
 			}
 
 			skill.IncreaseOverheat();
-			caster.TurnTowards(farPos);
 			caster.SetAttackState(true);
 
 			var deadTargets = GetDeadEnemies(caster, farPos, 15);

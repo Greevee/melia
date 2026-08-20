@@ -29,7 +29,6 @@ namespace Melia.Zone.Skills.Handlers.Archers.Ranger
 				return;
 			}
 			skill.IncreaseOverheat();
-			caster.TurnTowards(target);
 			caster.SetAttackState(true);
 		}
 
