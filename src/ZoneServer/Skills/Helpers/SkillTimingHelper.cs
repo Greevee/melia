@@ -18,20 +18,6 @@ namespace Melia.Zone.Skills.Helpers
 
 			// Repeating skills pace themselves on the shoot time, so
 			// cutting the client's copy desyncs it from the server.
-			SkillId.Bow_Attack,
-			SkillId.Bow_Attack2,
-			SkillId.Bow_Hanging_Attack,
-			SkillId.Magic_Attack,
-			SkillId.Magic_Attack_TH,
-			SkillId.Pistol_Attack,
-			SkillId.Pistol_Attack2,
-			SkillId.Cannon_Normal_Attack,
-			SkillId.Cannon_Attack,
-			SkillId.CrossBow_Attack,
-			SkillId.CrossBow_Attack2,
-			SkillId.DoubleGun_Attack,
-			SkillId.DoubleBullet_Attack,
-			SkillId.Musket_Attack,
 			SkillId.Archer_TwinArrows,
 			SkillId.Archer_ObliqueShot,
 			SkillId.Scout_ObliqueFire,
@@ -55,7 +41,7 @@ namespace Melia.Zone.Skills.Helpers
 		/// <param name="shootTime"></param>
 		public static float GetClientShootTime(ICombatEntity entity, Skill skill, float shootTime)
 		{
-			if (entity is not Character character || FullShootTimeSkills.Contains(skill.Id))
+			if (entity is not Character character || skill.IsNormalAttack || FullShootTimeSkills.Contains(skill.Id))
 				return shootTime;
 
 			var latency = (float)character.Connection.ClientLatency.TotalMilliseconds;
