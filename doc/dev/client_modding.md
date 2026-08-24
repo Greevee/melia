@@ -201,8 +201,71 @@ Melia.Override("SKILL_LV_DESC_TOOLTIP", function(original, ...)
 end)
 ```
 
-Always type-check before patching and pass everything else through untouched;
-a wrong guess then does nothing instead of breaking the UI.
+Always type-check before patching and pass everything else through untouched.
+
+Preserve the argument count with `select("#", ...)` rather than `#args`:
+trailing nils are meaningful to the client and `#` on a table with holes is
+undefined in Lua.
+
+### Identifying which skill is being drawn
+
+The tooltip functions do **not** hand you a usable skill reference — argument
+2 of `SET_SKILL_TOOLTIP_ICON_AND_NAME` answers neither `GetClassName()` nor
+`GetClassID()`. What they do carry is the skill's description text, so match
+on a distinctive phrase from it:
+
+```lua
+if string.find(args[2], "Sets enemies on fire", 1, true) then
+    -- this tooltip belongs to Immolation
+end
+```
+
+Use `string.find(s, pattern, 1, true)` — the `true` disables pattern matching,
+so text containing `%`, `-` or `(` does not blow up the match.
+
+The client draws icon and name first, then the caption, then the per-level
+block. So `SET_SKILL_TOOLTIP_CAPTION` can identify the skill and record it in
+a global, which `SKILL_LV_DESC_TOOLTIP` then reads to replace the effect text
+of the same skill.
+
+### What crashes the client
+
+**Touching UI frames can kill the client outright**, and `pcall` does not save
+you: it catches Lua errors, but a fault in the native UI layer takes the whole
+process down ("The client has been shutdown due to an error").
+
+Confirmed to crash, on client 390044:
+
+- `icon:SetImage("gem_mon_weaver")` — a valid image name, but from the item
+  context; skill icons appear to live in a different atlas.
+- Probing native objects with dynamic keys (`obj[key]` / `obj[key](obj)`) to
+  discover which getters exist.
+- `GET_CHILD(...)` plus `SetText`/`GetText` on the resulting child.
+
+Confirmed safe, used repeatedly without incident:
+
+- Reading and rewriting the **string arguments** passed into the tooltip
+  functions, then calling the original.
+- `frame:GetChildCount()` / `frame:GetChildByIndex(i)` with `GetName()` for a
+  one-off structure dump.
+
+So: **patch arguments, do not manipulate frames.** The practical consequence
+is that the description and the per-level block are freely rewritable, while
+the tooltip *headline* and the *icon* are not reachable this way — they are
+only set through the frame. Putting the new name as the first line of the
+description is a workable substitute:
+
+```lua
+desc = "{#FFCC33}Pain Suppression{/}{nl}Brace against your own fire..."
+```
+
+For the headline and icon, IES mods are the crash-free alternative to
+investigate: they are data, not code. Whether the `Skill` namespace exposes
+`Name` and `Icon` columns to `ZC_IES_MODIFY_LIST` is untested.
+
+If a script does crash the client, recovery is cheap: delete the script folder
+and restart the ZoneServer. Client scripts are pushed fresh on every login and
+are never cached on disk.
 
 ### Text markup
 
@@ -261,6 +324,22 @@ learning the skill"). When server data and the client tooltip disagree, the
 tooltip is the more reliable source. Implement such skills as
 `IPassiveSkillHandler`; those run for every learned skill on
 `CZ_LOAD_COMPLETE` (`PacketHandler.cs`), so on every map load.
+
+**`useType` can be wrong too, and it decides the handler interface.**
+Zealot's Invulnerable (41701) is listed as `MeleeGround`, but the client sends
+`CZ_SKILL_SELF` for it, so it needs `ISelfSkillHandler` — a different `Handle`
+signature, taking a `Direction` instead of a target position. Do not derive
+the interface from the database alone. The server tells you the right one as
+soon as the skill is used:
+
+```
+TryGetHandler: The skill handler for 'X' is not of type 'ISelfSkillHandler'.
+CZ_SKILL_SELF: No handler for skill 'X' found.
+```
+
+Same for `CZ_SKILL_GROUND` (`IGroundSkillHandler`) and `CZ_SKILL_TARGET`
+("no *force* skill handler" → `IForceSkillHandler`). Writing a handler against
+the db value and reading the first warning is faster than guessing.
 
 **A class may gate itself behind a passive.** All Crusader skills stayed
 greyed out in the quickbar — not because of weapons, rank, or job count, but
