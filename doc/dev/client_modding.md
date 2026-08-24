@@ -161,11 +161,40 @@ need the row id (`10502` above), which is **not** in Melia's data;
 IPF archives. Tables keyed by an id Melia already knows (`Skill`, `Buff`,
 `Job`, `Item`) need no such lookup.
 
-`LoadIesMods()` is currently hardcoded in `ZoneServer.cs`, so package-local
-IES mods are not possible without touching that upstream file. For a package
-that reworks a class this is a real gap — renaming its skills means editing an
-upstream file. A package hook for IES mods would be a worthwhile contribution
-in its own right.
+### Registering IES mods from a package
+
+`LoadIesMods()` is hardcoded in `ZoneServer.cs`, but a package does **not**
+need to touch that file. In `ZoneServer.Run()` the order is:
+
+```csharp
+this.LoadScripts("zone");   // scripts run first
+this.LoadIesMods();         // and this only appends, it never clears
+```
+
+`IesMods` is public and the list is never reset, so a `GeneralScript` in a
+package can register its own mods before the built-in ones are added:
+
+```csharp
+// packages/laima/scripts/zone/core/zealot_ies_mods.cs
+public class ZealotIesModScript : GeneralScript
+{
+    protected override void Load()
+    {
+        var mods = ZoneServer.Instance.IesMods;
+        mods.Add("Skill", (int)SkillId.Zealot_Invulnerable, "Name", "Pain Suppression");
+        mods.Add("Skill", (int)SkillId.Zealot_Invulnerable, "Icon", "cler_Heal");
+        mods.Add("Buff", (int)BuffId.Invulnerable_Buff, "Name", "Pain Suppression");
+    }
+}
+```
+
+Verified working: the client shows the new name and icon with `ZoneServer.cs`
+completely unmodified. This keeps class reworks inside the package, which is
+what the package rules require.
+
+Note the comment in `LoadIesMods()` — "temporary until we have a more proper
+way of handling IES mods". If that method is ever reworked, check that script
+ordering and the append-only behaviour still hold.
 
 ### 4. Lua client scripts — the UI
 
