@@ -1,6 +1,6 @@
 # Developer documentation index
 
-Last verified: 2026-06-10
+Last verified: 2026-08-25
 
 Agent-facing and developer-facing documentation for working on Melia's code
 and the Laima package. Entry point for agents: [/CLAUDE.md](../../CLAUDE.md).
@@ -20,6 +20,7 @@ User-facing docs (setup, gameplay, scripting reference) live in `doc/server/`,
 | [scripting_system.md](scripting_system.md) | How content scripts load, script categories, where Laima scripts go |
 | [persistence.md](persistence.md) | ZoneDb partial classes, save transactions, AutoSaveService, shutdown saves |
 | [network_packets.md](network_packets.md) | Packet handler registration, Send.ZC_* conventions, adding packets |
+| [client_modding.md](client_modding.md) | What the server can change in the client without a client install: object properties, IES mods, Lua client scripts, skill tooltips, icons, text markup |
 | [services.md](services.md) | Catalog of ZoneServer services and their lifecycle |
 | [known_issues.md](known_issues.md) | Durable landmine list — verified bugs and traps with file pointers |
 
@@ -53,6 +54,7 @@ of the change — not optional follow-up.
 | `system/scripts/**`, `packages/laima/scripts/**`, `src/ZoneServer/Scripting/**` | scripting_system.md | zone-scripting |
 | `src/ZoneServer/Database/**`, `sql/**`, `AutoSaveService` | persistence.md | sql-migration |
 | `src/ZoneServer/Network/**` | network_packets.md | — |
+| `**/scripts/zone/core/client/**`, `LoadIesMods()`, `IesMod*` | client_modding.md | — |
 | `src/ZoneServer/Services/**` | services.md | — |
 | Combat formulas, `SkillModifier`, `SCR_SkillHit` | skill_handlers.md + combat pipeline in combat-debugging skill | combat-debugging |
 
