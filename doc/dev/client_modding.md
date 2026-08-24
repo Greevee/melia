@@ -96,13 +96,76 @@ this.IesMods.Add("Item", 648001, "MarketCategory", "Misc_Usual");
 The Centurion block in `LoadIesMods()` is the reference case: a job the client
 disabled in 2015, re-enabled purely from the server.
 
+**How the three arguments work** — verified against client 390044:
+
+- `namespace` is the **IES table name**: `Skill`, `Buff`, `Job`, `Item`,
+  `SkillTree`, `SharedConst`, `Companion`.
+- `classId` is the **row's own id**, i.e. the SkillId, BuffId or JobId. No IPF
+  lookup is needed for those. (`SkillTree` is the exception, see below.)
+- The value may be **plain text**. A dictionary id
+  (`@dicID_^*$ETC_20151102_016618$*^`) is *not* required.
+
+Confirmed working:
+
+```csharp
+this.IesMods.Add("Skill", 41701, "Name", "Pain Suppression");   // tooltip headline
+this.IesMods.Add("Skill", 41701, "Icon", "cler_Heal");          // skill icon
+this.IesMods.Add("Buff", 2112, "Name", "Pain Suppression");     // buff title
+```
+
+**This is the route for skill names and icons.** Both are otherwise only
+reachable through UI frames, and touching those crashes the client (see the
+tooltip section). IES mods are data, not code: an unknown *column* name is
+ignored, and a bad *value* degrades gracefully — an invalid icon name blanks
+the icon instead of erroring.
+
+Not reachable this way: the **buff description**. Neither `Desc`,
+`Description`, `Caption` nor `Tooltip` on the `Buff` row changes it, while
+`Name` on the same row works.
+
+### Icon names
+
+Skill icons are named `<classtree>_<skillname>` — the prefix is the **class
+tree**, not the job:
+
+| Skill class name | Icon |
+|---|---|
+| `Zealot_Immolation` | `cler_Immolation` |
+| `Zealot_BeadyEyed` | `cler_BeadyEyed` |
+| `Cleric_Heal` | `cler_Heal` |
+
+Any icon from the same tree can be borrowed by name. Item icons follow a
+different scheme (`gem_mon_weaver` and similar) and do **not** work on skill
+slots — setting one blanks the icon.
+
+### Asking the client for its own data
+
+Rather than guessing column or icon names, read them out of the client's IES
+rows. `GetClass` and `TryGetProp` are the standard ToS accessors and are
+**data access, not UI access** — unlike frame manipulation they have proven
+safe:
+
+```lua
+local cls = GetClass("Skill", "Zealot_Immolation")
+local icon = TryGetProp(cls, "Icon")
+ui.SysMsg("icon = " .. tostring(icon))
+```
+
+`TryGetProp` returns nil for columns that do not exist, so a list of candidate
+names can be probed in one pass to find out which ones a row actually has.
+
 **Two limits.** IES mods can only *change existing rows*, never add one —
-there is no insert, so no new skill slots in a class. And you need the IES row
-id (`10502` above), which is **not** in Melia's data; `skilltree.txt` has no id
-column. Those ids have to be read out of the client IPF archives.
+there is no insert, so no new skill slots in a class. And for `SkillTree` you
+need the row id (`10502` above), which is **not** in Melia's data;
+`skilltree.txt` has no id column, so those ids have to come out of the client
+IPF archives. Tables keyed by an id Melia already knows (`Skill`, `Buff`,
+`Job`, `Item`) need no such lookup.
 
 `LoadIesMods()` is currently hardcoded in `ZoneServer.cs`, so package-local
-IES mods are not possible without touching that upstream file.
+IES mods are not possible without touching that upstream file. For a package
+that reworks a class this is a real gap — renaming its skills means editing an
+upstream file. A package hook for IES mods would be a worthwhile contribution
+in its own right.
 
 ### 4. Lua client scripts — the UI
 
@@ -249,19 +312,17 @@ Confirmed safe, used repeatedly without incident:
 - `frame:GetChildCount()` / `frame:GetChildByIndex(i)` with `GetName()` for a
   one-off structure dump.
 
-So: **patch arguments, do not manipulate frames.** The practical consequence
-is that the description and the per-level block are freely rewritable, while
-the tooltip *headline* and the *icon* are not reachable this way — they are
-only set through the frame. Putting the new name as the first line of the
-description is a workable substitute:
+So: **patch arguments, do not manipulate frames.** That covers the description
+and the per-level block, which is everything the tooltip calls actually hand
+you.
 
-```lua
-desc = "{#FFCC33}Pain Suppression{/}{nl}Brace against your own fire..."
-```
+The tooltip *headline* and the *icon* never appear in those arguments — but
+they do not need frames either. Both are IES columns and are set from the
+server with `IesMods.Add("Skill", id, "Name"/"Icon", …)`, which is data rather
+than code and cannot crash the client. See the IES section above; that is the
+correct route for them.
 
-For the headline and icon, IES mods are the crash-free alternative to
-investigate: they are data, not code. Whether the `Skill` namespace exposes
-`Name` and `Icon` columns to `ZC_IES_MODIFY_LIST` is untested.
+In short: **text through Lua, identity through IES.**
 
 If a script does crash the client, recovery is cheap: delete the script folder
 and restart the ZoneServer. Client scripts are pushed fresh on every login and
@@ -313,8 +374,18 @@ names may be borrowed from any other skill.
 - **Reorder or extend the visible skill tree structure** without the IES row
   ids from the client archives.
 
-Everything else — values, behaviour, buffs, pads, text, colours, icon
-assignment, unlock levels, max levels — is reachable from the server.
+- **Buff descriptions** — the buff title is changeable via IES, the
+  description text is not, and the client receives only the buff id when it
+  draws the tooltip.
+
+Everything else — values, behaviour, buffs, pads, skill names, skill icons,
+tooltip text, colours, unlock levels, max levels — is reachable from the
+server without the player installing anything.
+
+A worked example: the Zealot rework renames Invulnerable to "Pain
+Suppression", gives it a different icon, rewrites its tooltip to describe the
+new mechanic, and changes what it does — all server-side, on an untouched
+client.
 
 ## Traps worth knowing
 
