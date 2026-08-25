@@ -22,6 +22,31 @@ public class DevEffectCommandsScript : GeneralScript
 	protected override void Load()
 	{
 		AddChatCommand("playeffect", "<effect_name> [scale]", "Plays an actor-bound effect on you (moves with the character).", 0, 99, this.HandlePlayEffect);
+		AddChatCommand("playeffectnode", "<effect_name> <node> [value]", "Attaches an effect to a skeleton node (e.g. Dummy_R_HAND).", 0, 99, this.HandlePlayEffectNode);
+	}
+
+	private CommandResult HandlePlayEffectNode(Character sender, Character target, string message, string commandName, Arguments args)
+	{
+		if (args.Count < 2)
+			return CommandResult.InvalidArgument;
+
+		var effectName = args.Get(0);
+		var node = args.Get(1);
+		var value = 1f;
+		if (args.Count > 2)
+			float.TryParse(args.Get(2), NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+
+		try
+		{
+			target.PlayEffectNode(effectName, value, node);
+			sender.ServerMessage($"PlayEffectNode '{effectName}' at '{node}' (value {value}).");
+		}
+		catch
+		{
+			sender.ServerMessage($"'{effectName}' is not in the packet string db.");
+		}
+
+		return CommandResult.Okay;
 	}
 
 	private CommandResult HandlePlayEffect(Character sender, Character target, string message, string commandName, Arguments args)
