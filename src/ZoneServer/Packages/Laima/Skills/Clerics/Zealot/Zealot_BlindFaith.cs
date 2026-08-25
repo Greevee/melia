@@ -38,11 +38,11 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Direction dir)
 		{
-			var stacks = ZealotFervor.GetStacks(caster);
+			var stacks = ZealotBurnFloor.GetStacks(caster);
 
 			if (stacks <= 0)
 			{
-				caster.ServerMessage(Localization.Get("No Fervor to spend."));
+				caster.ServerMessage(Localization.Get("No Fanaticism to spend."));
 				Send.ZC_SKILL_DISABLE(caster);
 				return;
 			}
@@ -64,7 +64,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, 0, originPos, originPos.GetDirection(farPos), Position.Zero);
 			Send.ZC_SKILL_MELEE_TARGET(caster, skill, caster);
 
-			ZealotFervor.ConsumeAll(caster);
+			ZealotBurnFloor.ConsumeStacks(caster);
 
 			var maxHp = caster.Properties.GetFloat(PropertyName.MHP);
 			var shield = maxHp * ShieldPerStack * stacks;

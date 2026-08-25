@@ -19,11 +19,9 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 	/// Handler for the Zealot burn mode carried by Immolate.
 	/// Per the concept (Zealot_Rework_Konzept.xlsx v1.0) the aura burns the
 	/// caster's health down to the current burn floor and keeps it there,
-	/// slowly builds Fervor (faster the deeper the floor sits), burns
-	/// nearby enemies every second — a larger area per floor step, hotter
-	/// the closer they stand — and converts missing health into damage on
-	/// everything. Recasting Immolate adds the burst on top; the fast
-	/// Fervor source is Brand the Heretic.
+	/// burns nearby enemies every second — a larger area per floor step,
+	/// hotter the closer they stand — and converts missing health into
+	/// damage on everything. Recasting Immolate adds the burst on top.
 	/// </summary>
 	[Package("laima")]
 	[BuffHandler(BuffId.Immolation_Self_Buff)]
@@ -48,7 +46,6 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		private const int TicksPerSecond = 2;
 
 		private const string TickVar = "Immolation.Tick";
-		private const string FervorTickVar = "Immolation.FervorTick";
 
 		/// <summary>
 		/// Damage bonus per percent of missing health while burning — the
@@ -87,7 +84,6 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			ZealotBurnFloor.PulseAuraVisual(target);
 
 			this.BurnTowardsFloor(target);
-			this.BuildFervor(buff, target);
 			this.DealAuraDamage(buff, target);
 		}
 
@@ -146,29 +142,6 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 				return;
 
 			modifier.DamageMultiplier *= 1f + missingPercent * DamagePerMissingPercent;
-		}
-
-		/// <summary>
-		/// Slowly builds Fervor while burning, faster the deeper the floor
-		/// sits: one stack every 4/3/2 seconds at floors 80/60/40.
-		/// PLACEHOLDER pacing (addition to the concept workbook, requested
-		/// after v1.0) — Brand the Heretic stays the fast Fervor source.
-		/// </summary>
-		private void BuildFervor(Buff buff, ICombatEntity target)
-		{
-			var floor = ZealotBurnFloor.Get(target);
-			var intervalSeconds = 2 + (floor - ZealotBurnFloor.Min) / ZealotBurnFloor.Step;
-
-			var tick = buff.Vars.GetInt(FervorTickVar) + 1;
-
-			if (tick < intervalSeconds)
-			{
-				buff.Vars.SetInt(FervorTickVar, tick);
-				return;
-			}
-
-			buff.Vars.SetInt(FervorTickVar, 0);
-			ZealotFervor.AddStacks(target, 1, buff.SkillId);
 		}
 
 		/// <summary>

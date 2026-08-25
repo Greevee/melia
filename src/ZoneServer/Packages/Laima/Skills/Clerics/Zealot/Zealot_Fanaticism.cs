@@ -12,11 +12,12 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 {
 	/// <summary>
 	/// Handler for the Zealot skill Fanaticism.
-	/// Per the concept (Zealot_Rework_Konzept.xlsx v1.0) this escalates the
-	/// active burn mode by one step: the burn floor sinks 70 -> 50 -> 30 ->
-	/// 10 and the Zealot gains one Fanaticism stack, which the next Immolate
-	/// burst consumes. Only usable while the burn mode is active; deals no
-	/// damage of its own. Temper the Flame is the way back up.
+	/// Revised design: escalates the active burn mode one step (floor 80 ->
+	/// 60 -> 40) and opens a short attack-speed window; auto attacks inside
+	/// the window build Fanaticism stacks. At the minimum floor the floor
+	/// stays and health is paid directly for two stacks. Only usable while
+	/// the burn mode is active; deals no damage of its own. Temper the
+	/// Flame is the way back up.
 	/// </summary>
 	[Package("laima")]
 	[SkillHandler(SkillId.Zealot_Fanaticism)]
@@ -70,20 +71,19 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			}
 
 			var newFloor = ZealotBurnFloor.Shift(caster, -ZealotBurnFloor.Step);
-			ZealotBurnFloor.AddStacks(caster, 1);
 			this.GrantZealRush(skill, caster);
 
-			Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0, $"Burn Floor {newFloor}%  (+1 Fanaticism)");
+			Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0, $"Burn Floor {newFloor}%");
 		}
 
 		/// <summary>
-		/// A short attack-speed rush on every use, so the press has an
-		/// immediate feel. PLACEHOLDER duration; design idea on file: an
-		/// ability later toggles stacks vs. rush (see Zeal_Rush_Buff).
+		/// The attack-speed window on every use. Auto attacks inside it
+		/// build Fanaticism stacks (see Zeal_Rush_Buff). PLACEHOLDER values;
+		/// duration shown via captionTime in skills_overrides.txt.
 		/// </summary>
 		private void GrantZealRush(Skill skill, ICombatEntity caster)
 		{
-			caster.StartBuff(BuffId.BeadyEyed_Buff, skill.Level, 0f, TimeSpan.FromSeconds(3), caster, skill.Id);
+			caster.StartBuff(BuffId.BeadyEyed_Buff, skill.Level, 0f, TimeSpan.FromSeconds(5), caster, skill.Id);
 		}
 
 		/// <summary>

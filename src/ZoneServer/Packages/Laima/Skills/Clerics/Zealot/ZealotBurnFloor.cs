@@ -97,10 +97,11 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 
 		/// <summary>
 		/// The buff carrying the Fanaticism stack display, so the stacks
-		/// show in the buff window with icon and counter, Frenzy-style.
+		/// show in the resource bar with icon and counter, Frenzy-style
+		/// (Fanaticism_Zealot12_Buff, whose display is known to work).
 		/// Display only — the authoritative count lives in the temp var.
 		/// </summary>
-		public const BuffId StackBuff = BuffId.Fanaticism_Buff;
+		public const BuffId StackBuff = BuffId.Fanaticism_Zealot12_Buff;
 
 		/// <summary>
 		/// Adds Fanaticism stacks, up to the cap.

@@ -25,25 +25,11 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	[SkillHandler(SkillId.Zealot_Invulnerable)]
 	public class Zealot_InvulnerableOverride : ISelfSkillHandler
 	{
-		/// <summary>
-		/// Fervor spent per use. PLACEHOLDER (concept: "Fervor-Kosten TBD").
-		/// Shown in the tooltip via captionRatio1 in skills_overrides.txt —
-		/// keep the two in sync.
-		/// </summary>
-		private const int FervorCost = 3;
-
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Direction dir)
 		{
 			if (!caster.IsBuffActive(BuffId.Immolation_Self_Buff))
 			{
 				caster.ServerMessage(Localization.Get("The flame is not lit."));
-				Send.ZC_SKILL_DISABLE(caster);
-				return;
-			}
-
-			if (ZealotFervor.GetStacks(caster) < FervorCost)
-			{
-				caster.ServerMessage(Localization.Get("Not enough Fervor."));
 				Send.ZC_SKILL_DISABLE(caster);
 				return;
 			}
@@ -64,8 +50,6 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			Send.ZC_SKILL_READY(caster, skill, 1, originPos, farPos);
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, 0, originPos, originPos.GetDirection(farPos), Position.Zero);
 			Send.ZC_SKILL_MELEE_TARGET(caster, skill, caster);
-
-			ZealotFervor.Consume(caster, FervorCost);
 
 			var floor = ZealotBurnFloor.Get(caster);
 

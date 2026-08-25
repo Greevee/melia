@@ -32,12 +32,12 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		private const float EmpoweredHitBonus = 0.5f;
 
 		/// <summary>
-		/// Fervor granted by a marked kill, or by the empowered hit against
+		/// Fanaticism stacks granted by a marked kill, or by the empowered hit against
 		/// bosses. PLACEHOLDER (concept: "Fervor bei markiertem Kill TBD").
 		/// Shown in the tooltip via captionRatio2 in skills_overrides.txt —
 		/// keep the two in sync.
 		/// </summary>
-		private const int FervorReward = 5;
+		private const int StackReward = 3;
 
 		private const string RewardedVar = "Melia.Zealot.BrandRewarded";
 		private const string SpentVar = "Melia.Zealot.BrandSpent";
@@ -54,7 +54,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 				return;
 
 			if (buff.Caster is ICombatEntity marker && !marker.IsDead)
-				ZealotFervor.AddStacks(marker, FervorReward, buff.SkillId);
+				ZealotBurnFloor.AddStacks(marker, StackReward);
 		}
 
 		[CombatCalcModifier(CombatCalcPhase.BeforeBonuses, BuffId.BeadyEyed_Debuff)]
@@ -82,7 +82,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			// Bosses rarely die while marked, so they pay out on the hit.
 			if (target is Mob mob && mob.Rank == MonsterRank.Boss)
 			{
-				ZealotFervor.AddStacks(attacker, FervorReward, buff.SkillId);
+				ZealotBurnFloor.AddStacks(attacker, StackReward);
 				buff.Vars.SetBool(RewardedVar, true);
 			}
 		}
