@@ -63,13 +63,6 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 
 		private const string TickVar = "Immolation.Tick";
 
-		public override void OnEnd(Buff buff)
-		{
-			// The burning-body visual is attached/rescaled by
-			// ZealotBurnFloor.UpdateAuraVisual whenever the floor changes.
-			Send.ZC_NORMAL.RemoveEffectByName(buff.Target, ZealotBurnFloor.AuraEffectName, true);
-		}
-
 		public override void WhileActive(Buff buff)
 		{
 			var target = buff.Target;
@@ -80,6 +73,11 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 				return;
 
 			ZealotFervor.AddStack(target, buff.SkillId);
+
+			// PoC: the burning-body visual, one pulse per second at the
+			// current position, growing as the floor sinks. No cleanup
+			// needed — each pulse expires on its own.
+			ZealotBurnFloor.PulseAuraVisual(target, ZealotBurnFloor.Get(target));
 
 			this.BurnTowardsFloor(target);
 			this.DealAuraDamage(buff, target);

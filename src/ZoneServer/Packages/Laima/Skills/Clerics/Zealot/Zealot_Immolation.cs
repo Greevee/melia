@@ -91,7 +91,10 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			var floor = ZealotBurnFloor.Get(caster);
 			var scale = 2f + (ZealotBurnFloor.Max - floor) * 0.08f;
 
-			_ = caster.PlayEffectToGround("F_fire027_3", originPos, scale, duration: 5000f);
+			// Duration is in seconds on this client (matches the >testeffect
+			// command's semantics). Effect names must exist in the packet
+			// string db (see ZealotBurnFloor.AuraEffectName remarks).
+			_ = caster.PlayEffectToGround("F_archer_MagicArrow_ground_fire_loop", originPos, scale, duration: 8f);
 		}
 
 		/// <summary>

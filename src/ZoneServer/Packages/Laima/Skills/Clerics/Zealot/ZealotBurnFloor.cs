@@ -1,6 +1,5 @@
 using System;
 using Melia.Shared.Game.Const;
-using Melia.Zone.Network;
 using Melia.Zone.World.Actors;
 
 namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
@@ -120,27 +119,30 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 
 			aura.OverbuffCounter = floor;
 			aura.NotifyUpdate();
-
-			UpdateAuraVisual(entity, floor);
 		}
 
 		/// <summary>
-		/// The flame attached to a burning Zealot. PoC values, deliberately
-		/// oversized: the deeper the floor, the bigger the fire.
+		/// The flame the burning Zealot stands in, respawned every aura tick
+		/// at the current position. PoC values, deliberately oversized: the
+		/// deeper the floor, the bigger the fire.
 		/// </summary>
-		public const string AuraEffectName = "F_buff_basic017_orange_fire";
+		/// <remarks>
+		/// Effect names MUST exist in the packet string db
+		/// (system/db/packetstrings.txt) — AddStringId throws for unknown
+		/// names. Delivery uses PlayEffectAtPosition, the only effect channel
+		/// verified to render on this client build: AttachEffect is a no-op
+		/// and AddEffect/RemoveEffectByName are accepted but draw nothing.
+		/// </remarks>
+		public const string AuraEffectName = "F_archer_MagicArrow_ground_fire_loop";
 
 		/// <summary>
-		/// Attaches (or rescales) the burning-body effect to match the
-		/// current floor. Detach happens in the buff handler's OnEnd.
+		/// Plays one pulse of the burning-body fire at the entity, sized by
+		/// the current floor (floor 80 -> 1.6, floor 20 -> 4.0).
 		/// </summary>
-		public static void UpdateAuraVisual(ICombatEntity entity, int floor)
+		public static void PulseAuraVisual(ICombatEntity entity, int floor)
 		{
-			// PoC scaling: floor 80 -> 2.0, floor 20 -> 5.0.
-			var scale = 1f + (Max - floor) * 0.05f;
-
-			Send.ZC_NORMAL.RemoveEffectByName(entity, AuraEffectName, true);
-			Send.ZC_NORMAL.AttachEffect(entity, AuraEffectName, scale, EffectLocation.Bottom);
+			var scale = 0.6f + (Max - floor) * 0.05f;
+			_ = entity.PlayEffectToGround(AuraEffectName, entity.Position, scale, duration: 1.2f);
 		}
 
 		/// <summary>
