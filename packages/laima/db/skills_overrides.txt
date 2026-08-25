@@ -964,9 +964,9 @@
 // caption push (slots 1-3 + time). Keep them in sync with the constants in
 // Packages/Laima/{Skills,Buffs}/Clerics/Zealot/.
 { skillId: 41701, className: "Zealot_Invulnerable", name: "Temper the Flame", basicSp: 105, splashRate: 0, factor: 125, factorByLevel: 25, hitCount: 1, multiHitCount: 1, cooldownTime: 15000, overheatCount: "1", captionRatio1: 3, captionRatio2: 20 },
-{ skillId: 41702, className: "Zealot_Immolation", name: "Immolation", basicSp: 36, splashRate: 13, factor: 100, factorByLevel: 10, hitCount: 1, multiHitCount: 10, cooldownTime: 10000, overheatCount: "1", captionRatio1: 5, captionRatio2: 70, captionRatio3: 15 },
+{ skillId: 41702, className: "Zealot_Immolation", name: "Immolation", basicSp: 36, splashRate: 13, factor: 100, factorByLevel: 10, hitCount: 1, multiHitCount: 10, cooldownTime: 10000, overheatCount: "1", captionRatio1: 5, captionRatio2: 80, captionRatio3: 15 },
 { skillId: 41703, className: "Zealot_BeadyEyed", name: "Brand the Heretic", basicSp: 75, splashRate: 0, factor: 140, factorByLevel: 8, hitCount: 1, multiHitCount: 1, cooldownTime: 10000, captionRatio1: 50, captionRatio2: 5, captionTime: 10 },
-{ skillId: 41704, className: "Zealot_Fanaticism", name: "Fanaticism", basicSp: 90, splashRate: 0, factor: 100, hitCount: 1, multiHitCount: 1, cooldownTime: 30000, overheatCount: "2", captionRatio1: 20, captionRatio2: 10 },
+{ skillId: 41704, className: "Zealot_Fanaticism", name: "Fanaticism", basicSp: 90, splashRate: 0, factor: 100, hitCount: 1, multiHitCount: 1, cooldownTime: 30000, overheatCount: "2", captionRatio1: 20, captionRatio2: 40, captionRatio3: 10 },
 { skillId: 41705, className: "Zealot_FanaticIllusion", name: "Fanatic Illusion", splashRate: 0, factor: 70, factorByLevel: 16, hitCount: 1, multiHitCount: 16, cooldownTime: 10000 },
 { skillId: 41706, className: "Zealot_BlindFaith", name: "Blind Faith", splashRate: 0, factor: 114, factorByLevel: 26, hitCount: 1, multiHitCount: 10, cooldownTime: 20000, captionRatio1: 5, captionTime: 15 },
 { skillId: 41707, className: "Zealot_EmphasisTrust", name: "Emphatic Trust", basicSp: 41, splashRate: 0, factor: 76, factorByLevel: 28, hitCount: 1, multiHitCount: 10, cooldownTime: 10000 },

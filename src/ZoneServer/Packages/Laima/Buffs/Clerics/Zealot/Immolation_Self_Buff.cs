@@ -1,11 +1,17 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Melia.Shared.Game.Const;
 using Melia.Shared.Packages;
 using Melia.Zone.Buffs.Base;
 using Melia.Zone.Network;
+using Melia.Zone.Scripting.ScriptableEvents;
+using Melia.Zone.Skills;
+using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Clerics.Zealot;
 using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.Characters;
+using static Melia.Zone.Skills.SkillUseFunctions;
 
 namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 {
@@ -13,10 +19,11 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 	/// Handler for the Zealot burn mode carried by Immolate.
 	/// Per the concept (Zealot_Rework_Konzept.xlsx v1.0) the aura burns the
 	/// caster's health down to the current burn floor and keeps it there,
-	/// and slowly builds Fervor — faster the deeper the floor sits. The
-	/// damage side of the kit lives in the Immolate burst (recasting the
-	/// skill), whose power and area scale with the floor; the fast Fervor
-	/// source is Brand the Heretic.
+	/// slowly builds Fervor (faster the deeper the floor sits), burns
+	/// nearby enemies every second — a larger area per floor step, hotter
+	/// the closer they stand — and converts missing health into damage on
+	/// everything. Recasting Immolate adds the burst on top; the fast
+	/// Fervor source is Brand the Heretic.
 	/// </summary>
 	[Package("laima")]
 	[BuffHandler(BuffId.Immolation_Self_Buff)]
@@ -43,6 +50,24 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		private const string TickVar = "Immolation.Tick";
 		private const string FervorTickVar = "Immolation.FervorTick";
 
+		/// <summary>
+		/// Damage bonus per percent of missing health while burning — the
+		/// class identity: 1% extra damage on everything per 1% missing HP.
+		/// PLACEHOLDER magnitude.
+		/// </summary>
+		private const float DamagePerMissingPercent = 0.01f;
+
+		/// <summary>
+		/// The burning aura around the Zealot: radius grows one step per
+		/// floor step (80 -> 50, 60 -> 75, 40 -> 100), and enemies closer to
+		/// the Zealot take more damage, falling off linearly to the edge.
+		/// PLACEHOLDER values.
+		/// </summary>
+		private const float AuraBaseRange = 50f;
+		private const float AuraRangePerStep = 25f;
+		private const float AuraTickFactor = 0.3f;
+		private const float AuraEdgeDamageShare = 0.5f;
+
 		public override void OnEnd(Buff buff)
 		{
 			// Ending the mode resets the risk dial entirely.
@@ -63,11 +88,69 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 
 			this.BurnTowardsFloor(target);
 			this.BuildFervor(buff, target);
+			this.DealAuraDamage(buff, target);
+		}
+
+		/// <summary>
+		/// Damages everything inside the burning aura once per second. The
+		/// radius grows with the floor steps; the closer an enemy stands to
+		/// the Zealot, the more it takes (linear falloff to the edge).
+		/// </summary>
+		private void DealAuraDamage(Buff buff, ICombatEntity target)
+		{
+			if (buff.Caster is not ICombatEntity caster)
+				return;
+
+			if (!caster.TryGetSkill(buff.SkillId, out var skill))
+				return;
+
+			var floor = ZealotBurnFloor.Get(target);
+			var range = AuraBaseRange + (ZealotBurnFloor.Ignition - floor) / (float)ZealotBurnFloor.Step * AuraRangePerStep;
+
+			var enemies = caster.Map.GetAttackableEnemiesInPosition(caster, caster.Position, range).ToList();
+			if (enemies.Count == 0)
+				return;
+
+			var hits = new List<SkillHitInfo>();
+
+			foreach (var enemy in enemies)
+			{
+				var distance = (float)caster.Position.Get2DDistance(enemy.Position);
+				var proximity = 1f - Math.Clamp(distance / range, 0f, 1f) * (1f - AuraEdgeDamageShare);
+
+				var modifier = SkillModifier.Default;
+				modifier.DamageMultiplier *= AuraTickFactor * proximity;
+
+				var result = SCR_SkillHit(caster, enemy, skill, modifier);
+				enemy.TakeDamage(result.Damage, caster);
+
+				hits.Add(new SkillHitInfo(caster, enemy, skill, result, TimeSpan.Zero, TimeSpan.Zero));
+			}
+
+			Send.ZC_SKILL_HIT_INFO(caster, hits);
+		}
+
+		/// <summary>
+		/// The class damage bonus: everything the burning Zealot does hits
+		/// harder the more health they are missing. Riding on the Immolation
+		/// buff means it applies exactly while the flame is lit.
+		/// </summary>
+		[CombatCalcModifier(CombatCalcPhase.BeforeCalc, BuffId.Immolation_Self_Buff)]
+		public void OnAttackBeforeCalc(ICombatEntity attacker, ICombatEntity target, Skill skill, SkillModifier modifier, SkillHitResult skillHitResult)
+		{
+			if (!attacker.IsBuffActive(BuffId.Immolation_Self_Buff))
+				return;
+
+			var missingPercent = ZealotBurnFloor.GetMissingHpPercent(attacker);
+			if (missingPercent <= 0)
+				return;
+
+			modifier.DamageMultiplier *= 1f + missingPercent * DamagePerMissingPercent;
 		}
 
 		/// <summary>
 		/// Slowly builds Fervor while burning, faster the deeper the floor
-		/// sits: one stack every 5/4/3/2 seconds at floors 70/50/30/10.
+		/// sits: one stack every 4/3/2 seconds at floors 80/60/40.
 		/// PLACEHOLDER pacing (addition to the concept workbook, requested
 		/// after v1.0) — Brand the Heretic stays the fast Fervor source.
 		/// </summary>

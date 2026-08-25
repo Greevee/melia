@@ -8,9 +8,10 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	/// The burn floor: the share of maximum HP that Immolate burns the
 	/// Zealot down to, and the single number the kit revolves around.
 	/// Per the concept workbook (Zealot_Rework_Konzept.xlsx v1.0) the floor
-	/// runs in fixed steps 70 -> 50 -> 30 -> 10: Fanaticism lowers it one
-	/// step and grants a Fanaticism stack, Temper the Flame raises it one
-	/// step (ending the burn mode when used at the top step).
+	/// runs in fixed steps 80 -> 60 -> 40: Fanaticism lowers it one step
+	/// and grants a Fanaticism stack; at the 40% minimum it instead costs
+	/// health directly and grants two stacks. Temper the Flame raises the
+	/// floor one step (ending the burn mode when used at the top step).
 	/// </summary>
 	// Values shown in the tooltips come from the captionRatio fields of the
 	// Zealot skills in skills_overrides.txt — keep the two in sync:
@@ -26,12 +27,14 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// The floor Immolate sets when the burn mode is first activated,
 		/// and the highest step: Temper the Flame used here ends the mode.
 		/// </summary>
-		public const int Ignition = 70;
+		public const int Ignition = 80;
 
 		/// <summary>
-		/// Lowest reachable floor, after three Fanaticism uses.
+		/// Lowest reachable floor, after two Fanaticism uses. Deliberately
+		/// no lower: below ~40% health the client blinks its low-HP warning
+		/// permanently.
 		/// </summary>
-		public const int Min = 10;
+		public const int Min = 40;
 
 		/// <summary>
 		/// Step size for lowering (Fanaticism) and raising (Temper).
@@ -39,10 +42,10 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		public const int Step = 20;
 
 		/// <summary>
-		/// PLACEHOLDER (concept: "Stack-Cap noch offen") — capped at the
-		/// number of Fanaticism steps for now.
+		/// PLACEHOLDER (concept: "Stack-Cap noch offen") — generous cap,
+		/// since Fanaticism at the minimum floor keeps granting stacks.
 		/// </summary>
-		public const int MaxFanaticismStacks = 3;
+		public const int MaxFanaticismStacks = 10;
 
 		/// <summary>
 		/// Returns the entity's current floor; only meaningful while the
@@ -93,10 +96,10 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			=> Math.Clamp((int)entity.GetTempVar(StacksVar), 0, MaxFanaticismStacks);
 
 		/// <summary>
-		/// Adds one Fanaticism stack, up to the cap.
+		/// Adds Fanaticism stacks, up to the cap.
 		/// </summary>
-		public static void AddStack(ICombatEntity entity)
-			=> entity.SetTempVar(StacksVar, Math.Min(MaxFanaticismStacks, GetStacks(entity) + 1));
+		public static void AddStacks(ICombatEntity entity, int amount)
+			=> entity.SetTempVar(StacksVar, Math.Min(MaxFanaticismStacks, GetStacks(entity) + amount));
 
 		/// <summary>
 		/// Removes all Fanaticism stacks and returns how many there were,
@@ -150,13 +153,28 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 
 		/// <summary>
 		/// Plays one pulse of the burning-body fire on the entity, sized by
-		/// the current floor: 0.5 at ignition (70), growing linearly to 1.5
-		/// at the deepest floor (10).
+		/// the current floor: 0.5 at ignition (80), growing linearly to 1.5
+		/// at the deepest floor (40).
 		/// </summary>
 		public static void PulseAuraVisual(ICombatEntity entity, int floor)
 		{
-			var scale = Math.Clamp(0.5f + (Ignition - floor) / 60f, 0.5f, 1.5f);
+			var scale = Math.Clamp(0.5f + (Ignition - floor) / 40f, 0.5f, 1.5f);
 			entity.PlayEffectNode(AuraEffectName, scale, AuraNodeName);
+		}
+
+		/// <summary>
+		/// Returns the share of maximum HP the entity is currently missing,
+		/// as a percentage — the class damage bonus while burning.
+		/// </summary>
+		public static float GetMissingHpPercent(ICombatEntity entity)
+		{
+			var maxHp = entity.Properties.GetFloat(PropertyName.MHP);
+			if (maxHp <= 0)
+				return 0;
+
+			var missing = 100f * (1f - (entity.Hp / maxHp));
+
+			return Math.Clamp(missing, 0f, 100f);
 		}
 	}
 }

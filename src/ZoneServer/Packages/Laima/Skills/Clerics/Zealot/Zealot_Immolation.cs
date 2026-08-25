@@ -36,14 +36,14 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// <summary>
 		/// Burst radius at the ignition floor. PLACEHOLDER (concept: area
 		/// tuning only) — grows by BurstRadiusPerFloorPoint for every floor
-		/// point below ignition (70 -> 40, 10 -> 100).
+		/// point below ignition (80 -> 40, 40 -> 80).
 		/// </summary>
 		private const float BurstBaseRadius = 40f;
 		private const float BurstRadiusPerFloorPoint = 1f;
 
 		/// <summary>
 		/// Extra burst damage per floor point below ignition. PLACEHOLDER —
-		/// +1% per point: floor 10 deals +60%.
+		/// +1% per point: floor 40 deals +40%.
 		/// </summary>
 		private const float BurstDamagePerFloorPoint = 0.01f;
 
