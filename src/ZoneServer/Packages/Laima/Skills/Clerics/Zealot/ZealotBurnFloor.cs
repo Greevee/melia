@@ -190,12 +190,14 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 
 		/// <summary>
 		/// Plays one pulse of the burning-body fire on the entity, sized by
-		/// the current floor: 0.5 at ignition (80), growing linearly to 1.5
-		/// at the deepest floor (40).
+		/// the ACTUAL health: 0.5 at 80% HP, growing linearly to 2.0 at 20%
+		/// HP — so paying the blood price below the floor keeps feeding the
+		/// flame, matching the missing-HP damage bonus.
 		/// </summary>
-		public static void PulseAuraVisual(ICombatEntity entity, int floor)
+		public static void PulseAuraVisual(ICombatEntity entity)
 		{
-			var scale = Math.Clamp(0.5f + (Ignition - floor) / 40f, 0.5f, 1.5f);
+			var hpPercent = 100f - GetMissingHpPercent(entity);
+			var scale = Math.Clamp(0.5f + (Ignition - hpPercent) * 0.025f, 0.5f, 2.0f);
 			entity.PlayEffectNode(AuraEffectName, scale, AuraNodeName);
 		}
 

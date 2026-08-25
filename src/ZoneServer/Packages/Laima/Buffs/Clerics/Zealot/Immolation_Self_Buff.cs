@@ -84,7 +84,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			if (!this.IsFullSecond(buff))
 				return;
 
-			ZealotBurnFloor.PulseAuraVisual(target, ZealotBurnFloor.Get(target));
+			ZealotBurnFloor.PulseAuraVisual(target);
 
 			this.BurnTowardsFloor(target);
 			this.BuildFervor(buff, target);
