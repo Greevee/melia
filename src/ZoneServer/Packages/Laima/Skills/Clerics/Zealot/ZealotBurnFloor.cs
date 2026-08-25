@@ -11,6 +11,12 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	/// everything — so the floor is the player's risk dial.
 	/// Fanaticism lowers it, Temper the Flame raises it again.
 	/// </summary>
+	// The step, minimum and ignition values below are shown in the tooltips
+	// via the captionRatio fields of the Zealot skills in
+	// skills_overrides.txt — keep the two in sync:
+	// Fanaticism captionRatio1 = StepDown, captionRatio2 = Min;
+	// Temper the Flame captionRatio2 = StepUp;
+	// Immolation captionRatio2 = Ignition, captionRatio3 = Fervor max.
 	public static class ZealotBurnFloor
 	{
 		private const string FloorVar = "Zealot.BurnFloor";

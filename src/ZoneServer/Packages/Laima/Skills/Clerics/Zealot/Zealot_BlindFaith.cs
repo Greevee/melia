@@ -24,10 +24,16 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	{
 		/// <summary>
 		/// Share of maximum HP each consumed Fervor stack is worth.
-		/// At the ten stack cap this is half the caster's health bar.
+		/// At the twenty stack cap this is the caster's whole health bar.
+		/// Shown in the tooltip via captionRatio1 in skills_overrides.txt —
+		/// keep the two in sync.
 		/// </summary>
 		private const float ShieldPerStack = 0.05f;
 
+		/// <summary>
+		/// Shown in the tooltip via captionTime in skills_overrides.txt —
+		/// keep the two in sync.
+		/// </summary>
 		private static readonly TimeSpan ShieldDuration = TimeSpan.FromSeconds(15);
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Direction dir)

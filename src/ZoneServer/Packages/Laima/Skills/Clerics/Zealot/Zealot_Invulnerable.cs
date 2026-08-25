@@ -27,6 +27,8 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	{
 		/// <summary>
 		/// Share of maximum HP healed per Fervor stack consumed.
+		/// Shown in the tooltip via captionRatio1 in skills_overrides.txt —
+		/// keep the two in sync.
 		/// </summary>
 		private const float HealPerStack = 0.05f;
 

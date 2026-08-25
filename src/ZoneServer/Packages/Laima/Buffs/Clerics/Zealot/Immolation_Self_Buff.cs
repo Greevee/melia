@@ -34,6 +34,8 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		/// Share of maximum HP burned per second while above the floor. Flat,
 		/// so reaching a floor takes a predictable amount of time instead of
 		/// creeping towards it.
+		/// Shown in the tooltip via Immolation's captionRatio1 in
+		/// skills_overrides.txt — keep the two in sync.
 		/// </summary>
 		private const float BurnPerSecond = 0.05f;
 
