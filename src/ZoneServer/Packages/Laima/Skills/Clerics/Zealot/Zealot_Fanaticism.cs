@@ -11,11 +11,11 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 {
 	/// <summary>
 	/// Handler for the Zealot skill Fanaticism.
-	/// Per the rework this is the accelerator: each use drops the burn floor
-	/// by one step, so Immolation eats further into the caster's health and
-	/// the class damage bonus climbs with it. It deals no damage of its own —
-	/// what it does is decide how dangerous the next fight will be.
-	/// Temper the Flame is the way back up.
+	/// Per the concept (Zealot_Rework_Konzept.xlsx v1.0) this escalates the
+	/// active burn mode by one step: the burn floor sinks 70 -> 50 -> 30 ->
+	/// 10 and the Zealot gains one Fanaticism stack, which the next Immolate
+	/// burst consumes. Only usable while the burn mode is active; deals no
+	/// damage of its own. Temper the Flame is the way back up.
 	/// </summary>
 	[Package("laima")]
 	[SkillHandler(SkillId.Zealot_Fanaticism)]
@@ -23,6 +23,12 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	{
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
+			if (!caster.IsBuffActive(BuffId.Immolation_Self_Buff))
+			{
+				caster.ServerMessage(Localization.Get("The flame is not lit."));
+				return;
+			}
+
 			var floor = ZealotBurnFloor.Get(caster);
 
 			if (floor <= ZealotBurnFloor.Min)
@@ -45,9 +51,10 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, targetHandle, originPos, originPos.GetDirection(farPos), Position.Zero);
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
 
-			var newFloor = ZealotBurnFloor.Shift(caster, -ZealotBurnFloor.StepDown);
+			var newFloor = ZealotBurnFloor.Shift(caster, -ZealotBurnFloor.Step);
+			ZealotBurnFloor.AddStack(caster);
 
-			Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0, $"Burn Floor {newFloor}%");
+			Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0, $"Burn Floor {newFloor}%  (+1 Fanaticism)");
 		}
 	}
 }

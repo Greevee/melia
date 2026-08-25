@@ -13,11 +13,11 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	/// <summary>
 	/// Handler for the Zealot skill Invulnerable, reworked into
 	/// "Temper the Flame".
-	/// Per the rework this is the brake to Fanaticism's accelerator: it
-	/// raises the burn floor by one step and converts the Fervor built up
-	/// while burning into healing. Pulling out of a deep floor therefore
-	/// costs the resource that deep floor produced, which is what keeps the
-	/// risk dial honest.
+	/// Per the concept (Zealot_Rework_Konzept.xlsx v1.0) this spends Fervor
+	/// to reduce the active burn mode by one step: the floor rises 10 -> 30
+	/// -> 50 -> 70, health below the new floor is raised up to it, and all
+	/// Fanaticism stacks are removed. Used at the top step, it puts the
+	/// flame out entirely. Only usable while the burn mode is active.
 	/// Note: the skill database lists this as useType "MeleeGround", but the
 	/// client sends CZ_SKILL_SELF for it, so it is handled as a self skill.
 	/// </summary>
@@ -26,22 +26,23 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	public class Zealot_InvulnerableOverride : ISelfSkillHandler
 	{
 		/// <summary>
-		/// Share of maximum HP healed per Fervor stack consumed.
+		/// Fervor spent per use. PLACEHOLDER (concept: "Fervor-Kosten TBD").
 		/// Shown in the tooltip via captionRatio1 in skills_overrides.txt —
 		/// keep the two in sync.
 		/// </summary>
-		private const float HealPerStack = 0.05f;
+		private const int FervorCost = 3;
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Direction dir)
 		{
-			var floor = ZealotBurnFloor.Get(caster);
-			var stacks = ZealotFervor.GetStacks(caster);
-
-			// Nothing to raise and nothing to spend — refuse rather than
-			// waste the cooldown.
-			if (floor >= ZealotBurnFloor.Max && stacks <= 0)
+			if (!caster.IsBuffActive(BuffId.Immolation_Self_Buff))
 			{
-				caster.ServerMessage(Localization.Get("The flame is already tempered."));
+				caster.ServerMessage(Localization.Get("The flame is not lit."));
+				return;
+			}
+
+			if (ZealotFervor.GetStacks(caster) < FervorCost)
+			{
+				caster.ServerMessage(Localization.Get("Not enough Fervor."));
 				return;
 			}
 
@@ -61,30 +62,45 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, 0, originPos, originPos.GetDirection(farPos), Position.Zero);
 			Send.ZC_SKILL_MELEE_TARGET(caster, skill, caster);
 
-			var newFloor = ZealotBurnFloor.Shift(caster, ZealotBurnFloor.StepUp);
+			ZealotFervor.Consume(caster, FervorCost);
 
-			ZealotFervor.ConsumeAll(caster);
-			var healed = this.HealByStacks(caster, stacks);
+			var floor = ZealotBurnFloor.Get(caster);
 
-			Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0, $"Floor {newFloor}%  +{healed} HP");
+			// At the top step, another use puts the flame out entirely.
+			if (floor >= ZealotBurnFloor.Ignition)
+			{
+				caster.StopBuff(BuffId.Immolation_Self_Buff);
+				Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0, "The flame is out");
+				return;
+			}
+
+			var newFloor = ZealotBurnFloor.Shift(caster, ZealotBurnFloor.Step);
+			ZealotBurnFloor.ConsumeStacks(caster);
+
+			var healed = this.RaiseToFloor(caster, newFloor);
+
+			Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0, $"Burn Floor {newFloor}%" + (healed > 0 ? $"  +{healed} HP" : ""));
 		}
 
 		/// <summary>
-		/// Heals for a share of maximum HP per consumed stack and returns the
-		/// amount restored.
+		/// Raises health up to the new floor if it sits below it, returning
+		/// the amount restored.
 		/// </summary>
-		private int HealByStacks(ICombatEntity caster, int stacks)
+		private int RaiseToFloor(ICombatEntity caster, int floor)
 		{
-			if (stacks <= 0 || caster is not Character character)
+			if (caster is not Character character)
 				return 0;
 
 			var maxHp = caster.Properties.GetFloat(PropertyName.MHP);
-			var healed = (int)(maxHp * HealPerStack * stacks);
+			var floorHp = maxHp * (floor / 100f);
 
-			if (healed > 0)
-				character.Heal(healed, 0);
+			var missing = (int)(floorHp - caster.Hp);
+			if (missing <= 0)
+				return 0;
 
-			return healed;
+			character.Heal(missing, 0);
+
+			return missing;
 		}
 	}
 }

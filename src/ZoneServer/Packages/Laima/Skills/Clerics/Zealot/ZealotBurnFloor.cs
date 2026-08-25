@@ -5,50 +5,48 @@ using Melia.Zone.World.Actors;
 namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 {
 	/// <summary>
-	/// The burn floor: the share of maximum HP that Immolation burns the
-	/// Zealot down to, and the single number the whole class revolves around.
-	/// Lower floor means less health, and less health means more damage on
-	/// everything — so the floor is the player's risk dial.
-	/// Fanaticism lowers it, Temper the Flame raises it again.
+	/// The burn floor: the share of maximum HP that Immolate burns the
+	/// Zealot down to, and the single number the kit revolves around.
+	/// Per the concept workbook (Zealot_Rework_Konzept.xlsx v1.0) the floor
+	/// runs in fixed steps 70 -> 50 -> 30 -> 10: Fanaticism lowers it one
+	/// step and grants a Fanaticism stack, Temper the Flame raises it one
+	/// step (ending the burn mode when used at the top step).
 	/// </summary>
-	// The step, minimum and ignition values below are shown in the tooltips
-	// via the captionRatio fields of the Zealot skills in
-	// skills_overrides.txt — keep the two in sync:
-	// Fanaticism captionRatio1 = StepDown, captionRatio2 = Min;
-	// Temper the Flame captionRatio2 = StepUp;
-	// Immolation captionRatio2 = Ignition, captionRatio3 = Fervor max.
+	// Values shown in the tooltips come from the captionRatio fields of the
+	// Zealot skills in skills_overrides.txt — keep the two in sync:
+	// Immolate captionRatio2 = Ignition;
+	// Fanaticism captionRatio1 = Step, captionRatio2 = Min;
+	// Temper the Flame captionRatio2 = Step.
 	public static class ZealotBurnFloor
 	{
 		private const string FloorVar = "Zealot.BurnFloor";
+		private const string StacksVar = "Zealot.FanaticismStacks";
 
 		/// <summary>
-		/// Full health: Immolation has nothing to burn and the class deals
-		/// no bonus damage at all.
+		/// The floor Immolate sets when the burn mode is first activated,
+		/// and the highest step: Temper the Flame used here ends the mode.
 		/// </summary>
-		public const int Default = 100;
+		public const int Ignition = 70;
 
 		/// <summary>
-		/// How far Fanaticism drops the floor per use.
+		/// Lowest reachable floor, after three Fanaticism uses.
 		/// </summary>
-		public const int StepDown = 20;
+		public const int Min = 10;
 
 		/// <summary>
-		/// How far Temper the Flame raises it. Deliberately larger than the
-		/// way down: descending is gradual, pulling out is decisive.
+		/// Step size for lowering (Fanaticism) and raising (Temper).
 		/// </summary>
-		public const int StepUp = 40;
+		public const int Step = 20;
 
 		/// <summary>
-		/// Lowest floor currently reachable. Zero is deliberately left out:
-		/// hitting it is meant to unlock something of its own later, so the
-		/// dial stops one step short for now.
+		/// PLACEHOLDER (concept: "Stack-Cap noch offen") — capped at the
+		/// number of Fanaticism steps for now.
 		/// </summary>
-		public const int Min = 20;
-
-		public const int Max = 100;
+		public const int MaxFanaticismStacks = 3;
 
 		/// <summary>
-		/// Returns the entity's current floor, defaulting to full health.
+		/// Returns the entity's current floor; only meaningful while the
+		/// burn mode (Immolation aura) is active.
 		/// </summary>
 		public static int Get(ICombatEntity entity)
 		{
@@ -57,50 +55,58 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			// Unset variables read as zero, which would mean "burn everything"
 			// rather than "untouched".
 			if (value <= 0)
-				return Default;
+				return Ignition;
 
 			return value;
 		}
 
 		/// <summary>
-		/// The floor Immolation sets when it is first lit.
-		/// </summary>
-		public const int Ignition = 80;
-
-		/// <summary>
-		/// Moves the floor by the given amount and returns the new value,
-		/// clamped to the allowed range.
-		/// </summary>
-		/// <remarks>
-		/// Reaching full health puts the flame out entirely — there is
-		/// nothing left to burn, so the aura and its damage bonus go with it.
-		/// Immolation has to be cast again to relight it.
-		/// </remarks>
-		public static int Shift(ICombatEntity entity, int delta)
-		{
-			var value = Math.Clamp(Get(entity) + delta, Min, Max);
-			entity.SetTempVar(FloorVar, value);
-
-			if (value >= Max)
-			{
-				entity.StopBuff(BuffId.Immolation_Self_Buff);
-				return value;
-			}
-
-			ShowOnAura(entity, value);
-
-			return value;
-		}
-
-		/// <summary>
-		/// Sets the floor outright, used when Immolation is lit.
+		/// Sets the floor outright, used when Immolate is lit.
 		/// </summary>
 		public static void Set(ICombatEntity entity, int value)
 		{
-			value = Math.Clamp(value, Min, Max);
+			value = Math.Clamp(value, Min, Ignition);
 			entity.SetTempVar(FloorVar, value);
 
 			ShowOnAura(entity, value);
+		}
+
+		/// <summary>
+		/// Moves the floor by the given amount and returns the new value,
+		/// clamped to the step range. Ending the mode at the top step is the
+		/// caller's decision (Temper the Flame), not a side effect here.
+		/// </summary>
+		public static int Shift(ICombatEntity entity, int delta)
+		{
+			var value = Math.Clamp(Get(entity) + delta, Min, Ignition);
+			entity.SetTempVar(FloorVar, value);
+
+			ShowOnAura(entity, value);
+
+			return value;
+		}
+
+		/// <summary>
+		/// Returns the entity's current Fanaticism stacks.
+		/// </summary>
+		public static int GetStacks(ICombatEntity entity)
+			=> Math.Clamp((int)entity.GetTempVar(StacksVar), 0, MaxFanaticismStacks);
+
+		/// <summary>
+		/// Adds one Fanaticism stack, up to the cap.
+		/// </summary>
+		public static void AddStack(ICombatEntity entity)
+			=> entity.SetTempVar(StacksVar, Math.Min(MaxFanaticismStacks, GetStacks(entity) + 1));
+
+		/// <summary>
+		/// Removes all Fanaticism stacks and returns how many there were,
+		/// so the Immolate burst can scale by what it consumed.
+		/// </summary>
+		public static int ConsumeStacks(ICombatEntity entity)
+		{
+			var stacks = GetStacks(entity);
+			entity.SetTempVar(StacksVar, 0);
+			return stacks;
 		}
 
 		/// <summary>
@@ -122,24 +128,19 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		}
 
 		/// <summary>
-		/// The flame the burning Zealot stands in, respawned every aura tick
-		/// at the current position. PoC values, deliberately oversized: the
-		/// deeper the floor, the bigger the fire.
+		/// The flame on the burning Zealot. One-shot, pulsed once per aura
+		/// tick.
 		/// </summary>
 		/// <remarks>
 		/// Effect names MUST exist in the packet string db
 		/// (system/db/packetstrings.txt) — AddStringId throws for unknown
-		/// names. Delivery uses PlayEffectAtPosition, the only effect channel
-		/// verified to render on this client build: AttachEffect is a no-op
-		/// and AddEffect/RemoveEffectByName are accepted but draw nothing.
+		/// names. Delivery uses PlayEffectNode, the only channel that truly
+		/// parents an effect to the model: AttachEffect is a no-op on this
+		/// client build, AddEffect draws nothing, and plain PlayEffect
+		/// renders at the spawn position.
 		/// </remarks>
 		public const string AuraEffectName = "I_sphere009_fire";
 
-		/// <summary>
-		/// Plays one pulse of the burning-body fire on the entity, sized by
-		/// the current floor: 0.5 at ignition (floor 80), growing linearly
-		/// to 1.5 at the deepest floor (20).
-		/// </summary>
 		/// <summary>
 		/// The skeleton node the flame is attached to. Dummy_body is the
 		/// torso: it follows the character without the wild spinning that
@@ -147,31 +148,15 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// </summary>
 		public const string AuraNodeName = "Dummy_body";
 
-		/// <remarks>
-		/// PlayEffectNode attaches the pulse to a skeleton node, so the flame
-		/// truly moves with the model (plain PlayEffect renders at the spawn
-		/// position instead). One pulse per aura tick; the effect is a
-		/// one-shot and ends on its own.
-		/// </remarks>
+		/// <summary>
+		/// Plays one pulse of the burning-body fire on the entity, sized by
+		/// the current floor: 0.5 at ignition (70), growing linearly to 1.5
+		/// at the deepest floor (10).
+		/// </summary>
 		public static void PulseAuraVisual(ICombatEntity entity, int floor)
 		{
 			var scale = Math.Clamp(0.5f + (Ignition - floor) / 60f, 0.5f, 1.5f);
 			entity.PlayEffectNode(AuraEffectName, scale, AuraNodeName);
-		}
-
-		/// <summary>
-		/// Returns the share of maximum HP the entity is currently missing,
-		/// as a percentage. This is the class damage bonus.
-		/// </summary>
-		public static float GetMissingHpPercent(ICombatEntity entity)
-		{
-			var maxHp = entity.Properties.GetFloat(PropertyName.MHP);
-			if (maxHp <= 0)
-				return 0;
-
-			var missing = 100f * (1f - (entity.Hp / maxHp));
-
-			return Math.Clamp(missing, 0f, 100f);
 		}
 	}
 }

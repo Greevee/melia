@@ -16,13 +16,12 @@ using static Melia.Zone.Skills.SkillUseFunctions;
 namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 {
 	/// <summary>
-	/// Handler for the Zealot skill Immolation.
-	/// Per the rework it does two jobs: it strikes everything around the
-	/// caster, and it lights the aura that carries the class mechanic. The
-	/// aura is never toggled off — once lit it burns the caster down to their
-	/// burn floor and keeps them there, converting missing health into damage
-	/// on everything they do.
-	/// The burning itself lives in Immolation_Self_Buff.
+	/// Handler for the Zealot skill Immolate.
+	/// Per the concept (Zealot_Rework_Konzept.xlsx v1.0): the first cast
+	/// activates the burn mode and sets the burn floor to 70%. While
+	/// burning, further casts unleash a fire burst whose damage and area
+	/// grow the lower the floor sits; the burst also consumes all
+	/// Fanaticism stacks for extra damage.
 	/// </summary>
 	[Package("laima")]
 	[SkillHandler(SkillId.Zealot_Immolation)]
@@ -34,8 +33,25 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// </summary>
 		private static readonly TimeSpan AuraDuration = TimeSpan.Zero;
 
-		private const int SplashLength = 40;
-		private const int SplashWidth = 40;
+		/// <summary>
+		/// Burst radius at the ignition floor. PLACEHOLDER (concept: area
+		/// tuning only) — grows by BurstRadiusPerFloorPoint for every floor
+		/// point below ignition (70 -> 40, 10 -> 100).
+		/// </summary>
+		private const float BurstBaseRadius = 40f;
+		private const float BurstRadiusPerFloorPoint = 1f;
+
+		/// <summary>
+		/// Extra burst damage per floor point below ignition. PLACEHOLDER —
+		/// +1% per point: floor 10 deals +60%.
+		/// </summary>
+		private const float BurstDamagePerFloorPoint = 0.01f;
+
+		/// <summary>
+		/// Extra burst damage per consumed Fanaticism stack. PLACEHOLDER
+		/// (concept: burst consumes all stacks; magnitude TBD).
+		/// </summary>
+		private const float BurstDamagePerStack = 0.15f;
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
@@ -52,68 +68,66 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, target?.Handle ?? 0, originPos, originPos.GetDirection(farPos), Position.Zero);
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
 
-			this.LightAura(skill, caster);
-			this.SpawnCastFire(caster, originPos);
-
-			var splashParam = skill.GetSplashParameters(caster, originPos, farPos, SplashLength, SplashWidth, angle: 0);
-			var splashArea = skill.GetSplashArea(SplashType.Circle, splashParam);
-
-			skill.Run(this.Attack(skill, caster, splashArea));
-		}
-
-		/// <summary>
-		/// Lights the aura if it is out, dropping the caster to the ignition
-		/// floor as it catches. An already burning flame is left alone, so
-		/// recasting for the strike does not reset a floor the player worked
-		/// their way down to.
-		/// </summary>
-		private void LightAura(Skill skill, ICombatEntity caster)
-		{
-			if (caster.IsBuffActive(BuffId.Immolation_Self_Buff))
+			// First cast only lights the flame; the bursts come after.
+			if (!caster.IsBuffActive(BuffId.Immolation_Self_Buff))
 			{
-				ZealotBurnFloor.ShowOnAura(caster, ZealotBurnFloor.Get(caster));
+				caster.StartBuff(BuffId.Immolation_Self_Buff, skill.Level, 0f, AuraDuration, caster, skill.Id);
+				ZealotBurnFloor.Set(caster, ZealotBurnFloor.Ignition);
+				this.SpawnCastFire(caster, originPos);
 				return;
 			}
 
-			caster.StartBuff(BuffId.Immolation_Self_Buff, skill.Level, 0f, AuraDuration, caster, skill.Id);
-			ZealotBurnFloor.Set(caster, ZealotBurnFloor.Ignition);
+			var floor = ZealotBurnFloor.Get(caster);
+			var stacks = ZealotBurnFloor.ConsumeStacks(caster);
+
+			this.SpawnCastFire(caster, originPos);
+
+			var radius = BurstBaseRadius + (ZealotBurnFloor.Ignition - floor) * BurstRadiusPerFloorPoint;
+			var splashParam = skill.GetSplashParameters(caster, originPos, farPos, radius, radius, angle: 0);
+			var splashArea = skill.GetSplashArea(SplashType.Circle, splashParam);
+
+			skill.Run(this.Burst(skill, caster, splashArea, floor, stacks));
 		}
 
 		/// <summary>
 		/// A fire patch on the ground at the caster, growing the deeper the
-		/// burn floor sits (floor 100 -> 0.8, floor 20 -> 2.4). Visual only
-		/// for now — once the look is approved, a pad will carry a matching
-		/// damage area (growing with Fanaticism uses, per the design).
+		/// burn floor sits (floor 70 -> 0.8, floor 10 -> 2.0).
 		/// </summary>
 		private void SpawnCastFire(ICombatEntity caster, Position originPos)
 		{
 			var floor = ZealotBurnFloor.Get(caster);
-			var scale = 0.8f + (ZealotBurnFloor.Max - floor) * 0.02f;
+			var scale = 0.8f + (ZealotBurnFloor.Ignition - floor) * 0.02f;
 
-			// Duration is in seconds on this client (matches the >testeffect
-			// command's semantics). Effect names must exist in the packet
-			// string db (see ZealotBurnFloor.AuraEffectName remarks).
-			_ = caster.PlayEffectToGround(ZealotBurnFloor.AuraEffectName, originPos, scale, duration: 1000f);
+			// Duration is in MILLISECONDS here: PlayEffectToGround uses the
+			// actor overload of PlayEffectAtPosition, which divides by 1000
+			// (the conn overload behind >testeffect takes seconds instead).
+			_ = caster.PlayEffectToGround("F_wizard_prominence_ground", originPos, scale, duration: 1000f);
 		}
 
 		/// <summary>
-		/// The strike itself, hitting everything around the caster.
+		/// The fire burst around the caster: damage scales with how deep the
+		/// floor sits and with the Fanaticism stacks it just consumed.
 		/// </summary>
-		private async Task Attack(Skill skill, ICombatEntity caster, ISplashArea splashArea)
+		private async Task Burst(Skill skill, ICombatEntity caster, ISplashArea splashArea, int floor, int stacks)
 		{
 			await skill.Wait(TimeSpan.FromMilliseconds(100));
+
+			var bonus = 1f
+				+ (ZealotBurnFloor.Ignition - floor) * BurstDamagePerFloorPoint
+				+ stacks * BurstDamagePerStack;
 
 			var targets = caster.Map.GetAttackableEnemiesIn(caster, splashArea);
 			var hits = new List<SkillHitInfo>();
 
-			foreach (var target in targets.LimitBySDR(caster, skill))
+			foreach (var enemy in targets.LimitBySDR(caster, skill))
 			{
 				var modifier = SkillModifier.Default;
+				modifier.DamageMultiplier *= bonus;
 
-				var skillHitResult = SCR_SkillHit(caster, target, skill, modifier);
-				target.TakeDamage(skillHitResult.Damage, caster);
+				var skillHitResult = SCR_SkillHit(caster, enemy, skill, modifier);
+				enemy.TakeDamage(skillHitResult.Damage, caster);
 
-				hits.Add(new SkillHitInfo(caster, target, skill, skillHitResult, TimeSpan.FromMilliseconds(50), TimeSpan.Zero));
+				hits.Add(new SkillHitInfo(caster, enemy, skill, skillHitResult, TimeSpan.FromMilliseconds(50), TimeSpan.Zero));
 			}
 
 			if (hits.Count > 0)
