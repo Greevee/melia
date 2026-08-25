@@ -133,18 +133,18 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// verified to render on this client build: AttachEffect is a no-op
 		/// and AddEffect/RemoveEffectByName are accepted but draw nothing.
 		/// </remarks>
-		public const string AuraEffectName = "F_wizard_FlameGround_loop";
+		public const string AuraEffectName = "F_wizard_prominence_ground";
 
 		/// <summary>
 		/// Plays one pulse of the burning-body fire at the entity, sized by
-		/// the current floor (floor 80 -> 0.45, floor 20 -> 1.05). Pulses
-		/// outlive the tick interval slightly, so they read as one steady
-		/// small flame rather than discrete bursts.
+		/// the current floor (floor 80 -> 0.45, floor 20 -> 1.05). Each pulse is cut
+		/// after one second: the effect animation is only pretty for its
+		/// first second, and the per-second respawn loops exactly that part.
 		/// </summary>
 		public static void PulseAuraVisual(ICombatEntity entity, int floor)
 		{
 			var scale = 0.25f + (Max - floor) * 0.01f;
-			_ = entity.PlayEffectToGround(AuraEffectName, entity.Position, scale, duration: 1.2f);
+			_ = entity.PlayEffectToGround(AuraEffectName, entity.Position, scale, duration: 1.0f);
 		}
 
 		/// <summary>
