@@ -43,12 +43,14 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			if (stacks <= 0)
 			{
 				caster.ServerMessage(Localization.Get("No Fervor to spend."));
+				Send.ZC_SKILL_DISABLE(caster);
 				return;
 			}
 
 			if (!caster.TrySpendSp(skill))
 			{
 				caster.ServerMessage(Localization.Get("Not enough SP."));
+				Send.ZC_SKILL_DISABLE(caster);
 				return;
 			}
 

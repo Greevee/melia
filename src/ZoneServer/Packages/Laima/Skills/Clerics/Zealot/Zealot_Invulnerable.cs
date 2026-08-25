@@ -37,18 +37,21 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			if (!caster.IsBuffActive(BuffId.Immolation_Self_Buff))
 			{
 				caster.ServerMessage(Localization.Get("The flame is not lit."));
+				Send.ZC_SKILL_DISABLE(caster);
 				return;
 			}
 
 			if (ZealotFervor.GetStacks(caster) < FervorCost)
 			{
 				caster.ServerMessage(Localization.Get("Not enough Fervor."));
+				Send.ZC_SKILL_DISABLE(caster);
 				return;
 			}
 
 			if (!caster.TrySpendSp(skill))
 			{
 				caster.ServerMessage(Localization.Get("Not enough SP."));
+				Send.ZC_SKILL_DISABLE(caster);
 				return;
 			}
 

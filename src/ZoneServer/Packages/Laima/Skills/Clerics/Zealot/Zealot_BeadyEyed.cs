@@ -40,12 +40,14 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			if (target == null || target.IsDead || !caster.IsEnemy(target))
 			{
 				caster.ServerMessage(Localization.Get("No target to brand."));
+				Send.ZC_SKILL_DISABLE(caster);
 				return;
 			}
 
 			if (!caster.TrySpendSp(skill))
 			{
 				caster.ServerMessage(Localization.Get("Not enough SP."));
+				Send.ZC_SKILL_DISABLE(caster);
 				return;
 			}
 
