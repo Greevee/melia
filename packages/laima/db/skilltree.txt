@@ -580,6 +580,7 @@
 { jobId: 4019, skillId: 41702, skillName: "Immolation", unlockLevel: 1, maxLevel: 10 },
 { jobId: 4019, skillId: 41703, skillName: "Beady Eyed", unlockLevel: 1, maxLevel: 10 },
 { jobId: 4019, skillId: 41704, skillName: "Fanaticism ", unlockLevel: 1, maxLevel: 10 },
+{ jobId: 4019, skillId: 41705, skillName: "Fanatic Illusion", unlockLevel: 16, maxLevel: 10 },
 { jobId: 4019, skillId: 41706, skillName: "Blind Faith", unlockLevel: 16, maxLevel: 10 },
 { jobId: 4019, skillId: 41707, skillName: "Emphatic Trust", unlockLevel: 31, maxLevel: 10 },
 { jobId: 4020, skillId: 41801, skillName: "Rubric", unlockLevel: 1, maxLevel: 10 },

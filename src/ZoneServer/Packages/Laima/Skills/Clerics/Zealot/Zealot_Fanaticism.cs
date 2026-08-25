@@ -64,14 +64,26 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			{
 				this.PayHealth(caster);
 				ZealotBurnFloor.AddStacks(caster, MinFloorStacks);
+				this.GrantZealRush(skill, caster);
 				Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0, $"-10% HP  (+{MinFloorStacks} Fanaticism)");
 				return;
 			}
 
 			var newFloor = ZealotBurnFloor.Shift(caster, -ZealotBurnFloor.Step);
 			ZealotBurnFloor.AddStacks(caster, 1);
+			this.GrantZealRush(skill, caster);
 
 			Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0, $"Burn Floor {newFloor}%  (+1 Fanaticism)");
+		}
+
+		/// <summary>
+		/// A short attack-speed rush on every use, so the press has an
+		/// immediate feel. PLACEHOLDER duration; design idea on file: an
+		/// ability later toggles stacks vs. rush (see Zeal_Rush_Buff).
+		/// </summary>
+		private void GrantZealRush(Skill skill, ICombatEntity caster)
+		{
+			caster.StartBuff(BuffId.BeadyEyed_Buff, skill.Level, 0f, TimeSpan.FromSeconds(3), caster, skill.Id);
 		}
 
 		/// <summary>
