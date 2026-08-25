@@ -137,11 +137,13 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 
 		/// <summary>
 		/// Plays one pulse of the burning-body fire at the entity, sized by
-		/// the current floor (floor 80 -> 1.6, floor 20 -> 4.0).
+		/// the current floor (floor 80 -> 0.45, floor 20 -> 1.05). Pulses
+		/// outlive the tick interval slightly, so they read as one steady
+		/// small flame rather than discrete bursts.
 		/// </summary>
 		public static void PulseAuraVisual(ICombatEntity entity, int floor)
 		{
-			var scale = 0.6f + (Max - floor) * 0.05f;
+			var scale = 0.25f + (Max - floor) * 0.01f;
 			_ = entity.PlayEffectToGround(AuraEffectName, entity.Position, scale, duration: 1.2f);
 		}
 

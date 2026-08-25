@@ -80,21 +80,20 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		}
 
 		/// <summary>
-		/// PoC: a fire patch on the ground at the caster, growing the deeper
-		/// the burn floor sits. Visual only for now — once the look is
-		/// approved, a pad will carry a matching damage area (growing with
-		/// Fanaticism uses, per the design).
-		/// Values deliberately oversized: floor 100 -> 2.0, floor 20 -> 8.4.
+		/// A fire patch on the ground at the caster, growing the deeper the
+		/// burn floor sits (floor 100 -> 0.8, floor 20 -> 2.4). Visual only
+		/// for now — once the look is approved, a pad will carry a matching
+		/// damage area (growing with Fanaticism uses, per the design).
 		/// </summary>
 		private void SpawnCastFire(ICombatEntity caster, Position originPos)
 		{
 			var floor = ZealotBurnFloor.Get(caster);
-			var scale = 2f + (ZealotBurnFloor.Max - floor) * 0.08f;
+			var scale = 0.8f + (ZealotBurnFloor.Max - floor) * 0.02f;
 
 			// Duration is in seconds on this client (matches the >testeffect
 			// command's semantics). Effect names must exist in the packet
 			// string db (see ZealotBurnFloor.AuraEffectName remarks).
-			_ = caster.PlayEffectToGround("F_archer_MagicArrow_ground_fire_loop", originPos, scale, duration: 8f);
+			_ = caster.PlayEffectToGround("F_archer_MagicArrow_ground_fire_loop", originPos, scale, duration: 5f);
 		}
 
 		/// <summary>
