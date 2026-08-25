@@ -133,11 +133,12 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// verified to render on this client build: AttachEffect is a no-op
 		/// and AddEffect/RemoveEffectByName are accepted but draw nothing.
 		/// </remarks>
-		public const string AuraEffectName = "E_pc_debuff_fire";
+		public const string AuraEffectName = "I_sphere009_fire";
 
 		/// <summary>
 		/// Plays one pulse of the burning-body fire on the entity, sized by
-		/// the current floor (floor 80 -> 0.45, floor 20 -> 1.05).
+		/// the current floor: 0.5 at ignition (floor 80), growing linearly
+		/// to 1.5 at the deepest floor (20).
 		/// </summary>
 		/// <remarks>
 		/// PlayEffect binds to the actor handle, so the flame moves with the
@@ -147,7 +148,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// </remarks>
 		public static void PulseAuraVisual(ICombatEntity entity, int floor)
 		{
-			var scale = 0.25f + (Max - floor) * 0.01f;
+			var scale = Math.Clamp(0.5f + (Ignition - floor) / 60f, 0.5f, 1.5f);
 			entity.PlayEffect(AuraEffectName, scale);
 		}
 
