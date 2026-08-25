@@ -140,16 +140,23 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// the current floor: 0.5 at ignition (floor 80), growing linearly
 		/// to 1.5 at the deepest floor (20).
 		/// </summary>
+		/// <summary>
+		/// The skeleton node the flame is attached to. Dummy_body is the
+		/// torso: it follows the character without the wild spinning that
+		/// hand bones add while running.
+		/// </summary>
+		public const string AuraNodeName = "Dummy_body";
+
 		/// <remarks>
-		/// PlayEffect binds to the actor handle, so the flame moves with the
-		/// character instead of dropping zones behind it. It has no duration
-		/// parameter — each pulse plays the effect's natural (pretty) intro,
-		/// and the per-second respawn from WhileActive loops exactly that.
+		/// PlayEffectNode attaches the pulse to a skeleton node, so the flame
+		/// truly moves with the model (plain PlayEffect renders at the spawn
+		/// position instead). One pulse per aura tick; the effect is a
+		/// one-shot and ends on its own.
 		/// </remarks>
 		public static void PulseAuraVisual(ICombatEntity entity, int floor)
 		{
 			var scale = Math.Clamp(0.5f + (Ignition - floor) / 60f, 0.5f, 1.5f);
-			entity.PlayEffect(AuraEffectName, scale);
+			entity.PlayEffectNode(AuraEffectName, scale, AuraNodeName);
 		}
 
 		/// <summary>
