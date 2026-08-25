@@ -36,7 +36,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Archer
 			skill.IncreaseOverheat();
 			caster.SetAttackState(true);
 
-			var duration = TimeSpan.FromSeconds(300);
+			var duration = TimeSpan.FromMinutes(30);
 
 			if (caster.TryGetActiveAbilityLevel(AbilityId.Archer39, out _))
 				duration = TimeSpan.FromSeconds(5);

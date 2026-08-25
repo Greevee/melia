@@ -55,7 +55,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Monk
 		private async Task HandleSkill(ICombatEntity caster, Skill skill, Position originPos, Position farPos)
 		{
 			await skill.Wait(TimeSpan.FromMilliseconds(700));
-			caster.StartBuff(BuffId.Ironskin_Buff, skill.Level, 0, TimeSpan.FromMilliseconds(300000), caster);
+			caster.StartBuff(BuffId.Ironskin_Buff, skill.Level, 0, TimeSpan.FromMinutes(30), caster);
 		}
 	}
 }

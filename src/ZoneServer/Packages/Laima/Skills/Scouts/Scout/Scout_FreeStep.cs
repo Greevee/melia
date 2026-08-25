@@ -34,7 +34,7 @@ namespace Melia.Zone.Skills.Handlers.Scouts.Scout
 			skill.IncreaseOverheat();
 			caster.SetAttackState(true);
 
-			var duration = TimeSpan.FromSeconds(300);
+			var duration = TimeSpan.FromMinutes(30);
 			caster.StartBuff(BuffId.FreeStep_Buff, skill.Level, 0, duration, caster);
 
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, originPos);

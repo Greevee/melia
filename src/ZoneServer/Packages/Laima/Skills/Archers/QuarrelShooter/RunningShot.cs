@@ -37,7 +37,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.QuarrelShooter
 			caster.SetAttackState(true);
 
 			Send.ZC_SKILL_MELEE_TARGET(caster, skill, caster);
-			caster.StartBuff(BuffId.RunningShot_Buff, skill.Level, skill.SkillFactor, TimeSpan.FromSeconds(300), caster);
+			caster.StartBuff(BuffId.RunningShot_Buff, skill.Level, skill.SkillFactor, TimeSpan.FromMinutes(30), caster);
 		}
 	}
 }

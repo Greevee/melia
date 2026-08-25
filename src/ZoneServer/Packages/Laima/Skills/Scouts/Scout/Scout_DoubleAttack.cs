@@ -36,7 +36,7 @@ namespace Melia.Zone.Skills.Handlers.Scouts.Scout
 			skill.IncreaseOverheat();
 			caster.SetAttackState(true);
 
-			var duration = TimeSpan.FromSeconds(300);
+			var duration = TimeSpan.FromMinutes(30);
 			var doubleHitChance = 25f + skill.Level * 5f;
 
 			var SCR_Get_AbilityReinforceRate = ScriptableFunctions.Skill.Get("SCR_Get_AbilityReinforceRate");

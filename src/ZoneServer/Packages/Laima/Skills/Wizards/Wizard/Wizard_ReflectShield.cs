@@ -41,7 +41,7 @@ namespace Melia.Zone.Skills.Handlers.Wizards.Wizard
 			if (caster.TryGetAbility(AbilityId.Wizard26, out var ability))
 				abilityLevel = ability.Level;
 
-			var duration = TimeSpan.FromSeconds(300);
+			var duration = TimeSpan.FromMinutes(30);
 			target.StartBuff(BuffId.ReflectShield_Buff, skill.Level, abilityLevel, duration, caster);
 
 			Send.ZC_SKILL_MELEE_TARGET(caster, skill, target, null);

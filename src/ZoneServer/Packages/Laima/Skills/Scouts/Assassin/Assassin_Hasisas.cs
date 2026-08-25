@@ -18,7 +18,7 @@ namespace Melia.Zone.Skills.Handlers.Scouts.Assassin
 	public class Assassin_HasisasOverride : IGroundSkillHandler
 	{
 		private const int HasisasPotionId = 647010;
-		private static readonly TimeSpan BuffDuration = TimeSpan.FromMinutes(5);
+		private static readonly TimeSpan BuffDuration = TimeSpan.FromMinutes(30);
 
 		/// <summary>
 		/// Handles skill, applying the buff to the caster.

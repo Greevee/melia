@@ -46,7 +46,7 @@ namespace Melia.Zone.Skills.Handlers.Archers.Archer
 			skill.IncreaseOverheat();
 			caster.SetAttackState(true);
 
-			var duration = TimeSpan.FromSeconds(300);
+			var duration = TimeSpan.FromMinutes(30);
 			caster.StartBuff(BuffId.SwiftStep_Buff, skill.Level, 0, duration, caster);
 
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
