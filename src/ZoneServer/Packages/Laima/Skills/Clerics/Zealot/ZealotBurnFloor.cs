@@ -144,7 +144,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		public static void PulseAuraVisual(ICombatEntity entity, int floor)
 		{
 			var scale = 0.25f + (Max - floor) * 0.01f;
-			_ = entity.PlayEffectToGround(AuraEffectName, entity.Position, scale, duration: 1.0f);
+			_ = entity.PlayEffectToGround(AuraEffectName, entity.Position, scale, duration: 1000f);
 		}
 
 		/// <summary>

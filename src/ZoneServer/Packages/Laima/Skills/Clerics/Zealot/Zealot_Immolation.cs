@@ -93,7 +93,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			// Duration is in seconds on this client (matches the >testeffect
 			// command's semantics). Effect names must exist in the packet
 			// string db (see ZealotBurnFloor.AuraEffectName remarks).
-			_ = caster.PlayEffectToGround(ZealotBurnFloor.AuraEffectName, originPos, scale, duration: 1.0f);
+			_ = caster.PlayEffectToGround(ZealotBurnFloor.AuraEffectName, originPos, scale, duration: 1000f);
 		}
 
 		/// <summary>
