@@ -102,7 +102,10 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			// Duration is in MILLISECONDS here: PlayEffectToGround uses the
 			// actor overload of PlayEffectAtPosition, which divides by 1000
 			// (the conn overload behind >testeffect takes seconds instead).
-			_ = caster.PlayEffectToGround("F_wizard_prominence_ground", originPos, scale, duration: 1000f);
+			// Cast visual: the fire pillar, for comparison against the flat
+			// prominence ground (F_wizard_prominence_ground) - swap back if
+			// the pillar loses.
+			_ = caster.PlayEffectToGround("F_archer_MagicArrow_ground_fire_loop", originPos, scale, duration: 1000f);
 		}
 
 		/// <summary>
