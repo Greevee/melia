@@ -136,15 +136,19 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		public const string AuraEffectName = "F_wizard_prominence_ground";
 
 		/// <summary>
-		/// Plays one pulse of the burning-body fire at the entity, sized by
-		/// the current floor (floor 80 -> 0.45, floor 20 -> 1.05). Each pulse is cut
-		/// after one second: the effect animation is only pretty for its
-		/// first second, and the per-second respawn loops exactly that part.
+		/// Plays one pulse of the burning-body fire on the entity, sized by
+		/// the current floor (floor 80 -> 0.45, floor 20 -> 1.05).
 		/// </summary>
+		/// <remarks>
+		/// PlayEffect binds to the actor handle, so the flame moves with the
+		/// character instead of dropping zones behind it. It has no duration
+		/// parameter — each pulse plays the effect's natural (pretty) intro,
+		/// and the per-second respawn from WhileActive loops exactly that.
+		/// </remarks>
 		public static void PulseAuraVisual(ICombatEntity entity, int floor)
 		{
 			var scale = 0.25f + (Max - floor) * 0.01f;
-			_ = entity.PlayEffectToGround(AuraEffectName, entity.Position, scale, duration: 1000f);
+			entity.PlayEffect(AuraEffectName, scale);
 		}
 
 		/// <summary>
