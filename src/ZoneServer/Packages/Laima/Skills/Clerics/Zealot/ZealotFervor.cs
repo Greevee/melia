@@ -12,16 +12,18 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	/// place so every skill agrees on how stacks are counted and consumed.
 	/// </summary>
 	/// <remarks>
-	/// Rides on the unused BrambleRage buff ("Lunacy", renamed client-side),
-	/// which is already permanent and, via buffs_overrides, capped at 20
-	/// stacks, showing a stack count on the buff icon.
+	/// Rides on the unused Fanaticism_Zealot12_Buff ("Price of Sacrifice",
+	/// renamed client-side), permanent and capped at 20 stacks via
+	/// buffs_overrides. The previous carrier, BrambleRage ("Lunacy"), made
+	/// the client pulse a glow on the character for as long as the buff was
+	/// active - hardwired to that buff, independent of updates.
 	/// </remarks>
 	public static class ZealotFervor
 	{
 		/// <summary>
 		/// The buff carrying the stacks.
 		/// </summary>
-		public const BuffId FervorBuff = BuffId.BrambleRage;
+		public const BuffId FervorBuff = BuffId.Fanaticism_Zealot12_Buff;
 
 		/// <summary>
 		/// Matches overBuff in the buff db entry.
