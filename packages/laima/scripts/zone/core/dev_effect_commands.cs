@@ -11,8 +11,8 @@
 //---------------------------------------------------------------------------
 
 using System.Globalization;
-using Melia.Zone.Commands;
 using Melia.Zone.Scripting;
+using Yggdrasil.Util.Commands;
 using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.Characters;
 using static Melia.Zone.Scripting.Shortcuts;
