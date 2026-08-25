@@ -125,7 +125,13 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			if (burn <= 0)
 				return;
 
-			character.ModifyHp(-burn);
+			// ModifyHp would send ZC_ADD_HP, which the client answers with
+			// its damage-taken flash - the whole character blinking brighter
+			// once per second (vanilla Immolation has the same tell). The
+			// safe variant plus a plain status update moves the HP bar
+			// without triggering that feedback.
+			character.ModifyHpSafe(-burn, out _, out var priority);
+			Send.ZC_UPDATE_ALL_STATUS(character, priority);
 		}
 
 		/// <summary>
