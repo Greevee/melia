@@ -53,6 +53,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
 
 			this.LightAura(skill, caster);
+			this.SpawnCastFire(caster, originPos);
 
 			var splashParam = skill.GetSplashParameters(caster, originPos, farPos, SplashLength, SplashWidth, angle: 0);
 			var splashArea = skill.GetSplashArea(SplashType.Circle, splashParam);
@@ -76,6 +77,21 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 
 			caster.StartBuff(BuffId.Immolation_Self_Buff, skill.Level, 0f, AuraDuration, caster, skill.Id);
 			ZealotBurnFloor.Set(caster, ZealotBurnFloor.Ignition);
+		}
+
+		/// <summary>
+		/// PoC: a fire patch on the ground at the caster, growing the deeper
+		/// the burn floor sits. Visual only for now — once the look is
+		/// approved, a pad will carry a matching damage area (growing with
+		/// Fanaticism uses, per the design).
+		/// Values deliberately oversized: floor 100 -> 2.0, floor 20 -> 8.4.
+		/// </summary>
+		private void SpawnCastFire(ICombatEntity caster, Position originPos)
+		{
+			var floor = ZealotBurnFloor.Get(caster);
+			var scale = 2f + (ZealotBurnFloor.Max - floor) * 0.08f;
+
+			_ = caster.PlayEffectToGround("F_fire027_3", originPos, scale, duration: 5000f);
 		}
 
 		/// <summary>

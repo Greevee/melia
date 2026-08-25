@@ -63,6 +63,13 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 
 		private const string TickVar = "Immolation.Tick";
 
+		public override void OnEnd(Buff buff)
+		{
+			// The burning-body visual is attached/rescaled by
+			// ZealotBurnFloor.UpdateAuraVisual whenever the floor changes.
+			Send.ZC_NORMAL.RemoveEffectByName(buff.Target, ZealotBurnFloor.AuraEffectName, true);
+		}
+
 		public override void WhileActive(Buff buff)
 		{
 			var target = buff.Target;

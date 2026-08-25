@@ -1,5 +1,6 @@
 using System;
 using Melia.Shared.Game.Const;
+using Melia.Zone.Network;
 using Melia.Zone.World.Actors;
 
 namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
@@ -119,6 +120,27 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 
 			aura.OverbuffCounter = floor;
 			aura.NotifyUpdate();
+
+			UpdateAuraVisual(entity, floor);
+		}
+
+		/// <summary>
+		/// The flame attached to a burning Zealot. PoC values, deliberately
+		/// oversized: the deeper the floor, the bigger the fire.
+		/// </summary>
+		public const string AuraEffectName = "F_buff_basic017_orange_fire";
+
+		/// <summary>
+		/// Attaches (or rescales) the burning-body effect to match the
+		/// current floor. Detach happens in the buff handler's OnEnd.
+		/// </summary>
+		public static void UpdateAuraVisual(ICombatEntity entity, int floor)
+		{
+			// PoC scaling: floor 80 -> 2.0, floor 20 -> 5.0.
+			var scale = 1f + (Max - floor) * 0.05f;
+
+			Send.ZC_NORMAL.RemoveEffectByName(entity, AuraEffectName, true);
+			Send.ZC_NORMAL.AttachEffect(entity, AuraEffectName, scale, EffectLocation.Bottom);
 		}
 
 		/// <summary>
