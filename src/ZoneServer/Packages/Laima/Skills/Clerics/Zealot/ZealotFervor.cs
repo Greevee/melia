@@ -54,6 +54,13 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		{
 			if (entity.TryGetBuff(FervorBuff, out var buff))
 			{
+				// Stop at the cap, and only notify when the visible count
+				// actually changes: every buff update makes the client play
+				// its refresh feedback, which reads as the character blinking
+				// once per second while the aura builds stacks.
+				if (buff.OverbuffCounter >= MaxStacks)
+					return;
+
 				buff.IncreaseOverbuff();
 				buff.NotifyUpdate();
 				return;
