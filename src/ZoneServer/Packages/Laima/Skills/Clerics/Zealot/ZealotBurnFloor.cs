@@ -96,10 +96,21 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			=> Math.Clamp((int)entity.GetTempVar(StacksVar), 0, MaxFanaticismStacks);
 
 		/// <summary>
+		/// The buff carrying the Fanaticism stack display, so the stacks
+		/// show in the buff window with icon and counter, Frenzy-style.
+		/// Display only — the authoritative count lives in the temp var.
+		/// </summary>
+		public const BuffId StackBuff = BuffId.Fanaticism_Buff;
+
+		/// <summary>
 		/// Adds Fanaticism stacks, up to the cap.
 		/// </summary>
 		public static void AddStacks(ICombatEntity entity, int amount)
-			=> entity.SetTempVar(StacksVar, Math.Min(MaxFanaticismStacks, GetStacks(entity) + amount));
+		{
+			var stacks = Math.Min(MaxFanaticismStacks, GetStacks(entity) + amount);
+			entity.SetTempVar(StacksVar, stacks);
+			ShowStacks(entity, stacks);
+		}
 
 		/// <summary>
 		/// Removes all Fanaticism stacks and returns how many there were,
@@ -109,7 +120,33 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		{
 			var stacks = GetStacks(entity);
 			entity.SetTempVar(StacksVar, 0);
+			ShowStacks(entity, 0);
 			return stacks;
+		}
+
+		/// <summary>
+		/// Mirrors the stack count onto the display buff: started with the
+		/// first stack, counter updated on change, removed at zero.
+		/// </summary>
+		private static void ShowStacks(ICombatEntity entity, int stacks)
+		{
+			if (stacks <= 0)
+			{
+				entity.StopBuff(StackBuff);
+				return;
+			}
+
+			if (!entity.TryGetBuff(StackBuff, out var buff))
+			{
+				entity.StartBuff(StackBuff, 1, 0f, TimeSpan.Zero, entity, SkillId.Zealot_Fanaticism);
+				entity.TryGetBuff(StackBuff, out buff);
+			}
+
+			if (buff == null)
+				return;
+
+			buff.OverbuffCounter = stacks;
+			buff.NotifyUpdate();
 		}
 
 		/// <summary>

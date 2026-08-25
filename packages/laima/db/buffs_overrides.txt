@@ -192,4 +192,7 @@
 // carries the Fervor resource, capped at 20 stacks.
 { id: 2136, className: "Immolation_Self_Buff", duration: 0, overBuff: 100 },
 { id: 258, className: "BrambleRage", overBuff: 20 },
+// Zealot rework: Fanaticism stack display, mirrored from the TempVar by
+// ZealotBurnFloor (display only, no handler).
+{ id: 2104, className: "Fanaticism_Buff", duration: 0, overBuff: 10 },
 ]
