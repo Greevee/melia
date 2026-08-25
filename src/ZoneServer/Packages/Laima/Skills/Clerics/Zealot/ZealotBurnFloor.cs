@@ -133,7 +133,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// verified to render on this client build: AttachEffect is a no-op
 		/// and AddEffect/RemoveEffectByName are accepted but draw nothing.
 		/// </remarks>
-		public const string AuraEffectName = "F_archer_MagicArrow_ground_fire_loop";
+		public const string AuraEffectName = "F_wizard_FlameGround_loop";
 
 		/// <summary>
 		/// Plays one pulse of the burning-body fire at the entity, sized by
