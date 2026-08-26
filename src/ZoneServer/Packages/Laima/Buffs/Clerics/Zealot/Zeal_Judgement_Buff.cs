@@ -18,8 +18,8 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 	/// Handler for the Zeal judgement state (riding on FanaticIllusion_Buff).
 	/// While it lasts, every attack the Zealot makes deals Holy property
 	/// damage, and every second one Fanaticism stack burns away in a holy
-	/// pulse around the Zealot. The state ends when the stacks run out.
-	/// PLACEHOLDER values throughout.
+	/// pulse that judges the nearest enemies. The state ends when the
+	/// stacks run out. PLACEHOLDER values throughout.
 	/// </summary>
 	[Package("laima")]
 	[BuffHandler(BuffId.FanaticIllusion_Buff)]
@@ -31,9 +31,14 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		private const float PulseRange = 60f;
 
 		/// <summary>
-		/// Share of a normal skill hit each pulse deals. PLACEHOLDER.
+		/// The judgement focuses: each pulse strikes only the nearest few
+		/// enemies, harder per target — Zeal is the single-target spender,
+		/// the Immolate burst is the pack spender. PLACEHOLDER values.
+		/// PulseTargets is shown via captionRatio2 in skills_overrides.txt —
+		/// keep the two in sync.
 		/// </summary>
-		private const float PulseFactor = 0.5f;
+		private const int PulseTargets = 2;
+		private const float PulseFactor = 0.75f;
 
 		public override void WhileActive(Buff buff)
 		{
@@ -61,7 +66,9 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			if (!caster.TryGetSkill(buff.SkillId, out var skill))
 				return;
 
-			var enemies = caster.Map.GetAttackableEnemiesInPosition(caster, caster.Position, PulseRange).ToList();
+			// Distance-ordered, so the judgement always falls on whatever
+			// stands closest to the Zealot.
+			var enemies = caster.Map.GetAttackableEnemiesInPosition(caster, caster.Position, PulseRange).Take(PulseTargets).ToList();
 			if (enemies.Count == 0)
 				return;
 
