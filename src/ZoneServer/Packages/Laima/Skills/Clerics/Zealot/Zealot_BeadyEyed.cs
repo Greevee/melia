@@ -1,23 +1,25 @@
 using System;
+using System.Threading.Tasks;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.Packages;
 using Melia.Shared.World;
 using Melia.Zone.Network;
+using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
 using Melia.Zone.World.Actors;
+using static Melia.Zone.Skills.SkillUseFunctions;
 
 namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 {
 	/// <summary>
 	/// Handler for the Zealot skill Beady Eyed, reworked into
 	/// "Brand the Heretic".
-	/// Per the concept (Zealot_Rework_Konzept.xlsx v1.0): teleports the
-	/// Zealot behind the target and marks it as a heretic. The next Zealot
-	/// hit against the marked target is empowered; a marked target that dies
-	/// grants Fervor. Against bosses the Fervor is granted once when the
-	/// empowered hit triggers instead — both live in the mark's buff handler
-	/// (Heretic_Brand_Debuff).
+	/// Teleports the Zealot behind the target, marks it as a heretic and
+	/// strikes it — a single medium hit, deliberately no AoE. The next
+	/// Zealot hit against the marked target is empowered; a marked target
+	/// that dies grants Fanaticism stacks (bosses pay on the empowered hit)
+	/// — both live in the mark's buff handler (Heretic_Brand_Debuff).
 	/// </summary>
 	[Package("laima")]
 	[SkillHandler(SkillId.Zealot_BeadyEyed)]
@@ -58,12 +60,35 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, target.Handle, originPos, originPos.GetDirection(farPos), Position.Zero);
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
 
-			// Appear behind the target, facing it.
+			// Appear behind the target.
 			var behindPos = target.Position.GetRelative(target.Direction.Backwards, BlinkDistance);
 			caster.Position = behindPos;
 			Send.ZC_SET_POS(caster, behindPos);
 
 			target.StartBuff(BuffId.BeadyEyed_Debuff, skill.Level, 0f, MarkDuration, caster, skill.Id);
+
+			skill.Run(this.Strike(skill, caster, target));
+		}
+
+		/// <summary>
+		/// The brand's own hit: one medium single-target strike (skill
+		/// factor from the db), landing right after the blink. Deliberately
+		/// not the empowered hit — that one belongs to whatever the Zealot
+		/// follows up with.
+		/// </summary>
+		private async Task Strike(Skill skill, ICombatEntity caster, ICombatEntity target)
+		{
+			await skill.Wait(TimeSpan.FromMilliseconds(150));
+
+			if (target.IsDead)
+				return;
+
+			var modifier = SkillModifier.Default;
+			var skillHitResult = SCR_SkillHit(caster, target, skill, modifier);
+			target.TakeDamage(skillHitResult.Damage, caster);
+
+			var skillHit = new SkillHitInfo(caster, target, skill, skillHitResult, TimeSpan.FromMilliseconds(50), TimeSpan.Zero);
+			Send.ZC_SKILL_HIT_INFO(caster, skillHit);
 		}
 	}
 }

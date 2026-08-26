@@ -70,6 +70,11 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			if (!skill.Data.ClassName.StartsWith("Zealot_"))
 				return;
 
+			// The branding strike itself must not consume its own fresh
+			// mark - the empowered hit belongs to the follow-up.
+			if (skill.Id == SkillId.Zealot_BeadyEyed)
+				return;
+
 			modifier.DamageMultiplier *= 1f + EmpoweredHitBonus;
 
 			// The mark is only flagged as spent rather than stopped here:
