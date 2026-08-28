@@ -706,10 +706,11 @@ namespace Melia.Shared
 			// Always write scripts_packages.txt (required by scripts.txt when
 			// no divert is active). Keep it empty since package scripts are
 			// loaded via the override/divert mechanism instead.
-			using (var writer = new StreamWriter(packagesListPath))
-			{
-				writer.WriteLine("// Auto-generated at startup. Do not edit.");
-			}
+			// Same concurrent-startup race as the override file below, and
+			// the same reasoning: the content is a fixed one-liner, so a
+			// competing writer's copy is ours.
+			if (!TryWriteScriptsOverride(packagesListPath, systemScriptDir, null))
+				Log.Warning("WritePackageScriptsList: another process is writing '{0}'; using the file it wrote.", packagesListPath);
 
 			// Collect packages that have scripts for this server type
 			var packageScriptEntries = new List<(string Name, string Path)>();
@@ -730,7 +731,81 @@ namespace Melia.Shared
 			}
 
 			// Generate scripts_override.txt that replaces the default
-			// scripts.txt via divert
+			// scripts.txt via divert.
+			//
+			// Two servers of the same type starting together (channel 1 and
+			// channel 2 of a zone) race for this file, and the loser used to
+			// throw an IOException out of LoadScripts, which then skipped
+			// LoadFromListFile entirely and booted with zero scripts. The
+			// symptom is remote from the cause: every character login then
+			// dies on "Scriptable character function 'SCR_Get_Character_MSPD'
+			// not found" and the client shows only its generic error.
+			//
+			// The content is fully determined by the enabled packages, so a
+			// concurrent writer is producing exactly this file. Losing the
+			// race is therefore harmless as long as the file is there, and
+			// the one thing that must not happen is aborting script loading.
+			if (!TryWriteScriptsOverride(overridePath, systemScriptDir, packageScriptEntries))
+				Log.Warning("WritePackageScriptsList: another process is writing '{0}'; using the file it wrote.", overridePath);
+		}
+
+		/// <summary>
+		/// Writes the override file, tolerating a concurrent writer. Returns
+		/// false if the file could not be written but already exists, and
+		/// rethrows if it is genuinely missing — booting with neither our
+		/// file nor anyone else's would silently load the wrong scripts.
+		/// </summary>
+		/// <param name="overridePath"></param>
+		/// <param name="systemScriptDir"></param>
+		/// <param name="packageScriptEntries"></param>
+		private static bool TryWriteScriptsOverride(string overridePath, string systemScriptDir, List<(string Name, string Path)> packageScriptEntries)
+		{
+			const int attempts = 5;
+			const int retryDelayMs = 100;
+
+			for (var attempt = 1; ; ++attempt)
+			{
+				try
+				{
+					WriteScriptsOverride(overridePath, systemScriptDir, packageScriptEntries);
+					return true;
+				}
+				catch (IOException)
+				{
+					if (attempt < attempts)
+					{
+						Thread.Sleep(retryDelayMs);
+						continue;
+					}
+
+					// Out of retries. Someone else's copy is as good as ours;
+					// no copy at all is not recoverable.
+					if (File.Exists(overridePath))
+						return false;
+
+					throw;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Writes the package script list to the override file. A null entry
+		/// list writes the header only, which is what scripts_packages.txt
+		/// needs.
+		/// </summary>
+		/// <param name="overridePath"></param>
+		/// <param name="systemScriptDir"></param>
+		/// <param name="packageScriptEntries"></param>
+		private static void WriteScriptsOverride(string overridePath, string systemScriptDir, List<(string Name, string Path)> packageScriptEntries)
+		{
+			if (packageScriptEntries == null)
+			{
+				using (var headerWriter = new StreamWriter(overridePath))
+					headerWriter.WriteLine("// Auto-generated at startup. Do not edit.");
+
+				return;
+			}
+
 			using (var writer = new StreamWriter(overridePath))
 			{
 				writer.WriteLine("// Auto-generated at startup. Do not edit.");
