@@ -17,15 +17,11 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 {
 	/// <summary>
 	/// Handler for the Zealot skill Emphatic Trust, reworked into "Pyre".
-	/// The kit's attack skill, and the only one whose size the player builds
-	/// themselves: the fire remembers every point of health it has taken
-	/// since the last Pyre, and this releases it as one lash for every 15%
-	/// of a life it has eaten, capped at six. Standing at your stage adds
-	/// nothing — the fire only feeds
-	/// while it actually eats, so being healed back up is what reloads this,
-	/// which is the whole trick of the class.
-	/// Firing empties the pyre, so every Pyre is paid for by the burning
-	/// that came before it.
+	/// The kit's payoff button: one lash of fire per Fanaticism stack, all
+	/// of them spent at once. The stacks decide how many times it hits, and
+	/// the health the fire has eaten since the last Pyre decides how hard
+	/// each one lands — so building stacks is the press and staying high
+	/// above your stage is the investment.
 	/// </summary>
 	[Package("laima")]
 	[SkillHandler(SkillId.Zealot_EmphasisTrust)]
@@ -34,18 +30,28 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		private const float StrikeRadius = 60f;
 
 		/// <summary>
-		/// Delay between the strikes, so a full pyre reads as a rain of fire
+		/// Delay between the lashes, so a full pyre reads as a rain of fire
 		/// rather than one lump of damage.
 		/// </summary>
 		private static readonly TimeSpan HitSpacing = TimeSpan.FromMilliseconds(120);
 
+		/// <summary>
+		/// The fire going up on the cast, and the column that lands on every
+		/// enemy each lash. Swap candidates, all registered in packetstrings:
+		/// F_explosion050_fire, F_explosion051_fire, F_burstup027_fire,
+		/// F_burstup036_fire, F_burstup040_fire, AerialExplosion_Fire_Orange_01.
+		/// Compare them in game with >testeffect &lt;name&gt; &lt;seconds&gt;.
+		/// </summary>
+		private const string CastEffectName = "F_explosion050_fire";
+		private const string LashEffectName = "F_burstup030_fire";
+
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
-			var hits = ZealotBurnFloor.GetPyreHits(caster);
+			var lashes = ZealotBurnFloor.GetStacks(caster);
 
-			if (hits <= 0)
+			if (lashes <= 0)
 			{
-				caster.ServerMessage(Localization.Get("The pyre is cold."));
+				caster.ServerMessage(Localization.Get("No Fanaticism to spend."));
 				Send.ZC_SKILL_DISABLE(caster);
 				return;
 			}
@@ -64,25 +70,29 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, target?.Handle ?? 0, originPos, originPos.GetDirection(farPos), Position.Zero);
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
 
-			ZealotBurnFloor.ConsumePyre(caster);
+			ZealotBurnFloor.ConsumeStacks(caster);
+			var bonus = ZealotBurnFloor.ConsumePyre(caster);
+
+			// One big answer where the Zealot is pointing, before the rain.
+			_ = caster.PlayEffectToGround(CastEffectName, farPos, 1.6f, duration: 1200f);
 
 			var splashParam = skill.GetSplashParameters(caster, originPos, farPos, StrikeRadius, StrikeRadius, angle: 0);
 			var splashArea = skill.GetSplashArea(SplashType.Circle, splashParam);
 
-			skill.Run(this.Strike(skill, caster, splashArea, hits));
+			skill.Run(this.Strike(skill, caster, splashArea, lashes, bonus));
 		}
 
 		/// <summary>
-		/// One ordinary skill hit per strike the pyre held. Ordinary is the
-		/// point: the damage runs through the normal pipeline with defence
-		/// and resistances, so a full pyre is a hard hit rather than a way
-		/// around the combat rules.
+		/// One ordinary skill hit per lash. Ordinary is the point: the damage
+		/// runs through the normal pipeline with defence and resistances, so
+		/// a full pyre is a hard hit rather than a way around the combat
+		/// rules.
 		/// </summary>
-		private async Task Strike(Skill skill, ICombatEntity caster, ISplashArea splashArea, int hits)
+		private async Task Strike(Skill skill, ICombatEntity caster, ISplashArea splashArea, int lashes, float bonus)
 		{
 			await skill.Wait(TimeSpan.FromMilliseconds(100));
 
-			for (var i = 0; i < hits; ++i)
+			for (var i = 0; i < lashes; ++i)
 			{
 				var targets = caster.Map.GetAttackableEnemiesIn(caster, splashArea);
 				var skillHits = new List<SkillHitInfo>();
@@ -91,19 +101,22 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 				{
 					var modifier = SkillModifier.Default;
 					modifier.AttackAttribute = AttributeType.Fire;
+					modifier.DamageMultiplier *= bonus;
 
 					var skillHitResult = SCR_SkillHit(caster, enemy, skill, modifier);
 					enemy.TakeDamage(skillHitResult.Damage, caster);
 
-					skillHits.Add(new SkillHitInfo(caster, enemy, skill, skillHitResult, TimeSpan.FromMilliseconds(50), TimeSpan.Zero));
+					skillHits.Add(new SkillHitInfo(caster, enemy, skill, skillHitResult, TimeSpan.Zero, TimeSpan.Zero));
+
+					// A column on each enemy each lash, so the number that
+					// pops has something to pop out of.
+					_ = caster.PlayEffectToGround(LashEffectName, enemy.Position, 1.1f, duration: 700f);
 				}
 
 				if (skillHits.Count > 0)
 					Send.ZC_SKILL_HIT_INFO(caster, skillHits);
 
-				_ = caster.PlayEffectToGround(ZealotBurnFloor.AuraEffectName, caster.Position, 1.2f, duration: 600f);
-
-				if (i < hits - 1)
+				if (i < lashes - 1)
 					await skill.Wait(HitSpacing);
 			}
 		}

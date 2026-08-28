@@ -267,12 +267,20 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		private const string PyreVar = "Zealot.Pyre";
 
 		/// <summary>
-		/// The share of maximum health one Pyre lash is worth, and how many
-		/// lashes one Pyre can hold. Six lashes was the point where Pyre
-		/// stopped being over half the class's damage. PLACEHOLDER values.
+		/// How hard a full life of burning makes each Pyre lash hit, and the
+		/// most the pyre is allowed to be worth. The lash *count* comes from
+		/// Fanaticism now — this is only how hard each one lands, which is
+		/// where staying high above the stage pays off: the more health the
+		/// fire actually ate, the heavier the answer. PLACEHOLDER values.
 		/// </summary>
-		public const float PyreSharePerHit = 0.15f;
-		public const int PyreMaxHits = 6;
+		public const float PyreDamagePerLife = 1.0f;
+		public const float PyreMaxLives = 1.0f;
+
+		/// <summary>
+		/// Resolution of the pyre readout: how many buff stacks one life of
+		/// burning is shown as.
+		/// </summary>
+		private const int PyreReadoutSteps = 10;
 
 		/// <summary>
 		/// The buff carrying the pyre readout, counting strikes ready rather
@@ -294,11 +302,11 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			if (maxHp <= 0)
 				return;
 
-			var ceiling = maxHp * PyreSharePerHit * PyreMaxHits;
+			var ceiling = maxHp * PyreMaxLives;
 			var burned = Math.Min(GetBurned(entity) + amount, ceiling);
 			entity.SetTempVar(PyreVar, burned);
 
-			ShowPyre(entity, GetPyreHits(entity));
+			ShowPyre(entity, GetPyreReadout(entity));
 		}
 
 		/// <summary>
@@ -308,19 +316,32 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			=> Math.Max(0f, entity.GetTempVar(PyreVar));
 
 		/// <summary>
-		/// How many strikes the pyre is worth right now.
+		/// How much harder every Pyre lash lands right now, as a plain
+		/// multiplier. One whole life burned doubles them.
 		/// </summary>
-		public static int GetPyreHits(ICombatEntity entity)
+		public static float GetPyreBonus(ICombatEntity entity)
+		{
+			var maxHp = entity.Properties.GetFloat(PropertyName.MHP);
+			if (maxHp <= 0)
+				return 1f;
+
+			var lives = Math.Clamp(GetBurned(entity) / maxHp, 0f, PyreMaxLives);
+
+			return 1f + lives * PyreDamagePerLife;
+		}
+
+		/// <summary>
+		/// The pyre as the buff bar shows it: tenths of a life eaten.
+		/// </summary>
+		private static int GetPyreReadout(ICombatEntity entity)
 		{
 			var maxHp = entity.Properties.GetFloat(PropertyName.MHP);
 			if (maxHp <= 0)
 				return 0;
 
-			var perHit = maxHp * PyreSharePerHit;
-			if (perHit <= 0)
-				return 0;
+			var lives = Math.Clamp(GetBurned(entity) / maxHp, 0f, PyreMaxLives);
 
-			return Math.Clamp((int)(GetBurned(entity) / perHit), 0, PyreMaxHits);
+			return (int)(lives * PyreReadoutSteps);
 		}
 
 		/// <summary>
@@ -328,19 +349,19 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// it is what resets the build-up, so every Pyre is paid for by the
 		/// burning that came before it.
 		/// </summary>
-		public static int ConsumePyre(ICombatEntity entity)
+		public static float ConsumePyre(ICombatEntity entity)
 		{
-			var hits = GetPyreHits(entity);
+			var bonus = GetPyreBonus(entity);
 
 			entity.SetTempVar(PyreVar, 0f);
 			ShowPyre(entity, 0);
 
-			return hits;
+			return bonus;
 		}
 
 		/// <summary>
-		/// Mirrors the strikes ready onto the readout buff, so the build-up
-		/// is visible instead of being a hidden number.
+		/// Mirrors the pyre onto the readout buff, so the build-up is visible
+		/// instead of being a hidden number.
 		/// </summary>
 		private static void ShowPyre(ICombatEntity entity, int hits)
 		{

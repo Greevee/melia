@@ -62,13 +62,13 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, target?.Handle ?? 0, originPos, originPos.GetDirection(farPos), Position.Zero);
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
 
-			// First cast only lights the flame; the bursts come after.
+			// Lighting the flame is itself a strike. It used to be a free
+			// press that dealt nothing, which meant every fight opened on a
+			// button that did not answer.
 			if (!caster.IsBuffActive(BuffId.Immolation_Self_Buff))
 			{
 				caster.StartBuff(BuffId.Immolation_Self_Buff, skill.Level, 0f, AuraDuration, caster, skill.Id);
 				ZealotBurnFloor.Set(caster, ZealotBurnFloor.Ignition);
-				this.SpawnCastFire(caster, originPos);
-				return;
 			}
 
 			var floor = ZealotBurnFloor.Get(caster);

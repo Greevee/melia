@@ -969,7 +969,7 @@
 { skillId: 41704, className: "Zealot_Fanaticism", name: "Fanaticism", basicSp: 90, splashRate: 0, factor: 100, cooldownTime: 15000, overheatCount: "1", captionRatio1: 25, captionRatio2: 25, captionRatio3: 25, captionTime: 10, basicCast: 0, enableCastMove: true },
 { skillId: 41705, className: "Zealot_FanaticIllusion", name: "Zeal", basicSp: 80, splashRate: 10, factor: 120, factorByLevel: 20, cooldownTime: 5000, overheatCount: "1", captionRatio1: 1, captionRatio2: 2, captionRatio3: 50 },
 { skillId: 41706, className: "Zealot_BlindFaith", name: "Blind Faith", splashRate: 0, factor: 0, factorByLevel: 0, cooldownTime: 2000, captionRatio1: 150, captionRatio2: 200, captionRatio3: 2 },
-{ skillId: 41707, className: "Zealot_EmphasisTrust", name: "Pyre", basicSp: 41, splashRate: 3, factor: 85, factorByLevel: 17, cooldownTime: 10000, overheatCount: "1", captionRatio1: 15, captionRatio2: 6 },
+{ skillId: 41707, className: "Zealot_EmphasisTrust", name: "Pyre", basicSp: 41, splashRate: 3, factor: 85, factorByLevel: 17, cooldownTime: 10000, overheatCount: "1", captionRatio1: 100 },
 { skillId: 41801, className: "Exorcist_Rubric", name: "Rubric", basicSp: 71, splashRate: 0, factor: 216, factorByLevel: 36, hitCount: 1, multiHitCount: 8, cooldownTime: 15000 },
 { skillId: 41802, className: "Exorcist_Entity", name: "Entity", basicSp: 56, splashRate: 0, factor: 162, factorByLevel: 27, hitCount: 1, multiHitCount: 2, cooldownTime: 10000, overheatCount: "3" },
 { skillId: 41803, className: "Exorcist_AquaBenedicta", name: "Aqua Benedicta", basicSp: 75, splashRate: 0, factor: 53, factorByLevel: 88, hitCount: 1, multiHitCount: 14, cooldownTime: 15000, overheatCount: "0" },
