@@ -53,6 +53,13 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// </summary>
 		private const float BurstDamagePerStack = 0.15f;
 
+		/// <summary>
+		/// Most stacks one burst may spend. Deliberately below the cap of
+		/// twenty: a full bar is worth a burst AND a state, so pressing
+		/// Immolate is no longer an all-or-nothing decision.
+		/// </summary>
+		private const int MaxBurstStacks = 10;
+
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
 			if (!caster.TrySpendSp(skill))
@@ -79,7 +86,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			}
 
 			var floor = ZealotBurnFloor.Get(caster);
-			var stacks = ZealotBurnFloor.ConsumeStacks(caster);
+			var stacks = ZealotBurnFloor.ConsumeStacks(caster, MaxBurstStacks);
 
 			this.SpawnCastFire(caster, originPos);
 

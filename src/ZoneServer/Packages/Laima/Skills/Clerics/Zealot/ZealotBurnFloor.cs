@@ -130,11 +130,22 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// so the Immolate burst can scale by what it consumed.
 		/// </summary>
 		public static int ConsumeStacks(ICombatEntity entity)
+			=> ConsumeStacks(entity, MaxFanaticismStacks);
+
+		/// <summary>
+		/// Spends at most the given number of stacks and returns how many
+		/// were actually spent, leaving the rest on the bar — a spender with
+		/// a cap cannot empty a full bar on its own.
+		/// </summary>
+		public static int ConsumeStacks(ICombatEntity entity, int max)
 		{
-			var stacks = GetStacks(entity);
-			entity.SetTempVar(StacksVar, 0);
-			ShowStacks(entity, 0);
-			return stacks;
+			var spent = Math.Min(GetStacks(entity), Math.Max(0, max));
+			var remaining = GetStacks(entity) - spent;
+
+			entity.SetTempVar(StacksVar, remaining);
+			ShowStacks(entity, remaining);
+
+			return spent;
 		}
 
 		/// <summary>
