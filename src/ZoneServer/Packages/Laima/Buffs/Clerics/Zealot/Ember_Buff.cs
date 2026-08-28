@@ -11,11 +11,10 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 	/// <summary>
 	/// Handler for the ember Temper the Flame leaves behind (riding on the
 	/// unused Fanaticism_Buff).
-	/// The flame is out and the Zealot is healed, but for a few seconds
-	/// they still hit as hard as they did while dying: the missing-health
-	/// bonus is frozen at the value it had the moment the fire went out.
-	/// Without that freeze the bonus would be meaningless here — Temper
-	/// heals the missing health away as it extinguishes.
+	/// The flame is out, but for a few seconds the Zealot still hits as
+	/// hard as they did at the stage they were burning in — the bonus is
+	/// frozen at the moment the fire went out, since Temper resets the
+	/// floor and would otherwise take it with it.
 	/// </summary>
 	[Package("laima")]
 	[BuffHandler(BuffId.Fanaticism_Buff)]
@@ -27,13 +26,13 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			if (!attacker.TryGetBuff(BuffId.Fanaticism_Buff, out var buff))
 				return;
 
-			// NumArg1 carries the missing-health percentage captured when the
+			// NumArg1 carries the stage bonus, in percent, captured when the
 			// flame was put out.
-			var missingPercent = buff.NumArg1;
-			if (missingPercent <= 0)
+			var bonusPercent = buff.NumArg1;
+			if (bonusPercent <= 0)
 				return;
 
-			modifier.DamageMultiplier *= 1f + missingPercent * Immolation_Self_BuffOverride.DamagePerMissingPercent;
+			modifier.DamageMultiplier *= 1f + bonusPercent / 100f;
 		}
 	}
 }

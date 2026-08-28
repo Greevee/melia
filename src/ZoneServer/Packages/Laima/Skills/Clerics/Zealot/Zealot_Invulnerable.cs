@@ -17,8 +17,8 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	/// burn state. The aura ends, the floor returns to ignition, every
 	/// Fanaticism stack is dropped, and health is restored up to the
 	/// ignition floor. The ember lingers: for ten seconds afterwards the
-	/// Zealot keeps the damage bonus they had at the moment the fire went
-	/// out, so retreating costs no offence right away (see Ember_Buff).
+	/// Zealot keeps the damage bonus of the stage they were in, so
+	/// retreating costs no offence right away (see Ember_Buff).
 	/// Only usable while the burn mode is active — there is nothing to put
 	/// out otherwise.
 	/// Note: the skill database lists this as useType "MeleeGround", but the
@@ -61,9 +61,9 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, 0, originPos, originPos.GetDirection(farPos), Position.Zero);
 			Send.ZC_SKILL_MELEE_TARGET(caster, skill, caster);
 
-			// Captured before the heal: the ember keeps the damage bonus the
-			// Zealot had while dying, and healing up would erase it.
-			var missingPercent = ZealotBurnFloor.GetMissingHpPercent(caster);
+			// Captured before the floor resets: the ember keeps the bonus of
+			// the stage the Zealot was standing in.
+			var stageBonus = ZealotBurnFloor.GetStageBonusPercent(ZealotBurnFloor.GetStage(caster));
 
 			// One press ends the burn state outright. Order matters: the heal
 			// reads the ignition floor, so the floor is reset first, and the
@@ -77,12 +77,12 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			// The fire is out, but the ember still burns: for a few seconds
 			// the Zealot keeps hitting as hard as they did while dying, so
 			// pulling out is not an instant loss of all offence.
-			if (missingPercent > 0)
-				caster.StartBuff(BuffId.Fanaticism_Buff, missingPercent, 0f, EmberDuration, caster, skill.Id);
+			if (stageBonus > 0)
+				caster.StartBuff(BuffId.Fanaticism_Buff, stageBonus, 0f, EmberDuration, caster, skill.Id);
 
 			Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0,
 				"The flame is out" + (healed > 0 ? $"  +{healed} HP" : "")
-				+ (missingPercent > 0 ? $"  (Ember +{(int)missingPercent}%)" : ""));
+				+ (stageBonus > 0 ? $"  (Ember +{(int)stageBonus}%)" : ""));
 		}
 
 		/// <summary>

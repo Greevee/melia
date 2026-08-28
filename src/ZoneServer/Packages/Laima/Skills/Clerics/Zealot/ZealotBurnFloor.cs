@@ -7,17 +7,17 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	/// <summary>
 	/// The burn floor: the share of maximum HP that Immolate burns the
 	/// Zealot down to, and the single number the kit revolves around.
-	/// Per the concept workbook (Zealot_Rework_Konzept.xlsx v1.0) the floor
-	/// runs in fixed steps 80 -> 60 -> 40: Fanaticism lowers it one step
-	/// and grants a Fanaticism stack; at the 40% minimum it instead costs
-	/// health directly and grants two stacks. Temper the Flame raises the
-	/// floor one step (ending the burn mode when used at the top step).
+	/// The floor runs in three stages — 75%, 50%, 25% — and the stage, not
+	/// current health, is what the damage bonus reads: committing deeper is
+	/// rewarded and staying alive up there is a support problem, not a
+	/// reason to lose the reward. Fanaticism steps down, Temper puts the
+	/// fire out.
 	/// </summary>
 	// Values shown in the tooltips come from the captionRatio fields of the
 	// Zealot skills in skills_overrides.txt — keep the two in sync:
-	// Immolate captionRatio2 = Ignition;
+	// Immolate captionRatio2 = Ignition, captionRatio1 = burn share;
 	// Fanaticism captionRatio1 = Step, captionRatio2 = Min;
-	// Temper the Flame captionRatio2 = Step.
+	// Temper the Flame captionRatio2 = Ignition.
 	public static class ZealotBurnFloor
 	{
 		private const string FloorVar = "Zealot.BurnFloor";
@@ -30,10 +30,10 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		public const int Ignition = 75;
 
 		/// <summary>
-		/// Lowest floor Fanaticism can settle on. One step, so the whole
-		/// ladder is 75 -> 50 and the flame alone tells them apart.
+		/// Lowest floor Fanaticism can settle on — the third and deepest
+		/// stage.
 		/// </summary>
-		public const int Min = 50;
+		public const int Min = 25;
 
 		/// <summary>
 		/// Step size for lowering (Fanaticism) and raising (Temper).
@@ -42,15 +42,16 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 
 		/// <summary>
 		/// The floor Fanaticism can dip to temporarily once it is already at
-		/// the minimum — one further step down, held only for the length of
-		/// the Fanaticism window and then released back to Min.
+		/// the minimum, held only for the length of the Fanaticism window
+		/// and then released back to Min. Not Min - Step: with three stages
+		/// that would be zero, and the dip is meant to hurt, not to kill.
 		/// </summary>
 		/// <remarks>
 		/// Only <see cref="Set"/> reaches this far down; <see cref="Shift"/>
 		/// still stops at Min, so the ordinary step-down cannot land here by
 		/// accident.
 		/// </remarks>
-		public const int TempMin = Min - Step;
+		public const int TempMin = 10;
 
 		/// <summary>
 		/// PLACEHOLDER (concept: "Stack-Cap noch offen") — generous cap,
@@ -232,10 +233,55 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// </param>
 		public static void PulseAuraVisual(ICombatEntity entity, float scaleFactor = 1f)
 		{
-			var hpPercent = 100f - GetMissingHpPercent(entity);
-			var scale = Math.Clamp(0.5f + (Ignition - hpPercent) * 0.025f, 0.5f, 2.0f);
+			// Sized by how deep the Zealot has committed, not by current
+			// health: with a healer keeping them up, stage three has to look
+			// like stage three.
+			var scale = StageFlameScale[GetStage(entity) - 1];
 			entity.PlayEffectNode(AuraEffectName, scale * FlameSizeFactor * scaleFactor, AuraNodeName);
 		}
+
+		/// <summary>
+		/// How many steps down the Zealot has committed: 1 at the ignition
+		/// floor, one more per step below it. Reads the floor, not current
+		/// health, so healing never takes the reward away.
+		/// </summary>
+		public static int GetStage(ICombatEntity entity)
+		{
+			var stage = (Ignition - Get(entity)) / Step + 1;
+
+			return Math.Clamp(stage, 1, StageCount);
+		}
+
+		/// <summary>
+		/// Number of stages the floor can reach: 75%, 50%, 25%.
+		/// </summary>
+		public const int StageCount = 3;
+
+		/// <summary>
+		/// Damage bonus per stage, applied to everything the burning Zealot
+		/// does. Deliberately steep at the last step, so committing all the
+		/// way is worth the danger. PLACEHOLDER values; mirrored into
+		/// Immolate's captionRatio2 for the tooltip.
+		/// </summary>
+		private static readonly float[] StageDamageBonus = { 0.20f, 0.50f, 1.00f };
+
+		/// <summary>
+		/// Flame size per stage — the visual tell for which stage is live.
+		/// </summary>
+		private static readonly float[] StageFlameScale = { 0.7f, 1.2f, 2.0f };
+
+		/// <summary>
+		/// The damage bonus the entity's current stage is worth.
+		/// </summary>
+		public static float GetStageBonus(ICombatEntity entity)
+			=> StageDamageBonus[GetStage(entity) - 1];
+
+		/// <summary>
+		/// The bonus of a given stage, as a percentage — for tooltips and
+		/// for the ember Temper freezes.
+		/// </summary>
+		public static float GetStageBonusPercent(int stage)
+			=> StageDamageBonus[Math.Clamp(stage, 1, StageCount) - 1] * 100f;
 
 		/// <summary>
 		/// The sparks thrown off an enemy struck by Zeal, so a fire hit

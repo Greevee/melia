@@ -44,6 +44,13 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		/// </summary>
 		private const int TicksPerSecond = 2;
 
+		/// <summary>
+		/// Fire resistance needed for the full mitigation below, and the
+		/// ceiling on it. PLACEHOLDER values.
+		/// </summary>
+		private const float ResFireForMaxMitigation = 2000f;
+		private const float MaxFireMitigation = 0.5f;
+
 		private const string TickVar = "Immolation.Tick";
 		private const string HurtVar = "Immolation.Hurt";
 
@@ -54,14 +61,6 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		/// Faith is needed. PLACEHOLDER magnitude.
 		/// </summary>
 		private const int StacksPerPain = 1;
-
-		/// <summary>
-		/// Damage bonus per percent of missing health while burning — the
-		/// class identity: 1% extra damage on everything per 1% missing HP.
-		/// Shared with the ember Temper leaves behind, so the two cannot
-		/// drift apart. PLACEHOLDER magnitude.
-		/// </summary>
-		public const float DamagePerMissingPercent = 0.01f;
 
 		/// <summary>
 		/// The burning aura around the Zealot: radius grows one step per
@@ -176,8 +175,9 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 
 		/// <summary>
 		/// The class damage bonus: everything the burning Zealot does hits
-		/// harder the more health they are missing. Riding on the Immolation
-		/// buff means it applies exactly while the flame is lit.
+		/// harder the deeper they have committed. Riding on the Immolation
+		/// buff means it applies exactly while the flame is lit; the values
+		/// per stage live in ZealotBurnFloor.
 		/// </summary>
 		[CombatCalcModifier(CombatCalcPhase.BeforeCalc, BuffId.Immolation_Self_Buff)]
 		public void OnAttackBeforeCalc(ICombatEntity attacker, ICombatEntity target, Skill skill, SkillModifier modifier, SkillHitResult skillHitResult)
@@ -185,11 +185,24 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			if (!attacker.IsBuffActive(BuffId.Immolation_Self_Buff))
 				return;
 
-			var missingPercent = ZealotBurnFloor.GetMissingHpPercent(attacker);
-			if (missingPercent <= 0)
-				return;
+			// Reads the stage, not current health: the reward is for how deep
+			// the Zealot committed, so a healer topping them up no longer
+			// takes it away.
+			modifier.DamageMultiplier *= 1f + ZealotBurnFloor.GetStageBonus(attacker);
+		}
 
-			modifier.DamageMultiplier *= 1f + missingPercent * DamagePerMissingPercent;
+		/// <summary>
+		/// How much of the self-burn the Zealot's fire resistance takes off.
+		/// Capped, so no amount of resistance makes burning free — the stage
+		/// bonus always has to be paid for. PLACEHOLDER values.
+		/// </summary>
+		private float GetFireMitigation(ICombatEntity target)
+		{
+			var resFire = target.Properties.GetFloat(PropertyName.ResFire, 0);
+			if (resFire <= 0)
+				return 0;
+
+			return Math.Clamp(resFire / ResFireForMaxMitigation, 0f, MaxFireMitigation);
 		}
 
 		/// <summary>
@@ -234,6 +247,13 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			// fast at first and eases off towards the floor, so descending
 			// always feels like the fire eating into you.
 			var burn = Math.Min(hp * BurnPerSecond, hp - Math.Max(floorHp, HpFloor));
+			if (burn <= 0)
+				return;
+
+			// The fire is fire: resistance to it makes the self-burn hurt
+			// less, which is what makes Immolate scale with gear and with
+			// the class's own fire-resist attribute.
+			burn *= 1f - this.GetFireMitigation(target);
 			if (burn <= 0)
 				return;
 
