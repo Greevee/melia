@@ -79,7 +79,10 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		}
 
 		/// <summary>
-		/// Healing per tick: SPR-driven, with a modest per-level bonus.
+		/// Healing per tick: a share of maximum health so the skill works on
+		/// the build the class actually has, plus SPR for players who choose
+		/// to invest in out-healing the burn, with a modest per-level bonus
+		/// on top of both.
 		/// </summary>
 		private float GetHealAmount(ICombatEntity caster, float skillLevel)
 		{
