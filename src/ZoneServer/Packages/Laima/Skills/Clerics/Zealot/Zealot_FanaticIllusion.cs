@@ -29,15 +29,16 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	{
 		private const float StrikeRadius = 50f;
 
+		/// <summary>
+		/// How long the amplifier holds after a press. Slightly longer than
+		/// the cooldown, so keeping Zeal up is a thing the player does with
+		/// their hands rather than a state that simply exists.
+		/// PLACEHOLDER.
+		/// </summary>
+		private static readonly TimeSpan ZealDuration = TimeSpan.FromSeconds(6);
+
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
-			if (ZealotBurnFloor.GetStacks(caster) <= 0)
-			{
-				caster.ServerMessage(Localization.Get("No Fanaticism to spend."));
-				Send.ZC_SKILL_DISABLE(caster);
-				return;
-			}
-
 			if (!caster.TrySpendSp(skill))
 			{
 				caster.ServerMessage(Localization.Get("Not enough SP."));
@@ -60,22 +61,11 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 				ZealotBurnFloor.Set(caster, ZealotBurnFloor.Ignition);
 			}
 
-			// Pressing Zeal costs fuel on top of the cooldown, so spamming
-			// the strike drains the very resource the state runs on.
-			ZealotBurnFloor.AddStacks(caster, -1);
-
-			// The burning state; it drains the stacks and ends itself when
-			// they are gone. Duration TimeSpan.Zero means no timer at all
-			// (Buff.HasDuration) — the stacks are the clock, which is what
-			// lets attacks during Zeal prolong it.
-			//
-			// Only started when it is not already running. Re-starting an
-			// active buff runs Buff.Activate, and its ExtendDuration pushes
-			// NextUpdateTime a full update period out; at a one-second
-			// cooldown that would postpone the stack drain forever and Zeal
-			// would never end. A re-press buys the strike, not a new state.
-			if (!caster.IsBuffActive(BuffId.FanaticIllusion_Buff))
-				caster.StartBuff(BuffId.FanaticIllusion_Buff, skill.Level, 0f, TimeSpan.Zero, caster, skill.Id);
+			// The amplifier runs on its own timer and every press refreshes
+			// it. Free of Fanaticism on purpose: the stacks are Pyre's lash
+			// count, so an amplifier that ate them would just be a worse
+			// Pyre. What Zeal costs is the cooldown and the press itself.
+			caster.StartBuff(BuffId.FanaticIllusion_Buff, skill.Level, 0f, ZealDuration, caster, skill.Id);
 
 			var splashParam = skill.GetSplashParameters(caster, originPos, farPos, StrikeRadius, StrikeRadius, angle: 0);
 			var splashArea = skill.GetSplashArea(SplashType.Circle, splashParam);

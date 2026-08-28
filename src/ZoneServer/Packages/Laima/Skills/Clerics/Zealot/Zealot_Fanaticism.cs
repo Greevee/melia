@@ -1,10 +1,12 @@
 using System;
+using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.Packages;
 using Melia.Shared.World;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Handlers.Base;
+using Melia.Zone.Skills.SplashAreas;
 using Melia.Zone.World.Actors;
 
 namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
@@ -30,6 +32,12 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// keep the two in sync.
 		/// </summary>
 		private static readonly TimeSpan RushDuration = TimeSpan.FromSeconds(10);
+
+		/// <summary>
+		/// How wide the flare reaches when the Zealot drops a stage.
+		/// PLACEHOLDER.
+		/// </summary>
+		private const float StrikeRadius = 60f;
 
 		/// <summary>
 		/// Seconds of invulnerability the Martyrdom attribute grants per of
@@ -70,8 +78,17 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			this.GrantZealRush(skill, caster);
 			this.GrantMartyrdom(skill, caster);
 
+			_ = caster.PlayEffectToGround("F_explosion050_fire", caster.Position, 1.4f, duration: 900f);
+
 			Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0,
 				stageNow > stageBefore ? $"Stage {stageNow}  ({newFloor}%)" : "Frenzy");
+
+			// Throwing yourself deeper makes the fire flare. Without this the
+			// press changed everything and showed nothing.
+			var splashParam = skill.GetSplashParameters(caster, originPos, farPos, StrikeRadius, StrikeRadius, angle: 0);
+			var splashArea = skill.GetSplashArea(SplashType.Circle, splashParam);
+
+			skill.Run(ZealotStrike.Sweep(skill, caster, splashArea, AttributeType.Fire));
 		}
 
 		/// <summary>

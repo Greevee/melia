@@ -39,13 +39,6 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		private const float BurstBaseRadius = 40f;
 		private const float BurstRadiusPerFloorPoint = 1f;
 
-		/// <summary>
-		/// Extra blast damage per consumed Fanaticism stack. The blast spends
-		/// the whole bar, so this is what banking stacks is worth.
-		/// PLACEHOLDER.
-		/// </summary>
-		private const float BurstDamagePerStack = 0.15f;
-
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
 			if (!caster.TrySpendSp(skill))
@@ -71,8 +64,10 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 				ZealotBurnFloor.Set(caster, ZealotBurnFloor.Ignition);
 			}
 
+			// Deliberately does not touch Fanaticism: the stacks are Pyre's
+			// lash count now, and a blast that emptied them would mean every
+			// Immolate silently cancelled a Pyre.
 			var floor = ZealotBurnFloor.Get(caster);
-			var stacks = ZealotBurnFloor.ConsumeStacks(caster);
 
 			this.SpawnCastFire(caster, originPos);
 
@@ -80,7 +75,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			var splashParam = skill.GetSplashParameters(caster, originPos, farPos, radius, radius, angle: 0);
 			var splashArea = skill.GetSplashArea(SplashType.Circle, splashParam);
 
-			skill.Run(this.Burst(skill, caster, splashArea, stacks));
+			skill.Run(this.Burst(skill, caster, splashArea));
 		}
 
 		/// <summary>
@@ -102,17 +97,12 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 
 		/// <summary>
 		/// The fire burst around the caster: the area comes from the stage,
-		/// the damage from the Fanaticism stacks it just consumed.
+		/// the damage is plain. This is the kit's reliable press — no
+		/// resource, no condition, just a blast every cooldown.
 		/// </summary>
-		private async Task Burst(Skill skill, ICombatEntity caster, ISplashArea splashArea, int stacks)
+		private async Task Burst(Skill skill, ICombatEntity caster, ISplashArea splashArea)
 		{
 			await skill.Wait(TimeSpan.FromMilliseconds(100));
-
-			// Depth is already paid for by the stage bonus every attack
-			// carries (Immolation_Self_Buff); paying for it a second time
-			// here made the blast impossible to explain in a tooltip. The
-			// stacks are the only thing this skill scales on itself.
-			var bonus = 1f + stacks * BurstDamagePerStack;
 
 			var targets = caster.Map.GetAttackableEnemiesIn(caster, splashArea);
 			var hits = new List<SkillHitInfo>();
@@ -120,7 +110,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			foreach (var enemy in targets.LimitBySDR(caster, skill))
 			{
 				var modifier = SkillModifier.Default;
-				modifier.DamageMultiplier *= bonus;
+				modifier.AttackAttribute = AttributeType.Fire;
 
 				var skillHitResult = SCR_SkillHit(caster, enemy, skill, modifier);
 				enemy.TakeDamage(skillHitResult.Damage, caster);

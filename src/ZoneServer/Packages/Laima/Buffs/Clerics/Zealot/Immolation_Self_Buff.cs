@@ -11,6 +11,7 @@ using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Clerics.Zealot;
 using Melia.Zone.World.Actors;
 using Melia.Zone.World.Actors.Characters;
+using Yggdrasil.Geometry.Shapes;
 using static Melia.Zone.Skills.SkillUseFunctions;
 
 namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
@@ -101,8 +102,69 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			ZealotBurnFloor.PulseAuraVisual(target, visualScale);
 
 			this.BurnTowardsFloor(target);
+			this.MendTowardsBalance(buff, target);
 			this.DealAuraDamage(buff, target);
 			this.BuildStacks(buff, target);
+		}
+
+		/// <summary>
+		/// Healing per second per point of SPR (the property table calls it
+		/// MNA), and the flat share of maximum health under it. This is the
+		/// counterweight to the burn and it runs on its own: the burn takes a
+		/// share of current health every second, so a heal that never stops
+		/// makes health settle instead of only falling. Where it settles is
+		/// the build decision — the tenfold of this number, raised further by
+		/// fire resistance. PLACEHOLDER magnitudes.
+		/// Shown in Blind Faith's tooltip via captionRatio1 and 3 in
+		/// skills_overrides.txt — keep the three in sync.
+		/// </summary>
+		private const float HealPerSpr = 1.5f;
+		private const float HealPerMaxHp = 0.01f;
+
+		/// <summary>
+		/// The share of the Zealot's own healing that reaches an ally. Half,
+		/// because this is a damage class borrowing a support tool.
+		/// PLACEHOLDER.
+		/// </summary>
+		private const float AllyHealShare = 0.5f;
+
+		/// <summary>
+		/// How far the mending reaches. PLACEHOLDER.
+		/// </summary>
+		private const float HealRadius = 200f;
+
+		/// <summary>
+		/// The faith that holds a burning Zealot together, ticking once a
+		/// second for as long as the flame is lit. It used to be a skill the
+		/// player had to hold up with a button and pay Fanaticism for, which
+		/// meant the equilibrium existed for half the time and cost the
+		/// resource Pyre needs. It is simply how the class works now.
+		/// </summary>
+		private void MendTowardsBalance(Buff buff, ICombatEntity target)
+		{
+			if (buff.Caster is not ICombatEntity caster)
+				return;
+
+			var maxHp = caster.Properties.GetFloat(PropertyName.MHP);
+			var spr = caster.Properties.GetFloat(PropertyName.MNA);
+
+			var heal = maxHp * HealPerMaxHp + spr * HealPerSpr;
+			if (heal <= 0)
+				return;
+
+			if (caster is Character character && caster.Hp < maxHp)
+				character.Heal(heal, 0);
+
+			var allyHeal = heal * AllyHealShare;
+			var area = new CircleF(caster.Position, HealRadius);
+
+			foreach (var ally in caster.Map.GetActorsIn<Character>(area))
+			{
+				if (ally == caster || ally.IsDead || !caster.IsAlly(ally))
+					continue;
+
+				ally.Heal(allyHeal, 0);
+			}
 		}
 
 		/// <summary>

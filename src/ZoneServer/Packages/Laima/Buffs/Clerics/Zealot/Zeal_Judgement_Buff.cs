@@ -20,9 +20,9 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 	/// Handler for the Zeal burning state (riding on FanaticIllusion_Buff).
 	/// Zeal is the amplifier: while it burns, the stage damage bonus counts
 	/// double and every attack the Zealot makes deals Fire property damage.
-	/// It costs one Fanaticism stack per second, and the stacks are its
-	/// clock — the burning itself pays part of that back, so at the deepest
-	/// stage Zeal can hold indefinitely while a shallower one runs dry.
+	/// It costs no Fanaticism at all: the stacks are Pyre's lash count, and
+	/// an amplifier that ate them would just be a worse Pyre. Zeal is paid
+	/// for by its cooldown and by having to be re-pressed.
 	/// The sharing art (Zealot16) turns it from a personal amplifier into a
 	/// party one: the doubling is dropped and every nearby ally carries part
 	/// of the stage bonus instead.
@@ -53,16 +53,9 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			if (target.IsDead || target is not ICombatEntity caster)
 				return;
 
-			// The state burns one stack per second; when the fuel is gone,
-			// it ends. Checked before spending so the last stack still buys
-			// a pulse.
-			if (ZealotBurnFloor.GetStacks(caster) <= 0)
-			{
-				target.StopBuff(BuffId.FanaticIllusion_Buff);
-				return;
-			}
-
-			ZealotBurnFloor.AddStacks(caster, -1);
+			// Runs on its own timer now. It used to drain a stack a second,
+			// which meant keeping the amplifier up and firing a Pyre were
+			// the same budget — so the player did neither well.
 			this.ShareWithAllies(caster);
 		}
 
