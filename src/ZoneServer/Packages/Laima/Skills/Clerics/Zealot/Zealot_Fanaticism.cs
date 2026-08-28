@@ -75,11 +75,6 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		}
 
 		/// <summary>
-		/// The attack-speed window on every use. Auto attacks inside it
-		/// build Fanaticism stacks (see Zeal_Rush_Buff). PLACEHOLDER values;
-		/// duration shown via captionTime in skills_overrides.txt.
-		/// </summary>
-		/// <summary>
 		/// With the Martyrdom attribute, the press also buys a heartbeat of
 		/// invulnerability — the one defensive beat a class that fights at a
 		/// quarter of its health has. Scales to three seconds at max level.
@@ -96,6 +91,11 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			caster.StartBuff(BuffId.Fanaticism_Martyrdom_Buff, abilityLevel, 0f, duration, caster, skill.Id);
 		}
 
+		/// <summary>
+		/// The attack-speed window on every use. Auto attacks inside it
+		/// build Fanaticism stacks (see Zeal_Rush_Buff). PLACEHOLDER values;
+		/// duration shown via captionTime in skills_overrides.txt.
+		/// </summary>
 		private void GrantZealRush(Skill skill, ICombatEntity caster)
 		{
 			caster.StartBuff(BuffId.BeadyEyed_Buff, skill.Level, 0f, RushDuration, caster, skill.Id);
