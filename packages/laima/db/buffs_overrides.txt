@@ -191,7 +191,7 @@
 // shows the burn floor as its stack count (overBuff 100); BrambleRage
 // carries the Fervor resource, capped at 20 stacks.
 { id: 2136, className: "Immolation_Self_Buff", duration: 0, overBuff: 100 },
-{ id: 1097, className: "Fanaticism_Zealot12_Buff", overBuff: 10 },
+{ id: 1097, className: "Fanaticism_Zealot12_Buff", overBuff: 20 },
 // Blind Faith runs as a heal over time with no timer: the Fanaticism
 // stacks are its clock and its handler ends it when they run out.
 { id: 72, className: "Cleric_HolyAura_Buff", duration: 0, updateTime: 1000 },

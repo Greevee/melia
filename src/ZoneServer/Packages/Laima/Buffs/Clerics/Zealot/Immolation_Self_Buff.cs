@@ -46,6 +46,15 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		private const int TicksPerSecond = 2;
 
 		private const string TickVar = "Immolation.Tick";
+		private const string HurtVar = "Immolation.Hurt";
+
+		/// <summary>
+		/// Stacks granted for being hurt while burning, at most once per
+		/// second. The third stack source, and the only one that pays more
+		/// the more dangerous the fight is — which is exactly when Blind
+		/// Faith is needed. PLACEHOLDER magnitude.
+		/// </summary>
+		private const int StacksPerPain = 1;
 
 		/// <summary>
 		/// Damage bonus per percent of missing health while burning — the
@@ -91,6 +100,39 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 
 			this.BurnTowardsFloor(target);
 			this.DealAuraDamage(buff, target);
+			this.PayForPain(buff, target);
+		}
+
+		/// <summary>
+		/// Pain feeds the fanaticism: taking a hit while burning is worth a
+		/// stack. Granted here rather than in the hook, so the aura's own
+		/// once-a-second tick is the rate limit — a hail of small hits pays
+		/// exactly as much as one big one.
+		/// </summary>
+		private void PayForPain(Buff buff, ICombatEntity target)
+		{
+			if (!buff.Vars.GetBool(HurtVar))
+				return;
+
+			buff.Vars.SetBool(HurtVar, false);
+			ZealotBurnFloor.AddStacks(target, StacksPerPain);
+		}
+
+		/// <summary>
+		/// Flags that the Zealot was hurt this second; the tick above turns
+		/// it into a stack. Only enemy damage counts — the aura's own burn
+		/// goes through ModifyHpSafe and never reaches combat calculation.
+		/// </summary>
+		[CombatCalcModifier(CombatCalcPhase.AfterCalc, BuffId.Immolation_Self_Buff)]
+		public void OnDefenseAfterCalc(ICombatEntity attacker, ICombatEntity target, Skill skill, SkillModifier modifier, SkillHitResult skillHitResult)
+		{
+			if (!target.TryGetBuff(BuffId.Immolation_Self_Buff, out var buff))
+				return;
+
+			if (skillHitResult.Damage <= 0)
+				return;
+
+			buff.Vars.SetBool(HurtVar, true);
 		}
 
 		/// <summary>

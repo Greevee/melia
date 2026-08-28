@@ -56,7 +56,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// PLACEHOLDER (concept: "Stack-Cap noch offen") — generous cap,
 		/// since Fanaticism at the minimum floor keeps granting stacks.
 		/// </summary>
-		public const int MaxFanaticismStacks = 10;
+		public const int MaxFanaticismStacks = 20;
 
 		/// <summary>
 		/// Returns the entity's current floor; only meaningful while the
