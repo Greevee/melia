@@ -192,6 +192,8 @@
 // carries the Fervor resource, capped at 20 stacks.
 { id: 2136, className: "Immolation_Self_Buff", duration: 0, overBuff: 100 },
 { id: 1097, className: "Fanaticism_Zealot12_Buff", overBuff: 20 },
+// Pyre readout: no timer, no ticking - it only carries the lash count.
+{ id: 2205, className: "ImmolationMeltArmor_Buff", duration: 0, updateTime: 0, overBuff: 10 },
 // The ember Temper the Flame leaves behind: no ticking, it only carries
 // the frozen damage bonus for its duration.
 { id: 2104, className: "Fanaticism_Buff", duration: 10000, updateTime: 0 },

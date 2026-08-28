@@ -1,50 +1,54 @@
 using System;
-using System.Linq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Melia.Shared.Data.Database;
 using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.Packages;
 using Melia.Shared.World;
 using Melia.Zone.Network;
+using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
+using Melia.Zone.Skills.SplashAreas;
 using Melia.Zone.World.Actors;
+using static Melia.Zone.Skills.SkillUseFunctions;
 
 namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 {
 	/// <summary>
-	/// Handler for the Zealot skill Emphatic Trust.
-	/// The crowd version of the heretic's brand: it lays the very same mark
-	/// on everything around the Zealot for twenty seconds, so there is one
-	/// mark in the kit rather than two sets of rules (see
-	/// Heretic_Brand_Debuff). A kill on one of these pays far less than a
-	/// kill on Brand's single mark. Deals no damage of its own.
+	/// Handler for the Zealot skill Emphatic Trust, reworked into "Pyre".
+	/// The kit's attack skill, and the only one whose size the player builds
+	/// themselves: the fire remembers every point of health it has taken
+	/// since the last Pyre, and this releases it as one strike per tenth of
+	/// a life. Standing at your stage adds nothing — the fire only feeds
+	/// while it actually eats, so being healed back up is what reloads this,
+	/// which is the whole trick of the class.
+	/// Firing empties the pyre, so every Pyre is paid for by the burning
+	/// that came before it.
 	/// </summary>
 	[Package("laima")]
 	[SkillHandler(SkillId.Zealot_EmphasisTrust)]
 	public class Zealot_EmphasisTrustOverride : IGroundSkillHandler
 	{
-		/// <summary>
-		/// Debuff radius around the caster, target cap, and duration (shown
-		/// via captionTime in skills_overrides.txt — keep the two in sync).
-		/// The radius stays a PLACEHOLDER; the twenty seconds and twenty
-		/// targets are the intended values.
-		/// </summary>
-		/// <summary>
-		/// What a kill on one of these marks pays. Far below what Brand's
-		/// single mark is worth, because this one lands on a whole pack:
-		/// otherwise marking four enemies and bombing them would hand out a
-		/// full bar from one press.
-		/// Shown in the tooltip via captionRatio2 in skills_overrides.txt —
-		/// keep the two in sync.
-		/// </summary>
-		private const float KillStackReward = 1f;
+		private const float StrikeRadius = 60f;
 
-		private const float DebuffRadius = 150f;
-		private const int MaxTargets = 20;
-		private static readonly TimeSpan DebuffDuration = TimeSpan.FromSeconds(20);
+		/// <summary>
+		/// Delay between the strikes, so a full pyre reads as a rain of fire
+		/// rather than one lump of damage.
+		/// </summary>
+		private static readonly TimeSpan HitSpacing = TimeSpan.FromMilliseconds(120);
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
+			var hits = ZealotBurnFloor.GetPyreHits(caster);
+
+			if (hits <= 0)
+			{
+				caster.ServerMessage(Localization.Get("The pyre is cold."));
+				Send.ZC_SKILL_DISABLE(caster);
+				return;
+			}
+
 			if (!caster.TrySpendSp(skill))
 			{
 				caster.ServerMessage(Localization.Get("Not enough SP."));
@@ -59,10 +63,48 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, target?.Handle ?? 0, originPos, originPos.GetDirection(farPos), Position.Zero);
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
 
-			var enemies = caster.Map.GetAttackableEnemiesInPosition(caster, caster.Position, DebuffRadius);
+			ZealotBurnFloor.ConsumePyre(caster);
 
-			foreach (var enemy in enemies.Take(MaxTargets))
-				enemy.StartBuff(BuffId.BeadyEyed_Debuff, skill.Level, KillStackReward, DebuffDuration, caster, skill.Id);
+			var splashParam = skill.GetSplashParameters(caster, originPos, farPos, StrikeRadius, StrikeRadius, angle: 0);
+			var splashArea = skill.GetSplashArea(SplashType.Circle, splashParam);
+
+			skill.Run(this.Strike(skill, caster, splashArea, hits));
+		}
+
+		/// <summary>
+		/// One ordinary skill hit per strike the pyre held. Ordinary is the
+		/// point: the damage runs through the normal pipeline with defence
+		/// and resistances, so a full pyre is a hard hit rather than a way
+		/// around the combat rules.
+		/// </summary>
+		private async Task Strike(Skill skill, ICombatEntity caster, ISplashArea splashArea, int hits)
+		{
+			await skill.Wait(TimeSpan.FromMilliseconds(100));
+
+			for (var i = 0; i < hits; ++i)
+			{
+				var targets = caster.Map.GetAttackableEnemiesIn(caster, splashArea);
+				var skillHits = new List<SkillHitInfo>();
+
+				foreach (var enemy in targets.LimitBySDR(caster, skill))
+				{
+					var modifier = SkillModifier.Default;
+					modifier.AttackAttribute = AttributeType.Fire;
+
+					var skillHitResult = SCR_SkillHit(caster, enemy, skill, modifier);
+					enemy.TakeDamage(skillHitResult.Damage, caster);
+
+					skillHits.Add(new SkillHitInfo(caster, enemy, skill, skillHitResult, TimeSpan.FromMilliseconds(50), TimeSpan.Zero));
+				}
+
+				if (skillHits.Count > 0)
+					Send.ZC_SKILL_HIT_INFO(caster, skillHits);
+
+				_ = caster.PlayEffectToGround(ZealotBurnFloor.AuraEffectName, caster.Position, 1.2f, duration: 600f);
+
+				if (i < hits - 1)
+					await skill.Wait(HitSpacing);
+			}
 		}
 	}
 }

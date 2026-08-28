@@ -168,9 +168,12 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			// Reads the stage, not current health: the reward is for how deep
 			// the Zealot committed, so a healer topping them up no longer
 			// takes it away.
-			// Zeal is the amplifier: while it burns, the stage counts double.
+			// Zeal is the amplifier: while it burns, the stage counts double
+			// — unless the sharing art is taken, which spends that doubling
+			// on the party instead (see Zeal_Judgement_BuffOverride).
 			var bonus = ZealotBurnFloor.GetStageBonus(attacker);
-			if (attacker.IsBuffActive(BuffId.FanaticIllusion_Buff))
+			if (attacker.IsBuffActive(BuffId.FanaticIllusion_Buff)
+				&& !attacker.TryGetActiveAbilityLevel(AbilityId.Zealot16, out _))
 				bonus *= Zeal_Judgement_BuffOverride.StageBonusFactor;
 
 			modifier.DamageMultiplier *= 1f + bonus;
@@ -248,6 +251,11 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			// moves the HP bar without triggering that feedback.
 			character.ModifyHpSafe(-burn, out _, out var priority);
 			Send.ZC_UPDATE_ALL_STATUS(character, priority);
+
+			// Only health the fire really took feeds the pyre: at the stage
+			// there is nothing to burn, so standing still adds nothing and
+			// being healed back up is what reloads Pyre.
+			ZealotBurnFloor.AddBurned(target, burn);
 		}
 	}
 }

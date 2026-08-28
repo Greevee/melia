@@ -257,6 +257,109 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		private static readonly float[] StageFlameScale = { 0.7f, 1.2f, 2.0f };
 
 		/// <summary>
+		/// The pyre: the health the fire has actually eaten since the last
+		/// Pyre was lit. Only real burning counts, so a Zealot sitting at
+		/// their stage adds nothing — being healed back up is what keeps the
+		/// fire feeding, which is how healing turns into damage.
+		/// Held on the entity rather than on the aura buff, so putting the
+		/// flame out does not throw the ash away.
+		/// </summary>
+		private const string PyreVar = "Zealot.Pyre";
+
+		/// <summary>
+		/// The share of maximum health one Pyre strike is worth, and the most
+		/// the pyre can hold: ten strikes, one whole life. PLACEHOLDER values.
+		/// </summary>
+		public const float PyreSharePerHit = 0.10f;
+		public const int PyreMaxHits = 10;
+
+		/// <summary>
+		/// The buff carrying the pyre readout, counting strikes ready rather
+		/// than raw health — that is the number the player acts on.
+		/// </summary>
+		public const BuffId PyreBuff = BuffId.ImmolationMeltArmor_Buff;
+
+		/// <summary>
+		/// Adds health the fire just took to the pyre, capped at one life.
+		/// </summary>
+		public static void AddBurned(ICombatEntity entity, float amount)
+		{
+			if (amount <= 0)
+				return;
+
+			var maxHp = entity.Properties.GetFloat(PropertyName.MHP);
+			if (maxHp <= 0)
+				return;
+
+			var burned = Math.Min(GetBurned(entity) + amount, maxHp);
+			entity.SetTempVar(PyreVar, burned);
+
+			ShowPyre(entity, GetPyreHits(entity));
+		}
+
+		/// <summary>
+		/// Health the pyre currently holds.
+		/// </summary>
+		public static float GetBurned(ICombatEntity entity)
+			=> Math.Max(0f, entity.GetTempVar(PyreVar));
+
+		/// <summary>
+		/// How many strikes the pyre is worth right now.
+		/// </summary>
+		public static int GetPyreHits(ICombatEntity entity)
+		{
+			var maxHp = entity.Properties.GetFloat(PropertyName.MHP);
+			if (maxHp <= 0)
+				return 0;
+
+			var perHit = maxHp * PyreSharePerHit;
+			if (perHit <= 0)
+				return 0;
+
+			return Math.Clamp((int)(GetBurned(entity) / perHit), 0, PyreMaxHits);
+		}
+
+		/// <summary>
+		/// Empties the pyre and returns the strikes it was worth — lighting
+		/// it is what resets the build-up, so every Pyre is paid for by the
+		/// burning that came before it.
+		/// </summary>
+		public static int ConsumePyre(ICombatEntity entity)
+		{
+			var hits = GetPyreHits(entity);
+
+			entity.SetTempVar(PyreVar, 0f);
+			ShowPyre(entity, 0);
+
+			return hits;
+		}
+
+		/// <summary>
+		/// Mirrors the strikes ready onto the readout buff, so the build-up
+		/// is visible instead of being a hidden number.
+		/// </summary>
+		private static void ShowPyre(ICombatEntity entity, int hits)
+		{
+			if (hits <= 0)
+			{
+				entity.StopBuff(PyreBuff);
+				return;
+			}
+
+			if (!entity.TryGetBuff(PyreBuff, out var buff))
+			{
+				entity.StartBuff(PyreBuff, 1, 0f, TimeSpan.Zero, entity, SkillId.Zealot_EmphasisTrust);
+				entity.TryGetBuff(PyreBuff, out buff);
+			}
+
+			if (buff == null)
+				return;
+
+			buff.OverbuffCounter = hits;
+			buff.NotifyUpdate();
+		}
+
+		/// <summary>
 		/// Seconds between two passively generated stacks, per stage. The
 		/// deepest stage funds exactly one channel (Zeal or Blind Faith
 		/// drain one per second), which is the whole point: burning deep

@@ -10,6 +10,8 @@ using Melia.Zone.Skills;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Clerics.Zealot;
 using Melia.Zone.World.Actors;
+using Melia.Zone.World.Actors.Characters;
+using Yggdrasil.Geometry.Shapes;
 using static Melia.Zone.Skills.SkillUseFunctions;
 
 namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
@@ -21,6 +23,9 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 	/// It costs one Fanaticism stack per second, and the stacks are its
 	/// clock — the burning itself pays part of that back, so at the deepest
 	/// stage Zeal can hold indefinitely while a shallower one runs dry.
+	/// The sharing art (Zealot16) turns it from a personal amplifier into a
+	/// party one: the doubling is dropped and every nearby ally carries part
+	/// of the stage bonus instead.
 	/// </summary>
 	[Package("laima")]
 	[BuffHandler(BuffId.FanaticIllusion_Buff)]
@@ -58,6 +63,47 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			}
 
 			ZealotBurnFloor.AddStacks(caster, -1);
+			this.ShareWithAllies(caster);
+		}
+
+		/// <summary>
+		/// With the sharing art the Zealot keeps only the plain stage bonus
+		/// and hands this share of it to everyone nearby instead — worth it
+		/// from a few allies on, pointless alone, which is the decision the
+		/// art is there to create.
+		/// </summary>
+		private const float AllyShare = 0.5f;
+
+		/// <summary>
+		/// How far the shared fire reaches, and how long a share lasts. The
+		/// tick refreshes it every second, so the duration only has to
+		/// outlive one tick.
+		/// </summary>
+		private const float ShareRange = 200f;
+		private static readonly TimeSpan ShareDuration = TimeSpan.FromSeconds(3);
+
+		/// <summary>
+		/// Hands every nearby ally a share of the stage bonus, as a plain
+		/// percentage they carry themselves.
+		/// </summary>
+		private void ShareWithAllies(ICombatEntity caster)
+		{
+			if (!caster.TryGetActiveAbilityLevel(AbilityId.Zealot16, out _))
+				return;
+
+			var share = ZealotBurnFloor.GetStageBonus(caster) * AllyShare * 100f;
+			if (share <= 0)
+				return;
+
+			var area = new CircleF(caster.Position, ShareRange);
+
+			foreach (var ally in caster.Map.GetActorsIn<Character>(area))
+			{
+				if (ally == caster || ally.IsDead || !caster.IsAlly(ally))
+					continue;
+
+				ally.StartBuff(BuffId.FanaticIllusion_Abil_Buff, share, 0f, ShareDuration, caster, SkillId.Zealot_FanaticIllusion);
+			}
 		}
 
 		/// <summary>
