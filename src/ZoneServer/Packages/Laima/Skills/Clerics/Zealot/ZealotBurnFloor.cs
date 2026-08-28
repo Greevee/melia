@@ -267,11 +267,12 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		private const string PyreVar = "Zealot.Pyre";
 
 		/// <summary>
-		/// The share of maximum health one Pyre strike is worth, and the most
-		/// the pyre can hold: ten strikes, one whole life. PLACEHOLDER values.
+		/// The share of maximum health one Pyre lash is worth, and how many
+		/// lashes one Pyre can hold. Six lashes was the point where Pyre
+		/// stopped being over half the class's damage. PLACEHOLDER values.
 		/// </summary>
-		public const float PyreSharePerHit = 0.10f;
-		public const int PyreMaxHits = 10;
+		public const float PyreSharePerHit = 0.15f;
+		public const int PyreMaxHits = 6;
 
 		/// <summary>
 		/// The buff carrying the pyre readout, counting strikes ready rather

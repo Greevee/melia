@@ -31,6 +31,12 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// </summary>
 		private static readonly TimeSpan RushDuration = TimeSpan.FromSeconds(10);
 
+		/// <summary>
+		/// Seconds of invulnerability the Martyrdom attribute grants per of
+		/// its levels: three seconds at its maximum. PLACEHOLDER.
+		/// </summary>
+		private const float MartyrdomSecondsPerLevel = 0.6f;
+
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
 			if (!caster.IsBuffActive(BuffId.Immolation_Self_Buff))
@@ -62,6 +68,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			var stageNow = ZealotBurnFloor.GetStage(caster);
 
 			this.GrantZealRush(skill, caster);
+			this.GrantMartyrdom(skill, caster);
 
 			Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0,
 				stageNow > stageBefore ? $"Stage {stageNow}  ({newFloor}%)" : "Frenzy");
@@ -72,6 +79,23 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// build Fanaticism stacks (see Zeal_Rush_Buff). PLACEHOLDER values;
 		/// duration shown via captionTime in skills_overrides.txt.
 		/// </summary>
+		/// <summary>
+		/// With the Martyrdom attribute, the press also buys a heartbeat of
+		/// invulnerability — the one defensive beat a class that fights at a
+		/// quarter of its health has. Scales to three seconds at max level.
+		/// </summary>
+		private void GrantMartyrdom(Skill skill, ICombatEntity caster)
+		{
+			if (!caster.TryGetActiveAbilityLevel(AbilityId.Zealot10, out var abilityLevel))
+				return;
+
+			var duration = TimeSpan.FromSeconds(abilityLevel * MartyrdomSecondsPerLevel);
+			if (duration <= TimeSpan.Zero)
+				return;
+
+			caster.StartBuff(BuffId.Fanaticism_Martyrdom_Buff, abilityLevel, 0f, duration, caster, skill.Id);
+		}
+
 		private void GrantZealRush(Skill skill, ICombatEntity caster)
 		{
 			caster.StartBuff(BuffId.BeadyEyed_Buff, skill.Level, 0f, RushDuration, caster, skill.Id);

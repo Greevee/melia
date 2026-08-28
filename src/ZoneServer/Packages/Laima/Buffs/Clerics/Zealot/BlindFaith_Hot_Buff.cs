@@ -24,11 +24,21 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 	{
 		/// <summary>
 		/// Healing per tick per point of SPR (the property table calls it
-		/// MNA). PLACEHOLDER magnitude.
+		/// MNA), on top of the flat share of maximum health below.
+		/// PLACEHOLDER magnitude.
 		/// Shown in the tooltip via captionRatio1 in skills_overrides.txt —
 		/// keep the two in sync.
 		/// </summary>
 		private const float HealPerSpr = 1.5f;
+
+		/// <summary>
+		/// Share of maximum health healed per tick regardless of SPR, so the
+		/// skill works on the strength build the class actually wants. SPR
+		/// stays worth investing in on top: it is what lets a Zealot
+		/// out-heal the burn and hold a higher position above their stage,
+		/// which is what feeds Pyre. PLACEHOLDER.
+		/// </summary>
+		private const float HealPerMaxHp = 0.02f;
 
 		/// <summary>
 		/// Extra healing per skill level, as a share of the SPR-based
@@ -73,9 +83,12 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		/// </summary>
 		private float GetHealAmount(ICombatEntity caster, float skillLevel)
 		{
+			var maxHp = caster.Properties.GetFloat(PropertyName.MHP);
 			var spr = caster.Properties.GetFloat(PropertyName.MNA);
 
-			return spr * HealPerSpr * (1f + skillLevel * HealPerSkillLevel);
+			var baseHeal = maxHp * HealPerMaxHp + spr * HealPerSpr;
+
+			return baseHeal * (1f + skillLevel * HealPerSkillLevel);
 		}
 
 		private void HealCaster(ICombatEntity caster, float heal)
