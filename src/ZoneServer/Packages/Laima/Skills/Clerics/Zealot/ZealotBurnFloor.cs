@@ -41,19 +41,6 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		public const int Step = 25;
 
 		/// <summary>
-		/// The floor Fanaticism can dip to temporarily once it is already at
-		/// the minimum, held only for the length of the Fanaticism window
-		/// and then released back to Min. Not Min - Step: with three stages
-		/// that would be zero, and the dip is meant to hurt, not to kill.
-		/// </summary>
-		/// <remarks>
-		/// Only <see cref="Set"/> reaches this far down; <see cref="Shift"/>
-		/// still stops at Min, so the ordinary step-down cannot land here by
-		/// accident.
-		/// </remarks>
-		public const int TempMin = 10;
-
-		/// <summary>
 		/// PLACEHOLDER (concept: "Stack-Cap noch offen") — generous cap,
 		/// since Fanaticism at the minimum floor keeps granting stacks.
 		/// </summary>
@@ -76,12 +63,11 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		}
 
 		/// <summary>
-		/// Sets the floor outright, used when Immolate is lit and for the
-		/// temporary dip below Min that the Fanaticism window holds open.
+		/// Sets the floor outright, used when the fire is lit.
 		/// </summary>
 		public static void Set(ICombatEntity entity, int value)
 		{
-			value = Math.Clamp(value, TempMin, Ignition);
+			value = Math.Clamp(value, Min, Ignition);
 			entity.SetTempVar(FloorVar, value);
 
 			ShowOnAura(entity, value);

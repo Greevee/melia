@@ -19,8 +19,6 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 	/// stack. This is the ONLY source of stacks, which makes Fanaticism the
 	/// way to extend a running Zeal: Zeal drains a stack a second, and only
 	/// this window puts them back.
-	/// The window also owns the temporary floor dip Fanaticism takes at the
-	/// minimum floor, and releases it when it ends.
 	/// Design idea on file: an ability later toggles the payout type.
 	/// </summary>
 	[Package("laima")]
@@ -50,13 +48,6 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		public override void OnEnd(Buff buff)
 		{
 			RemovePropertyModifier(buff, buff.Target, PropertyName.NormalASPD_BM);
-
-			// Release the temporary dip Fanaticism takes at the minimum
-			// floor. Checked rather than tracked: only that dip can put the
-			// floor below Min, so a floor below Min is by definition one
-			// this window is holding open.
-			if (buff.Target is ICombatEntity target && ZealotBurnFloor.Get(target) < ZealotBurnFloor.Min)
-				ZealotBurnFloor.Set(target, ZealotBurnFloor.Min);
 		}
 
 		/// <summary>

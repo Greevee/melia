@@ -35,11 +35,27 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// </summary>
 		private static readonly TimeSpan EmberDuration = TimeSpan.FromSeconds(10);
 
+		/// <summary>
+		/// Fanaticism spent per press, so retreating costs the same resource
+		/// as attacking and healing instead of being a free reset. At the
+		/// deepest stage the burning pays it back in three seconds.
+		/// Shown in the tooltip via captionRatio1 in skills_overrides.txt —
+		/// keep the two in sync.
+		/// </summary>
+		private const int StackCost = 3;
+
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Direction dir)
 		{
 			if (!caster.IsBuffActive(BuffId.Immolation_Self_Buff))
 			{
 				caster.ServerMessage(Localization.Get("The flame is not lit."));
+				Send.ZC_SKILL_DISABLE(caster);
+				return;
+			}
+
+			if (ZealotBurnFloor.GetStacks(caster) < StackCost)
+			{
+				caster.ServerMessage(Localization.Get("Not enough Fanaticism to temper the flame."));
 				Send.ZC_SKILL_DISABLE(caster);
 				return;
 			}
@@ -64,6 +80,8 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			// Captured before the floor resets: the ember keeps the bonus of
 			// the stage the Zealot was standing in.
 			var stageBonus = ZealotBurnFloor.GetStageBonusPercent(ZealotBurnFloor.GetStage(caster));
+
+			ZealotBurnFloor.ConsumeStacks(caster, StackCost);
 
 			// A ladder, not an exit: each press climbs one stage and heals up
 			// to it, and only a press at the top puts the fire out. That way

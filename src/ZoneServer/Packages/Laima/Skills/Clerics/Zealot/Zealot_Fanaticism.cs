@@ -11,15 +11,12 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 {
 	/// <summary>
 	/// Handler for the Zealot skill Fanaticism.
-	/// Escalates the active burn mode one step (floor 75 -> 50) and opens a
-	/// short attack-speed window; attacks inside the window build Fanaticism
-	/// stacks, which is also how Zeal gets extended.
-	/// Once already at the minimum floor, another use dips the floor one
-	/// further step for the length of that window only, then releases it
-	/// back. That dip is the whole price — the aura burning the Zealot down
-	/// to it is the cost, so nothing is charged on top.
+	/// Two effects, no exceptions: it opens the frenzy — a window in which
+	/// every attack builds a Fanaticism stack — and it drives the fire one
+	/// stage deeper while there is a stage left to take. At the deepest
+	/// stage only the frenzy opens.
 	/// Only usable while the burn mode is active; deals no damage of its
-	/// own. Temper the Flame is the way out.
+	/// own. Temper the Flame is the way back up.
 	/// </summary>
 	[Package("laima")]
 	[SkillHandler(SkillId.Zealot_Fanaticism)]
@@ -58,25 +55,16 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, targetHandle, originPos, originPos.GetDirection(farPos), Position.Zero);
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
 
-			var floor = ZealotBurnFloor.Get(caster);
-
-			// Already at the bottom of the ladder: dip one step further for
-			// the length of the window only. Zeal_Rush_Buff.OnEnd releases
-			// it back to Min, so the deeper floor is exactly as long-lived
-			// as the window it came with.
-			if (floor <= ZealotBurnFloor.Min)
-			{
-				ZealotBurnFloor.Set(caster, ZealotBurnFloor.TempMin);
-				this.GrantZealRush(skill, caster);
-
-				Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0, $"Burn Floor {ZealotBurnFloor.TempMin}%  (temporary)");
-				return;
-			}
-
+			// One rule, no exception: the frenzy always opens, and the fire
+			// steps one stage deeper whenever there is a stage left to take.
+			var stageBefore = ZealotBurnFloor.GetStage(caster);
 			var newFloor = ZealotBurnFloor.Shift(caster, -ZealotBurnFloor.Step);
+			var stageNow = ZealotBurnFloor.GetStage(caster);
+
 			this.GrantZealRush(skill, caster);
 
-			Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0, $"Burn Floor {newFloor}%");
+			Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0,
+				stageNow > stageBefore ? $"Stage {stageNow}  ({newFloor}%)" : "Frenzy");
 		}
 
 		/// <summary>
