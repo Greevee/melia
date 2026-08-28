@@ -81,7 +81,13 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			if (!this.IsFullSecond(buff))
 				return;
 
-			ZealotBurnFloor.PulseAuraVisual(target);
+			// Zeal makes the body burn visibly hotter, which is the only cue
+			// that the state is live now that it carries no screen overlay.
+			var visualScale = target.IsBuffActive(BuffId.FanaticIllusion_Buff)
+				? Zeal_Judgement_BuffOverride.AuraScaleFactor
+				: 1f;
+
+			ZealotBurnFloor.PulseAuraVisual(target, visualScale);
 
 			this.BurnTowardsFloor(target);
 			this.DealAuraDamage(buff, target);

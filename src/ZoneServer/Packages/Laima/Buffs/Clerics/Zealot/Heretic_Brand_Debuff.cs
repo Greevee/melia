@@ -13,10 +13,10 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 	/// <summary>
 	/// Handler for the heretic's mark applied by Brand the Heretic
 	/// (riding on the BeadyEyed_Debuff buff).
-	/// The next Zealot hit from the marker against the marked target is
-	/// empowered and consumes the mark. A marked target that dies grants the
-	/// marker Fervor; against bosses the Fervor is granted with the
-	/// empowered hit instead, so single-target fights still generate the
+	/// A marked target takes more damage from the Zealot who marked it — and
+	/// from nobody else — for the short life of the mark, and grants that
+	/// Zealot Fanaticism stacks when it dies. Bosses are paid out on the
+	/// first marked hit instead, so single-target fights still generate the
 	/// resource.
 	/// </summary>
 	[Package("laima")]
@@ -24,29 +24,31 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 	public class Heretic_Brand_DebuffOverride : BuffHandler
 	{
 		/// <summary>
-		/// Damage bonus of the empowered hit. PLACEHOLDER (concept: "Bonus
-		/// nächster Zealot-Treffer TBD; Art und Stärke festlegen").
+		/// Extra damage the marked target takes from the Zealot who marked
+		/// it, for as long as the mark lasts. A flat window rather than a
+		/// single empowered hit: the Zealot's damage arrives as aura ticks
+		/// and judgement pulses, which a one-shot bonus would spend on
+		/// whichever tick happened to land first.
 		/// Shown in the tooltip via captionRatio1 in skills_overrides.txt —
 		/// keep the two in sync.
 		/// </summary>
-		private const float EmpoweredHitBonus = 0.5f;
+		private const float BonusDamageTaken = 0.10f;
 
 		/// <summary>
-		/// Fanaticism stacks granted by a marked kill, or by the empowered hit against
-		/// bosses. PLACEHOLDER (concept: "Fervor bei markiertem Kill TBD").
+		/// Fanaticism stacks granted by a marked kill, or by the first
+		/// marked hit against a boss.
 		/// Shown in the tooltip via captionRatio2 in skills_overrides.txt —
 		/// keep the two in sync.
 		/// </summary>
 		private const int StackReward = 3;
 
 		private const string RewardedVar = "Melia.Zealot.BrandRewarded";
-		private const string SpentVar = "Melia.Zealot.BrandSpent";
 
 		public override void OnEnd(Buff buff)
 		{
 			// removeOnDeath makes this fire when the marked target dies, so
 			// no extra kill event is needed. The boss path rewards on the
-			// empowered hit instead and sets the guard below.
+			// first hit instead and sets the guard below.
 			if (buff.Vars.GetBool(RewardedVar))
 				return;
 
@@ -63,28 +65,18 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			if (!target.TryGetBuff(BuffId.BeadyEyed_Debuff, out var buff))
 				return;
 
-			// Only the marker's own Zealot skills trigger the brand, once.
-			if (attacker != buff.Caster || buff.Vars.GetBool(SpentVar))
+			// The brand is the Zealot's own setup, not a party-wide damage
+			// window: only the Zealot who applied it benefits from it.
+			if (attacker != buff.Caster)
 				return;
 
-			if (!skill.Data.ClassName.StartsWith("Zealot_"))
+			modifier.DamageMultiplier *= 1f + BonusDamageTaken;
+
+			// Bosses rarely die while marked, so the marker is paid on the
+			// first hit that lands on the mark instead.
+			if (buff.Vars.GetBool(RewardedVar))
 				return;
 
-			// The branding strike itself must not consume its own fresh
-			// mark - the empowered hit belongs to the follow-up.
-			if (skill.Id == SkillId.Zealot_BeadyEyed)
-				return;
-
-			modifier.DamageMultiplier *= 1f + EmpoweredHitBonus;
-
-			// The mark is only flagged as spent rather than stopped here:
-			// this hook runs before the damage lands, and stopping the buff
-			// now would swallow the kill reward when the empowered hit is
-			// the killing blow (removeOnDeath fires OnEnd on death). A spent
-			// mark idles out with its remaining duration.
-			buff.Vars.SetBool(SpentVar, true);
-
-			// Bosses rarely die while marked, so they pay out on the hit.
 			if (target is Mob mob && mob.Rank == MonsterRank.Boss)
 			{
 				ZealotBurnFloor.AddStacks(attacker, StackReward);

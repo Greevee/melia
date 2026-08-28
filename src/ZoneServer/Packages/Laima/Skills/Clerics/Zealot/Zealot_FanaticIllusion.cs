@@ -17,11 +17,13 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 {
 	/// <summary>
 	/// Handler for the Zealot skill Fanatic Illusion, reworked into "Zeal".
-	/// One activating AoE strike around the Zealot, then a judgement state:
-	/// while it lasts, every attack deals Holy property damage and every
-	/// second one Fanaticism stack burns away in a holy pulse around the
-	/// Zealot. The state ends when the stacks run out (see
-	/// Zeal_Judgement_Buff).
+	/// One activating AoE strike around the Zealot, then a burning state:
+	/// while it lasts, every attack deals Fire property damage and every
+	/// second one Fanaticism stack burns away in a fire pulse around the
+	/// Zealot. Attacks made during the state build stacks back, so a Zealot
+	/// who keeps swinging keeps Zeal alive — the state ends when the stacks
+	/// run out (see Zeal_Judgement_Buff). The one-second cooldown is
+	/// deliberate: the stack count is the real gate, not the timer.
 	/// </summary>
 	[Package("laima")]
 	[SkillHandler(SkillId.Zealot_FanaticIllusion)]
@@ -52,9 +54,23 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, target?.Handle ?? 0, originPos, originPos.GetDirection(farPos), Position.Zero);
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
 
-			// The judgement state; it drains the stacks and ends itself when
-			// they are gone.
-			caster.StartBuff(BuffId.FanaticIllusion_Buff, skill.Level, 0f, TimeSpan.Zero, caster, skill.Id);
+			// Pressing Zeal costs fuel, so the stack count really is the cap
+			// on how often it can be pressed — with a one-second cooldown the
+			// SP bar alone would not be one.
+			ZealotBurnFloor.AddStacks(caster, -1);
+
+			// The burning state; it drains the stacks and ends itself when
+			// they are gone. Duration TimeSpan.Zero means no timer at all
+			// (Buff.HasDuration) — the stacks are the clock, which is what
+			// lets attacks during Zeal prolong it.
+			//
+			// Only started when it is not already running. Re-starting an
+			// active buff runs Buff.Activate, and its ExtendDuration pushes
+			// NextUpdateTime a full update period out; at a one-second
+			// cooldown that would postpone the stack drain forever and Zeal
+			// would never end. A re-press buys the strike, not a new state.
+			if (!caster.IsBuffActive(BuffId.FanaticIllusion_Buff))
+				caster.StartBuff(BuffId.FanaticIllusion_Buff, skill.Level, 0f, TimeSpan.Zero, caster, skill.Id);
 
 			var splashParam = skill.GetSplashParameters(caster, originPos, farPos, StrikeRadius, StrikeRadius, angle: 0);
 			var splashArea = skill.GetSplashArea(SplashType.Circle, splashParam);
@@ -75,10 +91,12 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			foreach (var enemy in targets.LimitBySDR(caster, skill))
 			{
 				var modifier = SkillModifier.Default;
-				modifier.AttackAttribute = AttributeType.Holy;
+				modifier.AttackAttribute = AttributeType.Fire;
 
 				var skillHitResult = SCR_SkillHit(caster, enemy, skill, modifier);
 				enemy.TakeDamage(skillHitResult.Damage, caster);
+
+				ZealotBurnFloor.PulseFireHit(enemy);
 
 				hits.Add(new SkillHitInfo(caster, enemy, skill, skillHitResult, TimeSpan.FromMilliseconds(50), TimeSpan.Zero));
 			}

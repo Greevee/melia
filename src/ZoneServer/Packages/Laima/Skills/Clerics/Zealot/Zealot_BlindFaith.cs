@@ -11,36 +11,19 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 {
 	/// <summary>
 	/// Handler for the Zealot skill Blind Faith.
-	/// Per the rework, this is what makes burning yourself down survivable:
-	/// it spends every Fervor stack and converts them into a shield worth 5%
-	/// of maximum HP each. Immolation drives the caster low and builds the
-	/// stacks; Blind Faith turns that accumulated risk into a buffer against
-	/// the burst that would otherwise finish them.
-	/// The shield itself is handled by Cleric_HolyAura_Buff.
+	/// Turns Fanaticism into healing: while it runs it burns one stack per
+	/// second and heals the Zealot and nearby allies, scaling with SPR. It
+	/// deals no damage. The stacks are its clock, exactly like Zeal's — so
+	/// the two are the same resource spent on survival or on damage.
+	/// The healing itself is handled by Cleric_HolyAura_Buff.
 	/// </summary>
 	[Package("laima")]
 	[SkillHandler(SkillId.Zealot_BlindFaith)]
 	public class Zealot_BlindFaithOverride : ISelfSkillHandler
 	{
-		/// <summary>
-		/// Share of maximum HP each consumed Fervor stack is worth.
-		/// At the twenty stack cap this is the caster's whole health bar.
-		/// Shown in the tooltip via captionRatio1 in skills_overrides.txt —
-		/// keep the two in sync.
-		/// </summary>
-		private const float ShieldPerStack = 0.05f;
-
-		/// <summary>
-		/// Shown in the tooltip via captionTime in skills_overrides.txt —
-		/// keep the two in sync.
-		/// </summary>
-		private static readonly TimeSpan ShieldDuration = TimeSpan.FromSeconds(15);
-
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Direction dir)
 		{
-			var stacks = ZealotBurnFloor.GetStacks(caster);
-
-			if (stacks <= 0)
+			if (ZealotBurnFloor.GetStacks(caster) <= 0)
 			{
 				caster.ServerMessage(Localization.Get("No Fanaticism to spend."));
 				Send.ZC_SKILL_DISABLE(caster);
@@ -64,16 +47,11 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, 0, originPos, originPos.GetDirection(farPos), Position.Zero);
 			Send.ZC_SKILL_MELEE_TARGET(caster, skill, caster);
 
-			ZealotBurnFloor.ConsumeStacks(caster);
-
-			var maxHp = caster.Properties.GetFloat(PropertyName.MHP);
-			var shield = maxHp * ShieldPerStack * stacks;
-
-			// The shield value travels as NumArg1, which the buff handler
-			// reads to size the absorption pool.
-			caster.StartBuff(BuffId.Cleric_HolyAura_Buff, shield, stacks, ShieldDuration, caster, skill.Id);
-
-			Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0, $"Shield {(int)shield} ({stacks} Fervor)");
+			// Duration TimeSpan.Zero means no timer: the stacks are the
+			// clock, and the buff handler ends itself when they run out.
+			// NumArg1 carries the skill level the healing scales with.
+			if (!caster.IsBuffActive(BuffId.Cleric_HolyAura_Buff))
+				caster.StartBuff(BuffId.Cleric_HolyAura_Buff, skill.Level, 0f, TimeSpan.Zero, caster, skill.Id);
 		}
 	}
 }

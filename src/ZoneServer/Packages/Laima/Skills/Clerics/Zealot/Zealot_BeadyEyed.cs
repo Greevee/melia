@@ -16,21 +16,20 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	/// Handler for the Zealot skill Beady Eyed, reworked into
 	/// "Brand the Heretic".
 	/// Teleports the Zealot behind the target, marks it as a heretic and
-	/// strikes it — a single medium hit, deliberately no AoE. The next
-	/// Zealot hit against the marked target is empowered; a marked target
-	/// that dies grants Fanaticism stacks (bosses pay on the empowered hit)
-	/// — both live in the mark's buff handler (Heretic_Brand_Debuff).
+	/// strikes it — a single medium hit, deliberately no AoE. While the mark
+	/// lasts the target takes more damage from everything, and a marked
+	/// target that dies grants Fanaticism stacks — both live in the mark's
+	/// buff handler (Heretic_Brand_Debuff).
 	/// </summary>
 	[Package("laima")]
 	[SkillHandler(SkillId.Zealot_BeadyEyed)]
 	public class Zealot_BeadyEyedOverride : IGroundSkillHandler
 	{
 		/// <summary>
-		/// How long the mark lasts. PLACEHOLDER (concept: "Brand-Dauer TBD").
-		/// Shown in the tooltip via captionTime in skills_overrides.txt —
-		/// keep the two in sync.
+		/// How long the mark lasts. Shown in the tooltip via captionTime in
+		/// skills_overrides.txt — keep the two in sync.
 		/// </summary>
-		private static readonly TimeSpan MarkDuration = TimeSpan.FromSeconds(10);
+		private static readonly TimeSpan MarkDuration = TimeSpan.FromSeconds(5);
 
 		/// <summary>
 		/// Distance behind the target the Zealot appears at.
@@ -72,9 +71,9 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 
 		/// <summary>
 		/// The brand's own hit: one medium single-target strike (skill
-		/// factor from the db), landing right after the blink. Deliberately
-		/// not the empowered hit — that one belongs to whatever the Zealot
-		/// follows up with.
+		/// factor from the db), landing right after the blink. It already
+		/// benefits from the mark it just applied, since the mark raises
+		/// damage taken from the moment it lands.
 		/// </summary>
 		private async Task Strike(Skill skill, ICombatEntity caster, ICombatEntity target)
 		{

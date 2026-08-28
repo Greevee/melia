@@ -13,11 +13,11 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	/// <summary>
 	/// Handler for the Zealot skill Invulnerable, reworked into
 	/// "Temper the Flame".
-	/// Per the concept (Zealot_Rework_Konzept.xlsx v1.0) this spends Fervor
-	/// to reduce the active burn mode by one step: the floor rises 10 -> 30
-	/// -> 50 -> 70, health below the new floor is raised up to it, and all
-	/// Fanaticism stacks are removed. Used at the top step, it puts the
-	/// flame out entirely. Only usable while the burn mode is active.
+	/// The panic button: one press puts the flame out and resets the whole
+	/// burn state. The aura ends, the floor returns to ignition, every
+	/// Fanaticism stack is dropped, and health is restored up to the
+	/// ignition floor. Only usable while the burn mode is active — there is
+	/// nothing to put out otherwise.
 	/// Note: the skill database lists this as useType "MeleeGround", but the
 	/// client sends CZ_SKILL_SELF for it, so it is handled as a self skill.
 	/// </summary>
@@ -51,22 +51,17 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, 0, originPos, originPos.GetDirection(farPos), Position.Zero);
 			Send.ZC_SKILL_MELEE_TARGET(caster, skill, caster);
 
-			var floor = ZealotBurnFloor.Get(caster);
+			// One press ends the burn state outright. Order matters: the heal
+			// reads the ignition floor, so the floor is reset first, and the
+			// aura is stopped last because its OnEnd drops the stacks.
+			ZealotBurnFloor.Set(caster, ZealotBurnFloor.Ignition);
 
-			// At the top step, another use puts the flame out entirely.
-			if (floor >= ZealotBurnFloor.Ignition)
-			{
-				caster.StopBuff(BuffId.Immolation_Self_Buff);
-				Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0, "The flame is out");
-				return;
-			}
+			var healed = this.RaiseToFloor(caster, ZealotBurnFloor.Ignition);
 
-			var newFloor = ZealotBurnFloor.Shift(caster, ZealotBurnFloor.Step);
-			ZealotBurnFloor.ConsumeStacks(caster);
+			caster.StopBuff(BuffId.Immolation_Self_Buff);
 
-			var healed = this.RaiseToFloor(caster, newFloor);
-
-			Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0, $"Burn Floor {newFloor}%" + (healed > 0 ? $"  +{healed} HP" : ""));
+			Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0,
+				"The flame is out" + (healed > 0 ? $"  +{healed} HP" : ""));
 		}
 
 		/// <summary>

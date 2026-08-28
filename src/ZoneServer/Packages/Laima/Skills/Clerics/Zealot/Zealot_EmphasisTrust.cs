@@ -13,9 +13,10 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 {
 	/// <summary>
 	/// Handler for the Zealot skill Emphatic Trust.
-	/// Per the concept this keeps the vanilla behavior for the first
-	/// implementation: debuffs enemies around the Zealot; a debuffed enemy
-	/// takes additional damage whenever it is attacked (see
+	/// Marks the enemies around the Zealot for twenty seconds. A marked
+	/// enemy takes extra damage from the burning aura and from Zeal — and
+	/// from nothing else, which is what makes this the setup press for the
+	/// class's own damage rather than a generic damage-taken debuff (see
 	/// EmphasisTrust_Debuff handler). Deals no damage of its own.
 	/// </summary>
 	[Package("laima")]
@@ -23,13 +24,14 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	public class Zealot_EmphasisTrustOverride : IGroundSkillHandler
 	{
 		/// <summary>
-		/// PLACEHOLDER values until the balance pass: debuff radius around
-		/// the caster, target cap, and duration (shown via captionTime in
-		/// skills_overrides.txt).
+		/// Debuff radius around the caster, target cap, and duration (shown
+		/// via captionTime in skills_overrides.txt — keep the two in sync).
+		/// The radius stays a PLACEHOLDER; the twenty seconds and twenty
+		/// targets are the intended values.
 		/// </summary>
 		private const float DebuffRadius = 150f;
-		private const int MaxTargets = 10;
-		private static readonly TimeSpan DebuffDuration = TimeSpan.FromSeconds(10);
+		private const int MaxTargets = 20;
+		private static readonly TimeSpan DebuffDuration = TimeSpan.FromSeconds(20);
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{

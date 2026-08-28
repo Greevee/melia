@@ -6,32 +6,25 @@ using Melia.Shared.World;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Handlers.Base;
 using Melia.Zone.World.Actors;
-using Melia.Zone.World.Actors.Characters;
 
 namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 {
 	/// <summary>
 	/// Handler for the Zealot skill Fanaticism.
-	/// Revised design: escalates the active burn mode one step (floor 80 ->
-	/// 60 -> 40) and opens a short attack-speed window; auto attacks inside
-	/// the window build Fanaticism stacks. At the minimum floor the floor
-	/// stays and health is paid directly for two stacks. Only usable while
-	/// the burn mode is active; deals no damage of its own. Temper the
-	/// Flame is the way back up.
+	/// Escalates the active burn mode one step (floor 75 -> 50) and opens a
+	/// short attack-speed window; attacks inside the window build Fanaticism
+	/// stacks, which is also how Zeal gets extended.
+	/// Once already at the minimum floor, another use dips the floor one
+	/// further step for the length of that window only, then releases it
+	/// back. That dip is the whole price — the aura burning the Zealot down
+	/// to it is the cost, so nothing is charged on top.
+	/// Only usable while the burn mode is active; deals no damage of its
+	/// own. Temper the Flame is the way out.
 	/// </summary>
 	[Package("laima")]
 	[SkillHandler(SkillId.Zealot_Fanaticism)]
 	public class Zealot_FanaticismOverride : IGroundSkillHandler
 	{
-		/// <summary>
-		/// Share of maximum HP paid when used at the minimum floor, and the
-		/// stacks granted for it. PLACEHOLDER values.
-		/// Shown in the tooltip via captionRatio3 in skills_overrides.txt —
-		/// keep the two in sync.
-		/// </summary>
-		private const float MinFloorHpCost = 0.10f;
-		private const int MinFloorStacks = 2;
-
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
 			if (!caster.IsBuffActive(BuffId.Immolation_Self_Buff))
@@ -58,15 +51,16 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 
 			var floor = ZealotBurnFloor.Get(caster);
 
-			// At the minimum floor the fire feeds on substance instead: the
-			// floor stays, health is paid directly (dropping below the floor
-			// is allowed and intended) and two stacks are granted.
+			// Already at the bottom of the ladder: dip one step further for
+			// the length of the window only. Zeal_Rush_Buff.OnEnd releases
+			// it back to Min, so the deeper floor is exactly as long-lived
+			// as the window it came with.
 			if (floor <= ZealotBurnFloor.Min)
 			{
-				this.PayHealth(caster);
-				ZealotBurnFloor.AddStacks(caster, MinFloorStacks);
+				ZealotBurnFloor.Set(caster, ZealotBurnFloor.TempMin);
 				this.GrantZealRush(skill, caster);
-				Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0, $"-10% HP  (+{MinFloorStacks} Fanaticism)");
+
+				Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0, $"Burn Floor {ZealotBurnFloor.TempMin}%  (temporary)");
 				return;
 			}
 
@@ -84,24 +78,6 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		private void GrantZealRush(Skill skill, ICombatEntity caster)
 		{
 			caster.StartBuff(BuffId.BeadyEyed_Buff, skill.Level, 0f, TimeSpan.FromSeconds(5), caster, skill.Id);
-		}
-
-		/// <summary>
-		/// Pays the minimum-floor blood price: a share of maximum HP,
-		/// removed silently (no damage flash), never lethal.
-		/// </summary>
-		private void PayHealth(ICombatEntity caster)
-		{
-			if (caster is not Character character)
-				return;
-
-			var maxHp = caster.Properties.GetFloat(PropertyName.MHP);
-			var cost = Math.Min(maxHp * MinFloorHpCost, Math.Max(0, caster.Hp - 1));
-			if (cost <= 0)
-				return;
-
-			character.ModifyHpSafe(-cost, out _, out var priority);
-			Send.ZC_UPDATE_ALL_STATUS(character, priority);
 		}
 	}
 }

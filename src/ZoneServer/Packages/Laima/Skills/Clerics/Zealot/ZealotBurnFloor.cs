@@ -25,21 +25,32 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 
 		/// <summary>
 		/// The floor Immolate sets when the burn mode is first activated,
-		/// and the highest step: Temper the Flame used here ends the mode.
+		/// and the top of the ladder.
 		/// </summary>
-		public const int Ignition = 80;
+		public const int Ignition = 75;
 
 		/// <summary>
-		/// Lowest reachable floor, after two Fanaticism uses. Deliberately
-		/// no lower: below ~40% health the client blinks its low-HP warning
-		/// permanently.
+		/// Lowest floor Fanaticism can settle on. One step, so the whole
+		/// ladder is 75 -> 50 and the flame alone tells them apart.
 		/// </summary>
-		public const int Min = 40;
+		public const int Min = 50;
 
 		/// <summary>
 		/// Step size for lowering (Fanaticism) and raising (Temper).
 		/// </summary>
-		public const int Step = 20;
+		public const int Step = 25;
+
+		/// <summary>
+		/// The floor Fanaticism can dip to temporarily once it is already at
+		/// the minimum — one further step down, held only for the length of
+		/// the Fanaticism window and then released back to Min.
+		/// </summary>
+		/// <remarks>
+		/// Only <see cref="Set"/> reaches this far down; <see cref="Shift"/>
+		/// still stops at Min, so the ordinary step-down cannot land here by
+		/// accident.
+		/// </remarks>
+		public const int TempMin = Min - Step;
 
 		/// <summary>
 		/// PLACEHOLDER (concept: "Stack-Cap noch offen") — generous cap,
@@ -64,11 +75,12 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		}
 
 		/// <summary>
-		/// Sets the floor outright, used when Immolate is lit.
+		/// Sets the floor outright, used when Immolate is lit and for the
+		/// temporary dip below Min that the Fanaticism window holds open.
 		/// </summary>
 		public static void Set(ICombatEntity entity, int value)
 		{
-			value = Math.Clamp(value, Min, Ignition);
+			value = Math.Clamp(value, TempMin, Ignition);
 			entity.SetTempVar(FloorVar, value);
 
 			ShowOnAura(entity, value);
@@ -190,17 +202,45 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		public const string AuraNodeName = "Dummy_body";
 
 		/// <summary>
-		/// Plays one pulse of the burning-body fire on the entity, sized by
-		/// the ACTUAL health: 0.5 at 80% HP, growing linearly to 2.0 at 20%
-		/// HP — so paying the blood price below the floor keeps feeding the
-		/// flame, matching the missing-HP damage bonus.
+		/// Overall size of the body flame. The flame is the only indicator of
+		/// the burn floor now that the ladder is just two steps, so it is
+		/// sized up to be readable at a glance.
 		/// </summary>
-		public static void PulseAuraVisual(ICombatEntity entity)
+		private const float FlameSizeFactor = 1.25f;
+
+		/// <summary>
+		/// Plays one pulse of the burning-body fire on the entity, sized by
+		/// the ACTUAL health: smallest at the ignition floor, growing
+		/// linearly as health drops — so dipping below the floor keeps
+		/// feeding the flame, matching the missing-HP damage bonus.
+		/// </summary>
+		/// <param name="entity"></param>
+		/// <param name="scaleFactor">
+		/// Multiplies the health-derived size, so a state that makes the
+		/// Zealot burn hotter can say so visually. Zeal passes 2.
+		/// </param>
+		public static void PulseAuraVisual(ICombatEntity entity, float scaleFactor = 1f)
 		{
 			var hpPercent = 100f - GetMissingHpPercent(entity);
 			var scale = Math.Clamp(0.5f + (Ignition - hpPercent) * 0.025f, 0.5f, 2.0f);
-			entity.PlayEffectNode(AuraEffectName, scale, AuraNodeName);
+			entity.PlayEffectNode(AuraEffectName, scale * FlameSizeFactor * scaleFactor, AuraNodeName);
 		}
+
+		/// <summary>
+		/// The sparks thrown off an enemy struck by Zeal, so a fire hit
+		/// reads as a fire hit without a screen-wide overlay.
+		/// </summary>
+		/// <remarks>
+		/// Same constraint as AuraEffectName: the name MUST exist in
+		/// system/db/packetstrings.txt or AddStringId throws.
+		/// </remarks>
+		public const string FireHitEffectName = "F_spark011_orange";
+
+		/// <summary>
+		/// Plays the fire sparks on an enemy Zeal just burned.
+		/// </summary>
+		public static void PulseFireHit(ICombatEntity enemy)
+			=> enemy.PlayEffectNode(FireHitEffectName, 1f, AuraNodeName);
 
 		/// <summary>
 		/// Returns the share of maximum HP the entity is currently missing,
