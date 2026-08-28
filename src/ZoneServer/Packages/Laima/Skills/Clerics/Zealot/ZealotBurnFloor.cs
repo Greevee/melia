@@ -281,7 +281,9 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		public const BuffId PyreBuff = BuffId.ImmolationMeltArmor_Buff;
 
 		/// <summary>
-		/// Adds health the fire just took to the pyre, capped at one life.
+		/// Adds health the fire just took to the pyre, capped at exactly what
+		/// a full pyre is worth — burning past that is wasted, and the cap
+		/// keeps the readout honest about it.
 		/// </summary>
 		public static void AddBurned(ICombatEntity entity, float amount)
 		{
@@ -292,7 +294,8 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			if (maxHp <= 0)
 				return;
 
-			var burned = Math.Min(GetBurned(entity) + amount, maxHp);
+			var ceiling = maxHp * PyreSharePerHit * PyreMaxHits;
+			var burned = Math.Min(GetBurned(entity) + amount, ceiling);
 			entity.SetTempVar(PyreVar, burned);
 
 			ShowPyre(entity, GetPyreHits(entity));

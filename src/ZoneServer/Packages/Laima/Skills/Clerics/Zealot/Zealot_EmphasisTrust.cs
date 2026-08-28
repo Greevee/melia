@@ -19,8 +19,9 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	/// Handler for the Zealot skill Emphatic Trust, reworked into "Pyre".
 	/// The kit's attack skill, and the only one whose size the player builds
 	/// themselves: the fire remembers every point of health it has taken
-	/// since the last Pyre, and this releases it as one strike per tenth of
-	/// a life. Standing at your stage adds nothing — the fire only feeds
+	/// since the last Pyre, and this releases it as one lash for every 15%
+	/// of a life it has eaten, capped at six. Standing at your stage adds
+	/// nothing — the fire only feeds
 	/// while it actually eats, so being healed back up is what reloads this,
 	/// which is the whole trick of the class.
 	/// Firing empties the pyre, so every Pyre is paid for by the burning
