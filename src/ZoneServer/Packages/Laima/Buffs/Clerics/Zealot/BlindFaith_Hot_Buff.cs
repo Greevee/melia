@@ -14,9 +14,10 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 	/// Handler for Blind Faith, the Zealot's heal over time (riding on
 	/// Cleric_HolyAura_Buff).
 	/// Every second it burns one Fanaticism stack and heals the Zealot and
-	/// nearby allies, scaling with SPR. It deals no damage, and the stacks
-	/// are its clock: it ends the moment they run out — the same rule Zeal
-	/// runs on, which is what makes the two compete for one resource.
+	/// nearby allies, scaling with SPR. It deals no damage and has no timer:
+	/// it runs until the Zealot switches it off or the stacks run out. Held
+	/// continuously it is the counterweight to the burn, and where the two
+	/// balance out is what the Zealot's SPR buys.
 	/// </summary>
 	[Package("laima")]
 	[BuffHandler(BuffId.Cleric_HolyAura_Buff)]
@@ -60,6 +61,19 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		/// healer. PLACEHOLDER.
 		/// </summary>
 		private const float AllyHealShare = 0.5f;
+
+		/// <summary>
+		/// However the faith stopped — switched off, starved, death — the
+		/// skill icon has to stop showing it as running.
+		/// </summary>
+		public override void OnEnd(Buff buff)
+		{
+			if (buff.Target is not ICombatEntity caster)
+				return;
+
+			if (caster.TryGetSkill(buff.SkillId, out var skill))
+				Zealot_BlindFaithOverride.SetToggled(skill, caster, false);
+		}
 
 		public override void WhileActive(Buff buff)
 		{
