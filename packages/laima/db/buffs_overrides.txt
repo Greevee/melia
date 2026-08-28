@@ -194,5 +194,5 @@
 { id: 1097, className: "Fanaticism_Zealot12_Buff", overBuff: 20 },
 // Blind Faith runs as a heal over time with no timer: the Fanaticism
 // stacks are its clock and its handler ends it when they run out.
-{ id: 72, className: "Cleric_HolyAura_Buff", duration: 0, updateTime: 1000 },
+{ id: 72, className: "Cleric_HolyAura_Buff", duration: 10000, updateTime: 1000 },
 ]

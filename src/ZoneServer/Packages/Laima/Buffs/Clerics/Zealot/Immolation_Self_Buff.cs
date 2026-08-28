@@ -28,11 +28,10 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 	public class Immolation_Self_BuffOverride : BuffHandler
 	{
 		/// <summary>
-		/// Share of maximum HP burned per second while above the floor.
-		/// PLACEHOLDER (concept: "Tickrate" is tuning-only). Flat, so
-		/// reaching a floor takes a predictable amount of time.
+		/// Share of CURRENT HP burned per second while above the floor, so
+		/// the descent eases off as it approaches. PLACEHOLDER.
 		/// </summary>
-		private const float BurnPerSecond = 0.05f;
+		private const float BurnPerSecond = 0.10f;
 
 		/// <summary>
 		/// Never burns the caster to death; enemies should do that.
@@ -230,7 +229,10 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			if (hp <= floorHp || hp <= HpFloor)
 				return;
 
-			var burn = Math.Min(maxHp * BurnPerSecond, hp - Math.Max(floorHp, HpFloor));
+			// Ten percent of what is left, not of the maximum: the fall is
+			// fast at first and eases off towards the floor, so descending
+			// always feels like the fire eating into you.
+			var burn = Math.Min(hp * BurnPerSecond, hp - Math.Max(floorHp, HpFloor));
 			if (burn <= 0)
 				return;
 

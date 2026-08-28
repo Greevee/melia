@@ -13,14 +13,24 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	/// Handler for the Zealot skill Blind Faith.
 	/// Turns Fanaticism into healing: while it runs it burns one stack per
 	/// second and heals the Zealot and nearby allies, scaling with SPR. It
-	/// deals no damage. The stacks are its clock, exactly like Zeal's — so
-	/// the two are the same resource spent on survival or on damage.
+	/// deals no damage. It ends when the stacks run out or after ten
+	/// seconds, whichever comes first — the same resource Zeal burns, spent
+	/// on survival instead of damage.
 	/// The healing itself is handled by Cleric_HolyAura_Buff.
 	/// </summary>
 	[Package("laima")]
 	[SkillHandler(SkillId.Zealot_BlindFaith)]
 	public class Zealot_BlindFaithOverride : ISelfSkillHandler
 	{
+		/// <summary>
+		/// Hard ceiling on how long the faith can hold, whatever the stack
+		/// count says — ten seconds, so it drains at most ten stacks and a
+		/// full bar can still pay for something else.
+		/// Shown in the tooltip via captionTime in skills_overrides.txt —
+		/// keep the two in sync.
+		/// </summary>
+		private static readonly TimeSpan MaxDuration = TimeSpan.FromSeconds(10);
+
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Direction dir)
 		{
 			if (ZealotBurnFloor.GetStacks(caster) <= 0)
@@ -47,11 +57,11 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, 0, originPos, originPos.GetDirection(farPos), Position.Zero);
 			Send.ZC_SKILL_MELEE_TARGET(caster, skill, caster);
 
-			// Duration TimeSpan.Zero means no timer: the stacks are the
-			// clock, and the buff handler ends itself when they run out.
-			// NumArg1 carries the skill level the healing scales with.
+			// Ten seconds is the ceiling; the buff handler ends it earlier
+			// when the stacks run out. NumArg1 carries the skill level the
+			// healing scales with.
 			if (!caster.IsBuffActive(BuffId.Cleric_HolyAura_Buff))
-				caster.StartBuff(BuffId.Cleric_HolyAura_Buff, skill.Level, 0f, TimeSpan.Zero, caster, skill.Id);
+				caster.StartBuff(BuffId.Cleric_HolyAura_Buff, skill.Level, 0f, MaxDuration, caster, skill.Id);
 		}
 	}
 }

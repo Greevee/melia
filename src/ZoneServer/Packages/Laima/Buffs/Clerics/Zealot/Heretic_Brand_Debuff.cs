@@ -40,7 +40,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		/// Shown in the tooltip via captionRatio2 in skills_overrides.txt —
 		/// keep the two in sync.
 		/// </summary>
-		private const int StackReward = 3;
+		private const int StackReward = 5;
 
 		private const string RewardedVar = "Melia.Zealot.BrandRewarded";
 
