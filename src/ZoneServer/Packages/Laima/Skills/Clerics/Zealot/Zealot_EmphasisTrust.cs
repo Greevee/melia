@@ -36,14 +36,15 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		private static readonly TimeSpan HitSpacing = TimeSpan.FromMilliseconds(120);
 
 		/// <summary>
-		/// The fire going up on the cast, and the column that lands on every
-		/// enemy each lash. Swap candidates, all registered in packetstrings:
-		/// F_explosion050_fire, F_explosion051_fire, F_burstup027_fire,
-		/// F_burstup036_fire, F_burstup040_fire, AerialExplosion_Fire_Orange_01.
+		/// The fire that spreads where the Zealot points, and the column that
+		/// erupts on every enemy each lash. Both have been checked in game
+		/// and actually read as fire — the explosion names picked off the
+		/// string table turned out to look like light, which is the exact
+		/// opposite of what this skill is.
 		/// Compare them in game with >testeffect &lt;name&gt; &lt;seconds&gt;.
 		/// </summary>
-		private const string CastEffectName = "F_explosion050_fire";
-		private const string LashEffectName = "F_burstup030_fire";
+		private const string CastEffectName = "F_wizard_prominence_ground";
+		private const string LashEffectName = "F_archer_MagicArrow_ground_fire_loop";
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
@@ -74,7 +75,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			var bonus = ZealotBurnFloor.ConsumePyre(caster);
 
 			// One big answer where the Zealot is pointing, before the rain.
-			_ = caster.PlayEffectToGround(CastEffectName, farPos, 1.6f, duration: 1200f);
+			_ = caster.PlayEffectToGround(CastEffectName, farPos, 2.0f, duration: 1500f);
 
 			var splashParam = skill.GetSplashParameters(caster, originPos, farPos, StrikeRadius, StrikeRadius, angle: 0);
 			var splashArea = skill.GetSplashArea(SplashType.Circle, splashParam);
@@ -110,7 +111,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 
 					// A column on each enemy each lash, so the number that
 					// pops has something to pop out of.
-					_ = caster.PlayEffectToGround(LashEffectName, enemy.Position, 1.1f, duration: 700f);
+					_ = caster.PlayEffectToGround(LashEffectName, enemy.Position, 0.9f, duration: 600f);
 				}
 
 				if (skillHits.Count > 0)
