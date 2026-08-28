@@ -13,14 +13,14 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	/// <summary>
 	/// Handler for the Zealot skill Invulnerable, reworked into
 	/// "Temper the Flame".
-	/// The panic button: one press puts the flame out and resets the whole
-	/// burn state. The aura ends, the floor returns to ignition, every
-	/// Fanaticism stack is dropped, and health is restored up to the
-	/// ignition floor. The ember lingers: for ten seconds afterwards the
-	/// Zealot keeps the damage bonus of the stage they were in, so
-	/// retreating costs no offence right away (see Ember_Buff).
-	/// Only usable while the burn mode is active — there is nothing to put
-	/// out otherwise.
+	/// The retreat ladder: each press climbs one stage back up and heals to
+	/// it; pressing it at the top puts the fire out for good. Every press
+	/// leaves an ember that keeps the damage bonus of the stage just left
+	/// for ten seconds, so pulling back never costs the offence right away
+	/// (see Ember_Buff). Stacks survive a step and are only lost when the
+	/// flame itself dies.
+	/// Only usable while the burn mode is active — there is nothing to
+	/// temper otherwise.
 	/// Note: the skill database lists this as useType "MeleeGround", but the
 	/// client sends CZ_SKILL_SELF for it, so it is handled as a self skill.
 	/// </summary>
@@ -65,14 +65,25 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			// the stage the Zealot was standing in.
 			var stageBonus = ZealotBurnFloor.GetStageBonusPercent(ZealotBurnFloor.GetStage(caster));
 
-			// One press ends the burn state outright. Order matters: the heal
-			// reads the ignition floor, so the floor is reset first, and the
-			// aura is stopped last because its OnEnd drops the stacks.
-			ZealotBurnFloor.Set(caster, ZealotBurnFloor.Ignition);
+			// A ladder, not an exit: each press climbs one stage and heals up
+			// to it, and only a press at the top puts the fire out. That way
+			// retreating is a decision about how far, and the stacks are only
+			// lost when the flame actually dies (the aura's OnEnd drops them).
+			var floor = ZealotBurnFloor.Get(caster);
+			var atTop = floor >= ZealotBurnFloor.Ignition;
 
-			var healed = this.RaiseToFloor(caster, ZealotBurnFloor.Ignition);
+			int healed;
 
-			caster.StopBuff(BuffId.Immolation_Self_Buff);
+			if (atTop)
+			{
+				healed = this.RaiseToFloor(caster, ZealotBurnFloor.Ignition);
+				caster.StopBuff(BuffId.Immolation_Self_Buff);
+			}
+			else
+			{
+				var newFloor = ZealotBurnFloor.Shift(caster, ZealotBurnFloor.Step);
+				healed = this.RaiseToFloor(caster, newFloor);
+			}
 
 			// The fire is out, but the ember still burns: for a few seconds
 			// the Zealot keeps hitting as hard as they did while dying, so
@@ -81,7 +92,8 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 				caster.StartBuff(BuffId.Fanaticism_Buff, stageBonus, 0f, EmberDuration, caster, skill.Id);
 
 			Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0,
-				"The flame is out" + (healed > 0 ? $"  +{healed} HP" : "")
+				(atTop ? "The flame is out" : $"Tempered to {ZealotBurnFloor.Get(caster)}%")
+				+ (healed > 0 ? $"  +{healed} HP" : "")
 				+ (stageBonus > 0 ? $"  (Ember +{(int)stageBonus}%)" : ""));
 		}
 

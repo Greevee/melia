@@ -16,38 +16,24 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 {
 	/// <summary>
 	/// Handler for the Zeal burning state (riding on FanaticIllusion_Buff).
-	/// While it lasts, every attack the Zealot makes deals Fire property
-	/// damage, and every second one Fanaticism stack burns away in a fire
-	/// pulse that judges the nearest enemies.
-	/// The stacks are the clock: attacks made during Zeal build them back,
-	/// so a Zealot who keeps swinging keeps the state alive, and it ends the
-	/// second the stacks run out.
+	/// Zeal is the amplifier: while it burns, the stage damage bonus counts
+	/// double and every attack the Zealot makes deals Fire property damage.
+	/// It costs one Fanaticism stack per second, and the stacks are its
+	/// clock — the burning itself pays part of that back, so at the deepest
+	/// stage Zeal can hold indefinitely while a shallower one runs dry.
 	/// </summary>
 	[Package("laima")]
 	[BuffHandler(BuffId.FanaticIllusion_Buff)]
 	public class Zeal_Judgement_BuffOverride : BuffHandler
 	{
 		/// <summary>
-		/// Radius of the per-second fire pulse. PLACEHOLDER.
-		/// </summary>
-		private const float PulseRange = 60f;
-
-		/// <summary>
-		/// The AoE attack ratio each pulse spends. The nearest enemy is the
-		/// primary target and always takes the hit; the rest of the ratio is
-		/// spent on whatever else is in range, against their AoE defence —
-		/// so against ordinary monsters a pulse reaches the primary plus two
-		/// more. Zeal stays the focused spender; the Immolate burst is the
-		/// pack spender.
+		/// What Zeal does to the stage damage bonus while it burns: doubles
+		/// it, so the deepest stage reaches +100%. This is the whole skill —
+		/// it amplifies the class mechanic instead of adding a second one.
 		/// Shown via captionRatio2 in skills_overrides.txt — keep the two in
 		/// sync.
 		/// </summary>
-		private const float PulseSr = 3f;
-
-		/// <summary>
-		/// Damage share of one pulse. PLACEHOLDER.
-		/// </summary>
-		private const float PulseFactor = 0.75f;
+		public const float StageBonusFactor = 2f;
 
 		/// <summary>
 		/// How much brighter the burning body reads while Zeal is up. The
@@ -72,67 +58,6 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			}
 
 			ZealotBurnFloor.AddStacks(caster, -1);
-			this.FirePulse(buff, caster);
-		}
-
-		/// <summary>
-		/// The per-second fire pulse around the Zealot.
-		/// </summary>
-		private void FirePulse(Buff buff, ICombatEntity caster)
-		{
-			if (!caster.TryGetSkill(buff.SkillId, out var skill))
-				return;
-
-			var enemies = this.SpendPulseSr(caster).ToList();
-			if (enemies.Count == 0)
-				return;
-
-			var hits = new List<SkillHitInfo>();
-
-			foreach (var enemy in enemies)
-			{
-				var modifier = SkillModifier.Default;
-				modifier.AttackAttribute = AttributeType.Fire;
-				modifier.DamageMultiplier *= PulseFactor;
-
-				var result = SCR_SkillHit(caster, enemy, skill, modifier);
-				enemy.TakeDamage(result.Damage, caster);
-
-				ZealotBurnFloor.PulseFireHit(enemy);
-
-				hits.Add(new SkillHitInfo(caster, enemy, skill, result, TimeSpan.Zero, TimeSpan.Zero));
-			}
-
-			Send.ZC_SKILL_HIT_INFO(caster, hits);
-		}
-
-		/// <summary>
-		/// Picks the enemies one pulse reaches, spending PulseSr against
-		/// their AoE defence ratios.
-		/// </summary>
-		/// <remarks>
-		/// Deliberately not Extensions.LimitBySDR: that one reads the
-		/// skill's own SR (Zeal's activating strike is far wider) and orders
-		/// by SDR so the tankiest target soaks the ratio first. A pulse is
-		/// meant to land on whatever the Zealot is standing next to, so this
-		/// orders by distance and lets the nearest enemy be the primary
-		/// target that always gets hit.
-		/// </remarks>
-		private IEnumerable<ICombatEntity> SpendPulseSr(ICombatEntity caster)
-		{
-			var enemies = caster.Map.GetAttackableEnemiesInPosition(caster, caster.Position, PulseRange)
-				.OrderBy(a => caster.Position.Get2DDistance(a.Position));
-
-			var sr = PulseSr;
-
-			foreach (var enemy in enemies)
-			{
-				yield return enemy;
-
-				sr -= enemy.Properties.GetFloat(PropertyName.SDR);
-				if (sr <= 0)
-					break;
-			}
 		}
 
 		/// <summary>

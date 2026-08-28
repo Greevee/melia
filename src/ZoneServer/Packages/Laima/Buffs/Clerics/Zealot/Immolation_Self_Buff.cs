@@ -18,10 +18,11 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 	/// <summary>
 	/// Handler for the Zealot burn mode carried by Immolate.
 	/// Per the concept (Zealot_Rework_Konzept.xlsx v1.0) the aura burns the
-	/// caster's health down to the current burn floor and keeps it there,
-	/// burns nearby enemies every second — a larger area per floor step,
-	/// hotter the closer they stand — and converts missing health into
-	/// damage on everything. Recasting Immolate adds the burst on top.
+	/// caster's health down to the current stage and keeps it there, burns
+	/// nearby enemies every second — a larger area per stage, hotter the
+	/// closer they stand — pays a stack every few seconds, and grants the
+	/// stage damage bonus on everything the Zealot does (doubled while Zeal
+	/// burns). Recasting Immolate adds the burst on top.
 	/// </summary>
 	[Package("laima")]
 	[BuffHandler(BuffId.Immolation_Self_Buff)]
@@ -52,15 +53,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		private const float MaxFireMitigation = 0.5f;
 
 		private const string TickVar = "Immolation.Tick";
-		private const string HurtVar = "Immolation.Hurt";
-
-		/// <summary>
-		/// Stacks granted for being hurt while burning, at most once per
-		/// second. The third stack source, and the only one that pays more
-		/// the more dangerous the fight is — which is exactly when Blind
-		/// Faith is needed. PLACEHOLDER magnitude.
-		/// </summary>
-		private const int StacksPerPain = 1;
+		private const string StackTickVar = "Immolation.StackTick";
 
 		/// <summary>
 		/// The burning aura around the Zealot: radius grows one step per
@@ -99,39 +92,26 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 
 			this.BurnTowardsFloor(target);
 			this.DealAuraDamage(buff, target);
-			this.PayForPain(buff, target);
+			this.BuildStacks(buff, target);
 		}
 
 		/// <summary>
-		/// Pain feeds the fanaticism: taking a hit while burning is worth a
-		/// stack. Granted here rather than in the hook, so the aura's own
-		/// once-a-second tick is the rate limit — a hail of small hits pays
-		/// exactly as much as one big one.
+		/// The burning itself pays: one stack every few seconds, faster the
+		/// deeper the stage — the deepest one funds a channel outright.
+		/// Intervals live in ZealotBurnFloor.
 		/// </summary>
-		private void PayForPain(Buff buff, ICombatEntity target)
+		private void BuildStacks(Buff buff, ICombatEntity target)
 		{
-			if (!buff.Vars.GetBool(HurtVar))
+			var tick = buff.Vars.GetInt(StackTickVar) + 1;
+
+			if (tick < ZealotBurnFloor.GetStackInterval(target))
+			{
+				buff.Vars.SetInt(StackTickVar, tick);
 				return;
+			}
 
-			buff.Vars.SetBool(HurtVar, false);
-			ZealotBurnFloor.AddStacks(target, StacksPerPain);
-		}
-
-		/// <summary>
-		/// Flags that the Zealot was hurt this second; the tick above turns
-		/// it into a stack. Only enemy damage counts — the aura's own burn
-		/// goes through ModifyHpSafe and never reaches combat calculation.
-		/// </summary>
-		[CombatCalcModifier(CombatCalcPhase.AfterCalc, BuffId.Immolation_Self_Buff)]
-		public void OnDefenseAfterCalc(ICombatEntity attacker, ICombatEntity target, Skill skill, SkillModifier modifier, SkillHitResult skillHitResult)
-		{
-			if (!target.TryGetBuff(BuffId.Immolation_Self_Buff, out var buff))
-				return;
-
-			if (skillHitResult.Damage <= 0)
-				return;
-
-			buff.Vars.SetBool(HurtVar, true);
+			buff.Vars.SetInt(StackTickVar, 0);
+			ZealotBurnFloor.AddStacks(target, 1);
 		}
 
 		/// <summary>
@@ -188,7 +168,12 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			// Reads the stage, not current health: the reward is for how deep
 			// the Zealot committed, so a healer topping them up no longer
 			// takes it away.
-			modifier.DamageMultiplier *= 1f + ZealotBurnFloor.GetStageBonus(attacker);
+			// Zeal is the amplifier: while it burns, the stage counts double.
+			var bonus = ZealotBurnFloor.GetStageBonus(attacker);
+			if (attacker.IsBuffActive(BuffId.FanaticIllusion_Buff))
+				bonus *= Zeal_Judgement_BuffOverride.StageBonusFactor;
+
+			modifier.DamageMultiplier *= 1f + bonus;
 		}
 
 		/// <summary>

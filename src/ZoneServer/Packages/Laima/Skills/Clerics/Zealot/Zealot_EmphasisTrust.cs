@@ -13,11 +13,11 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 {
 	/// <summary>
 	/// Handler for the Zealot skill Emphatic Trust.
-	/// Marks the enemies around the Zealot for twenty seconds. A marked
-	/// enemy takes extra damage from the burning aura and from Zeal — and
-	/// from nothing else, which is what makes this the setup press for the
-	/// class's own damage rather than a generic damage-taken debuff (see
-	/// EmphasisTrust_Debuff handler). Deals no damage of its own.
+	/// The crowd version of the heretic's brand: it lays the very same mark
+	/// on everything around the Zealot for twenty seconds, so there is one
+	/// mark in the kit rather than two sets of rules (see
+	/// Heretic_Brand_Debuff). A kill on one of these pays far less than a
+	/// kill on Brand's single mark. Deals no damage of its own.
 	/// </summary>
 	[Package("laima")]
 	[SkillHandler(SkillId.Zealot_EmphasisTrust)]
@@ -29,6 +29,16 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// The radius stays a PLACEHOLDER; the twenty seconds and twenty
 		/// targets are the intended values.
 		/// </summary>
+		/// <summary>
+		/// What a kill on one of these marks pays. Far below what Brand's
+		/// single mark is worth, because this one lands on a whole pack:
+		/// otherwise marking four enemies and bombing them would hand out a
+		/// full bar from one press.
+		/// Shown in the tooltip via captionRatio2 in skills_overrides.txt —
+		/// keep the two in sync.
+		/// </summary>
+		private const float KillStackReward = 1f;
+
 		private const float DebuffRadius = 150f;
 		private const int MaxTargets = 20;
 		private static readonly TimeSpan DebuffDuration = TimeSpan.FromSeconds(20);
@@ -52,7 +62,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			var enemies = caster.Map.GetAttackableEnemiesInPosition(caster, caster.Position, DebuffRadius);
 
 			foreach (var enemy in enemies.Take(MaxTargets))
-				enemy.StartBuff(BuffId.EmphasisTrust_Debuff, skill.Level, 0f, DebuffDuration, caster, skill.Id);
+				enemy.StartBuff(BuffId.BeadyEyed_Debuff, skill.Level, KillStackReward, DebuffDuration, caster, skill.Id);
 		}
 	}
 }

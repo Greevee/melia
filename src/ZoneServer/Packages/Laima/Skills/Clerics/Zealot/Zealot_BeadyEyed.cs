@@ -32,6 +32,12 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		private static readonly TimeSpan MarkDuration = TimeSpan.FromSeconds(5);
 
 		/// <summary>
+		/// What a kill on this mark pays. Shown in the tooltip via
+		/// captionRatio2 in skills_overrides.txt — keep the two in sync.
+		/// </summary>
+		private const float KillStackReward = 5f;
+
+		/// <summary>
 		/// Distance behind the target the Zealot appears at.
 		/// </summary>
 		private const float BlinkDistance = 20f;
@@ -64,7 +70,9 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			caster.Position = behindPos;
 			Send.ZC_SET_POS(caster, behindPos);
 
-			target.StartBuff(BuffId.BeadyEyed_Debuff, skill.Level, 0f, MarkDuration, caster, skill.Id);
+			// NumArg2 is what a kill on this mark pays: the precise press is
+			// the rewarding one.
+			target.StartBuff(BuffId.BeadyEyed_Debuff, skill.Level, KillStackReward, MarkDuration, caster, skill.Id);
 
 			skill.Run(this.Strike(skill, caster, target));
 		}

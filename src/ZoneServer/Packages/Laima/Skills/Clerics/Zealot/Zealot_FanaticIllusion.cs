@@ -17,13 +17,11 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 {
 	/// <summary>
 	/// Handler for the Zealot skill Fanatic Illusion, reworked into "Zeal".
-	/// One activating AoE strike around the Zealot, then a burning state:
-	/// while it lasts, every attack deals Fire property damage and every
-	/// second one Fanaticism stack burns away in a fire pulse around the
-	/// Zealot. Attacks made during the state build stacks back, so a Zealot
-	/// who keeps swinging keeps Zeal alive — the state ends when the stacks
-	/// run out (see Zeal_Judgement_Buff). The one-second cooldown is
-	/// deliberate: the stack count is the real gate, not the timer.
+	/// A hard AoE strike that lights the fire if it is out, and then the
+	/// amplifier state: the stage damage bonus counts double and every
+	/// attack strikes with Fire, for one Fanaticism stack per second (see
+	/// Zeal_Judgement_Buff). The one-second cooldown is deliberate: the
+	/// stack count is the real gate, not the timer.
 	/// </summary>
 	[Package("laima")]
 	[SkillHandler(SkillId.Zealot_FanaticIllusion)]
@@ -53,6 +51,14 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			Send.ZC_SKILL_READY(caster, skill, 1, originPos, farPos);
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, target?.Handle ?? 0, originPos, originPos.GetDirection(farPos), Position.Zero);
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
+
+			// The strike lights the fire if it is not burning yet, so Zeal
+			// works as an opener as well as an amplifier.
+			if (!caster.IsBuffActive(BuffId.Immolation_Self_Buff))
+			{
+				caster.StartBuff(BuffId.Immolation_Self_Buff, skill.Level, 0f, TimeSpan.Zero, caster, SkillId.Zealot_Immolation);
+				ZealotBurnFloor.Set(caster, ZealotBurnFloor.Ignition);
+			}
 
 			// Pressing Zeal costs fuel, so the stack count really is the cap
 			// on how often it can be pressed — with a one-second cooldown the

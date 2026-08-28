@@ -259,16 +259,31 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 
 		/// <summary>
 		/// Damage bonus per stage, applied to everything the burning Zealot
-		/// does. Deliberately steep at the last step, so committing all the
-		/// way is worth the danger. PLACEHOLDER values; mirrored into
-		/// Immolate's captionRatio2 for the tooltip.
+		/// does. Sized so that Zeal, which doubles it, turns the deepest
+		/// stage into +100%. PLACEHOLDER values; mirrored into Immolate's
+		/// captionRatio2 for the tooltip.
 		/// </summary>
-		private static readonly float[] StageDamageBonus = { 0.20f, 0.50f, 1.00f };
+		private static readonly float[] StageDamageBonus = { 0.10f, 0.25f, 0.50f };
 
 		/// <summary>
 		/// Flame size per stage — the visual tell for which stage is live.
 		/// </summary>
 		private static readonly float[] StageFlameScale = { 0.7f, 1.2f, 2.0f };
+
+		/// <summary>
+		/// Seconds between two passively generated stacks, per stage. The
+		/// deepest stage funds exactly one channel (Zeal or Blind Faith
+		/// drain one per second), which is the whole point: burning deep
+		/// pays for staying in a state, and the Fanaticism window is what
+		/// banks a surplus on top. PLACEHOLDER values.
+		/// </summary>
+		private static readonly int[] StageStackInterval = { 3, 2, 1 };
+
+		/// <summary>
+		/// Seconds the entity's current stage needs per passive stack.
+		/// </summary>
+		public static int GetStackInterval(ICombatEntity entity)
+			=> StageStackInterval[GetStage(entity) - 1];
 
 		/// <summary>
 		/// The damage bonus the entity's current stage is worth.

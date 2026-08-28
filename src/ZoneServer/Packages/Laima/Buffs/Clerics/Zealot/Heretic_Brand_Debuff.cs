@@ -35,12 +35,22 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		private const float BonusDamageTaken = 0.10f;
 
 		/// <summary>
-		/// Fanaticism stacks granted by a marked kill, or by the first
-		/// marked hit against a boss.
-		/// Shown in the tooltip via captionRatio2 in skills_overrides.txt —
-		/// keep the two in sync.
+		/// Fallback for a mark applied without a reward value.
 		/// </summary>
-		private const int StackReward = 5;
+		private const int DefaultStackReward = 1;
+
+		/// <summary>
+		/// What a marked kill pays, read from the mark itself (NumArg2): the
+		/// precise press pays well, the sweep pays a little. One mark, two
+		/// price tags — otherwise marking a pack and bombing it would hand
+		/// out a full bar from a single button.
+		/// </summary>
+		private static int GetStackReward(Buff buff)
+		{
+			var reward = (int)buff.NumArg2;
+
+			return reward > 0 ? reward : DefaultStackReward;
+		}
 
 		private const string RewardedVar = "Melia.Zealot.BrandRewarded";
 
@@ -56,7 +66,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 				return;
 
 			if (buff.Caster is ICombatEntity marker && !marker.IsDead)
-				ZealotBurnFloor.AddStacks(marker, StackReward);
+				ZealotBurnFloor.AddStacks(marker, GetStackReward(buff));
 		}
 
 		[CombatCalcModifier(CombatCalcPhase.BeforeBonuses, BuffId.BeadyEyed_Debuff)]
@@ -79,7 +89,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 
 			if (target is Mob mob && mob.Rank == MonsterRank.Boss)
 			{
-				ZealotBurnFloor.AddStacks(attacker, StackReward);
+				ZealotBurnFloor.AddStacks(attacker, GetStackReward(buff));
 				buff.Vars.SetBool(RewardedVar, true);
 			}
 		}
