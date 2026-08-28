@@ -25,6 +25,15 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	[SkillHandler(SkillId.Zealot_Fanaticism)]
 	public class Zealot_FanaticismOverride : IGroundSkillHandler
 	{
+		/// <summary>
+		/// How long the attack-speed window stays open. Ten seconds against
+		/// the fifteen second cooldown, so it is up two thirds of the time
+		/// and Fanaticism stays the clock the rest of the kit runs on.
+		/// Shown in the tooltip via captionTime in skills_overrides.txt —
+		/// keep the two in sync.
+		/// </summary>
+		private static readonly TimeSpan RushDuration = TimeSpan.FromSeconds(10);
+
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
 			if (!caster.IsBuffActive(BuffId.Immolation_Self_Buff))
@@ -77,7 +86,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// </summary>
 		private void GrantZealRush(Skill skill, ICombatEntity caster)
 		{
-			caster.StartBuff(BuffId.BeadyEyed_Buff, skill.Level, 0f, TimeSpan.FromSeconds(5), caster, skill.Id);
+			caster.StartBuff(BuffId.BeadyEyed_Buff, skill.Level, 0f, RushDuration, caster, skill.Id);
 		}
 	}
 }
