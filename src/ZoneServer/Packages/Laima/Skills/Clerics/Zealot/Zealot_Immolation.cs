@@ -33,16 +33,11 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 
 		/// <summary>
 		/// Blast radius at the first stage, growing with every point of floor
-		/// below it: 40 at stage one, 90 at the deepest. PLACEHOLDER.
+		/// below it: 40 at stage one, 90 at the deepest. The stage buys area
+		/// here, not damage. PLACEHOLDER.
 		/// </summary>
 		private const float BurstBaseRadius = 40f;
 		private const float BurstRadiusPerFloorPoint = 1f;
-
-		/// <summary>
-		/// Extra blast damage per point of floor below the first stage:
-		/// +50% at the deepest stage. PLACEHOLDER.
-		/// </summary>
-		private const float BurstDamagePerFloorPoint = 0.01f;
 
 		/// <summary>
 		/// Extra blast damage per consumed Fanaticism stack. The blast spends
@@ -85,7 +80,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			var splashParam = skill.GetSplashParameters(caster, originPos, farPos, radius, radius, angle: 0);
 			var splashArea = skill.GetSplashArea(SplashType.Circle, splashParam);
 
-			skill.Run(this.Burst(skill, caster, splashArea, floor, stacks));
+			skill.Run(this.Burst(skill, caster, splashArea, stacks));
 		}
 
 		/// <summary>
@@ -106,16 +101,18 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		}
 
 		/// <summary>
-		/// The fire burst around the caster: damage scales with how deep the
-		/// floor sits and with the Fanaticism stacks it just consumed.
+		/// The fire burst around the caster: the area comes from the stage,
+		/// the damage from the Fanaticism stacks it just consumed.
 		/// </summary>
-		private async Task Burst(Skill skill, ICombatEntity caster, ISplashArea splashArea, int floor, int stacks)
+		private async Task Burst(Skill skill, ICombatEntity caster, ISplashArea splashArea, int stacks)
 		{
 			await skill.Wait(TimeSpan.FromMilliseconds(100));
 
-			var bonus = 1f
-				+ (ZealotBurnFloor.Ignition - floor) * BurstDamagePerFloorPoint
-				+ stacks * BurstDamagePerStack;
+			// Depth is already paid for by the stage bonus every attack
+			// carries (Immolation_Self_Buff); paying for it a second time
+			// here made the blast impossible to explain in a tooltip. The
+			// stacks are the only thing this skill scales on itself.
+			var bonus = 1f + stacks * BurstDamagePerStack;
 
 			var targets = caster.Map.GetAttackableEnemiesIn(caster, splashArea);
 			var hits = new List<SkillHitInfo>();

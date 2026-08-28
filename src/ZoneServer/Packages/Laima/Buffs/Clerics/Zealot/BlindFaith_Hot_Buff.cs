@@ -53,6 +53,14 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		/// </summary>
 		private const float HealRadius = 200f;
 
+		/// <summary>
+		/// The share of the Zealot's own healing that reaches an ally. Half,
+		/// because this is a damage class borrowing a support tool: the
+		/// party feels it without the Zealot competing with an actual
+		/// healer. PLACEHOLDER.
+		/// </summary>
+		private const float AllyHealShare = 0.5f;
+
 		public override void WhileActive(Buff buff)
 		{
 			if (buff.Target is not ICombatEntity caster || caster.IsDead)
@@ -75,7 +83,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 				return;
 
 			this.HealCaster(caster, heal);
-			this.HealAllies(caster, heal);
+			this.HealAllies(caster, heal * AllyHealShare);
 		}
 
 		/// <summary>
@@ -101,8 +109,9 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		}
 
 		/// <summary>
-		/// Heals allied players around the Zealot. The caster is healed
-		/// separately, so they are skipped here.
+		/// Heals allied players around the Zealot, for a share of what the
+		/// Zealot heals themselves. The caster is healed separately, so they
+		/// are skipped here.
 		/// </summary>
 		private void HealAllies(ICombatEntity caster, float heal)
 		{

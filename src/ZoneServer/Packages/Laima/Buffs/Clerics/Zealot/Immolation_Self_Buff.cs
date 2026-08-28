@@ -66,6 +66,16 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		private const float AuraTickFactor = 0.3f;
 		private const float AuraEdgeDamageShare = 0.5f;
 
+		/// <summary>
+		/// How many enemies the aura burns at once. Deliberately far above
+		/// the splash limits the cast skills use — this is a fire the Zealot
+		/// stands inside, not a swing, so being surrounded should be the
+		/// good case. It is capped only so a huge pull cannot make the aura
+		/// the whole class. PLACEHOLDER values.
+		/// </summary>
+		private const int AuraBaseTargets = 15;
+		private const int AuraTargetsPerLevel = 1;
+
 		public override void OnEnd(Buff buff)
 		{
 			// Ending the mode resets the risk dial entirely.
@@ -130,7 +140,16 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			var floor = ZealotBurnFloor.Get(target);
 			var range = AuraBaseRange + (ZealotBurnFloor.Ignition - floor) / (float)ZealotBurnFloor.Step * AuraRangePerStep;
 
-			var enemies = caster.Map.GetAttackableEnemiesInPosition(caster, caster.Position, range).ToList();
+			// Nearest first, so when the cap bites it keeps the enemies the
+			// aura actually burns hardest — the falloff makes the far ones
+			// the cheap ones anyway.
+			var maxTargets = AuraBaseTargets + skill.Level * AuraTargetsPerLevel;
+
+			var enemies = caster.Map.GetAttackableEnemiesInPosition(caster, caster.Position, range)
+				.OrderBy(a => a.Position.Get2DDistance(caster.Position))
+				.Take(maxTargets)
+				.ToList();
+
 			if (enemies.Count == 0)
 				return;
 
