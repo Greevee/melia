@@ -17,11 +17,9 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 {
 	/// <summary>
 	/// Handler for the Zealot skill Immolate.
-	/// Per the concept (Zealot_Rework_Konzept.xlsx v1.0): the first cast
-	/// activates the burn mode and sets the burn floor to 70%. While
-	/// burning, further casts unleash a fire burst whose damage and area
-	/// grow the lower the floor sits; the burst also consumes all
-	/// Fanaticism stacks for extra damage.
+	/// The first cast lights the fire at the first stage. While burning,
+	/// further casts unleash a blast whose damage and area grow with the
+	/// stage, spending every Fanaticism stack for extra damage.
 	/// </summary>
 	[Package("laima")]
 	[SkillHandler(SkillId.Zealot_Immolation)]
@@ -34,31 +32,24 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		private static readonly TimeSpan AuraDuration = TimeSpan.Zero;
 
 		/// <summary>
-		/// Burst radius at the ignition floor. PLACEHOLDER (concept: area
-		/// tuning only) — grows by BurstRadiusPerFloorPoint for every floor
-		/// point below ignition (80 -> 40, 40 -> 80).
+		/// Blast radius at the first stage, growing with every point of floor
+		/// below it: 40 at stage one, 90 at the deepest. PLACEHOLDER.
 		/// </summary>
 		private const float BurstBaseRadius = 40f;
 		private const float BurstRadiusPerFloorPoint = 1f;
 
 		/// <summary>
-		/// Extra burst damage per floor point below ignition. PLACEHOLDER —
-		/// +1% per point: floor 40 deals +40%.
+		/// Extra blast damage per point of floor below the first stage:
+		/// +50% at the deepest stage. PLACEHOLDER.
 		/// </summary>
 		private const float BurstDamagePerFloorPoint = 0.01f;
 
 		/// <summary>
-		/// Extra burst damage per consumed Fanaticism stack. PLACEHOLDER
-		/// (concept: burst consumes all stacks; magnitude TBD).
+		/// Extra blast damage per consumed Fanaticism stack. The blast spends
+		/// the whole bar, so this is what banking stacks is worth.
+		/// PLACEHOLDER.
 		/// </summary>
 		private const float BurstDamagePerStack = 0.15f;
-
-		/// <summary>
-		/// Most stacks one burst may spend. Deliberately below the cap of
-		/// twenty: a full bar is worth a burst AND a state, so pressing
-		/// Immolate is no longer an all-or-nothing decision.
-		/// </summary>
-		private const int MaxBurstStacks = 10;
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
@@ -86,7 +77,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			}
 
 			var floor = ZealotBurnFloor.Get(caster);
-			var stacks = ZealotBurnFloor.ConsumeStacks(caster, MaxBurstStacks);
+			var stacks = ZealotBurnFloor.ConsumeStacks(caster);
 
 			this.SpawnCastFire(caster, originPos);
 
@@ -98,8 +89,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		}
 
 		/// <summary>
-		/// A fire patch on the ground at the caster, growing the deeper the
-		/// burn floor sits (floor 70 -> 0.8, floor 10 -> 2.0).
+		/// A fire patch on the ground at the caster, growing with the stage.
 		/// </summary>
 		private void SpawnCastFire(ICombatEntity caster, Position originPos)
 		{

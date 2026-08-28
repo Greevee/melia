@@ -20,8 +20,8 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	/// A hard AoE strike that lights the fire if it is out, and then the
 	/// amplifier state: the stage damage bonus counts double and every
 	/// attack strikes with Fire, for one Fanaticism stack per second (see
-	/// Zeal_Judgement_Buff). The one-second cooldown is deliberate: the
-	/// stack count is the real gate, not the timer.
+	/// Zeal_Judgement_Buff). Re-pressing repeats the strike; the state
+	/// itself keeps running on its own fuel.
 	/// </summary>
 	[Package("laima")]
 	[SkillHandler(SkillId.Zealot_FanaticIllusion)]
@@ -60,9 +60,8 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 				ZealotBurnFloor.Set(caster, ZealotBurnFloor.Ignition);
 			}
 
-			// Pressing Zeal costs fuel, so the stack count really is the cap
-			// on how often it can be pressed — with a one-second cooldown the
-			// SP bar alone would not be one.
+			// Pressing Zeal costs fuel on top of the cooldown, so spamming
+			// the strike drains the very resource the state runs on.
 			ZealotBurnFloor.AddStacks(caster, -1);
 
 			// The burning state; it drains the stacks and ends itself when
