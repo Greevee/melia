@@ -58,9 +58,10 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		/// <summary>
 		/// Damage bonus per percent of missing health while burning — the
 		/// class identity: 1% extra damage on everything per 1% missing HP.
-		/// PLACEHOLDER magnitude.
+		/// Shared with the ember Temper leaves behind, so the two cannot
+		/// drift apart. PLACEHOLDER magnitude.
 		/// </summary>
-		private const float DamagePerMissingPercent = 0.01f;
+		public const float DamagePerMissingPercent = 0.01f;
 
 		/// <summary>
 		/// The burning aura around the Zealot: radius grows one step per

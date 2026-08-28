@@ -16,8 +16,11 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	/// The panic button: one press puts the flame out and resets the whole
 	/// burn state. The aura ends, the floor returns to ignition, every
 	/// Fanaticism stack is dropped, and health is restored up to the
-	/// ignition floor. Only usable while the burn mode is active — there is
-	/// nothing to put out otherwise.
+	/// ignition floor. The ember lingers: for ten seconds afterwards the
+	/// Zealot keeps the damage bonus they had at the moment the fire went
+	/// out, so retreating costs no offence right away (see Ember_Buff).
+	/// Only usable while the burn mode is active — there is nothing to put
+	/// out otherwise.
 	/// Note: the skill database lists this as useType "MeleeGround", but the
 	/// client sends CZ_SKILL_SELF for it, so it is handled as a self skill.
 	/// </summary>
@@ -25,6 +28,13 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	[SkillHandler(SkillId.Zealot_Invulnerable)]
 	public class Zealot_InvulnerableOverride : ISelfSkillHandler
 	{
+		/// <summary>
+		/// How long the ember keeps the damage bonus alive after the flame
+		/// is out. Shown in the tooltip via captionTime in
+		/// skills_overrides.txt — keep the two in sync.
+		/// </summary>
+		private static readonly TimeSpan EmberDuration = TimeSpan.FromSeconds(10);
+
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Direction dir)
 		{
 			if (!caster.IsBuffActive(BuffId.Immolation_Self_Buff))
@@ -51,6 +61,10 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, 0, originPos, originPos.GetDirection(farPos), Position.Zero);
 			Send.ZC_SKILL_MELEE_TARGET(caster, skill, caster);
 
+			// Captured before the heal: the ember keeps the damage bonus the
+			// Zealot had while dying, and healing up would erase it.
+			var missingPercent = ZealotBurnFloor.GetMissingHpPercent(caster);
+
 			// One press ends the burn state outright. Order matters: the heal
 			// reads the ignition floor, so the floor is reset first, and the
 			// aura is stopped last because its OnEnd drops the stacks.
@@ -60,8 +74,15 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 
 			caster.StopBuff(BuffId.Immolation_Self_Buff);
 
+			// The fire is out, but the ember still burns: for a few seconds
+			// the Zealot keeps hitting as hard as they did while dying, so
+			// pulling out is not an instant loss of all offence.
+			if (missingPercent > 0)
+				caster.StartBuff(BuffId.Fanaticism_Buff, missingPercent, 0f, EmberDuration, caster, skill.Id);
+
 			Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0,
-				"The flame is out" + (healed > 0 ? $"  +{healed} HP" : ""));
+				"The flame is out" + (healed > 0 ? $"  +{healed} HP" : "")
+				+ (missingPercent > 0 ? $"  (Ember +{(int)missingPercent}%)" : ""));
 		}
 
 		/// <summary>
