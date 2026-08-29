@@ -79,9 +79,47 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 
 		public override void OnEnd(Buff buff)
 		{
-			// Ending the mode resets the risk dial entirely.
+			// Ending the mode resets the risk dial entirely — including the
+			// blows Temper deferred, which have nothing left to burn off in.
 			if (buff.Target is ICombatEntity target)
+			{
 				ZealotBurnFloor.ConsumeStacks(target);
+				ZealotBurnFloor.ClearDeferred(target);
+			}
+		}
+
+		/// <summary>
+		/// Works off the blows Temper the Flame turned into fire, a share of
+		/// the pool each second. This is real damage and it feeds the Pyre
+		/// exactly like the self-burn does — the same rule as everywhere
+		/// else: only health the fire actually took counts.
+		/// It ignores the stage on purpose. A blow that was deferred has
+		/// already happened; refusing to collect it below the stage would
+		/// turn Temper into free damage prevention rather than a delay.
+		/// </summary>
+		private void BurnOffDeferred(ICombatEntity target)
+		{
+			if (target is not Character character)
+				return;
+
+			var maxHp = target.Properties.GetFloat(PropertyName.MHP);
+			if (maxHp <= 0)
+				return;
+
+			var burn = ZealotBurnFloor.DrainDeferred(target, maxHp);
+			if (burn <= 0)
+				return;
+
+			// Never the killing blow by itself: the spike was survived, so
+			// the delayed half should not undo that on a technicality.
+			burn = Math.Min(burn, Math.Max(0f, target.Hp - HpFloor));
+			if (burn <= 0)
+				return;
+
+			character.ModifyHpSafe(-burn, out _, out var priority);
+			Send.ZC_UPDATE_ALL_STATUS(character, priority);
+
+			ZealotBurnFloor.AddBurned(target, burn);
 		}
 
 		public override void WhileActive(Buff buff)
@@ -102,6 +140,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			ZealotBurnFloor.PulseAuraVisual(target, visualScale);
 
 			this.BurnTowardsFloor(target);
+			this.BurnOffDeferred(target);
 			this.MendTowardsBalance(buff, target);
 			this.DealAuraDamage(buff, target);
 			this.BuildStacks(buff, target);

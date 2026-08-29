@@ -267,6 +267,68 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		private const string PyreVar = "Zealot.Pyre";
 
 		/// <summary>
+		/// Blows that Temper the Flame turned into fire and that have not
+		/// burned off yet. Pooled rather than kept as one debuff per hit:
+		/// eight hits inside a window would otherwise be eight overlapping
+		/// timers, unreadable in the bar and pointless to track separately.
+		/// One number, worked off a share at a time.
+		/// </summary>
+		private const string DeferredVar = "Zealot.Deferred";
+
+		/// <summary>
+		/// Roughly how long a deferred blow takes to burn off, and the point
+		/// below which the rest is simply taken at once so the pool always
+		/// terminates instead of halving forever. PLACEHOLDER.
+		/// Shown in Temper's tooltip via captionRatio3 — keep them in sync.
+		/// </summary>
+		public const float DeferredBurnSeconds = 4f;
+		private const float DeferredFloorShare = 0.005f;
+
+		/// <summary>
+		/// Adds a blow the fire took instead of the body.
+		/// </summary>
+		public static void AddDeferred(ICombatEntity entity, float amount)
+		{
+			if (amount <= 0)
+				return;
+
+			entity.SetTempVar(DeferredVar, GetDeferred(entity) + amount);
+		}
+
+		/// <summary>
+		/// The fire still waiting to be paid for.
+		/// </summary>
+		public static float GetDeferred(ICombatEntity entity)
+			=> Math.Max(0f, entity.GetTempVar(DeferredVar));
+
+		/// <summary>
+		/// Takes one second's worth off the pool and returns it. The
+		/// remainder is taken whole once it drops below a fraction of a
+		/// life, so the burn ends rather than trailing off forever.
+		/// </summary>
+		public static float DrainDeferred(ICombatEntity entity, float maxHp)
+		{
+			var pool = GetDeferred(entity);
+			if (pool <= 0)
+				return 0f;
+
+			var share = pool / DeferredBurnSeconds;
+
+			if (pool - share <= maxHp * DeferredFloorShare)
+				share = pool;
+
+			entity.SetTempVar(DeferredVar, pool - share);
+
+			return share;
+		}
+
+		/// <summary>
+		/// Putting the flame out puts the deferred fire out with it.
+		/// </summary>
+		public static void ClearDeferred(ICombatEntity entity)
+			=> entity.SetTempVar(DeferredVar, 0f);
+
+		/// <summary>
 		/// How hard a full life of burning makes each Pyre lash hit, and the
 		/// most the pyre is allowed to be worth. The lash *count* comes from
 		/// Fanaticism now — this is only how hard each one lands, which is
