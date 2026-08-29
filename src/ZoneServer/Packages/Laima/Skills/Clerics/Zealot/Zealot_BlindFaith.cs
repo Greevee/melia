@@ -18,14 +18,14 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 {
 	/// <summary>
 	/// Handler for the Zealot skill Blind Faith.
-	/// A short-cooldown lash of holy fire around the Zealot that gives back
-	/// a share of everything it deals. The healing that used to live here
-	/// runs on its own inside the burning aura now, because a counterweight
-	/// to the burn only works if it never stops — what the button does
-	/// instead is the thing the kit was missing: something to press that
-	/// answers immediately.
-	/// Faith that feeds on the fight, rather than faith you have to stop and
-	/// maintain.
+	/// A lash of fire around the Zealot that gives back a share of
+	/// everything it deals, and opens the state Zeal used to carry: for a
+	/// few seconds the stage counts double and every attack strikes with
+	/// Fire. Zeal is the plain press that builds towards Immolation; this
+	/// is the one that makes all of it hit harder while it holds.
+	/// The sustaining part of the old Blind Faith runs on its own inside
+	/// the burning aura now, because a counterweight to the burn only works
+	/// if it never stops.
 	/// </summary>
 	[Package("laima")]
 	[SkillHandler(SkillId.Zealot_BlindFaith)]
@@ -45,6 +45,15 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// </summary>
 		private const float LifestealShare = 0.25f;
 
+		/// <summary>
+		/// How long the amplifier holds after a press. PLACEHOLDER — at the
+		/// skill's current five second cooldown this is longer than the gap
+		/// between presses, so the state is effectively permanent; one of
+		/// the two numbers wants to move in the scaling pass.
+		/// Shown in the tooltip via captionTime — keep the two in sync.
+		/// </summary>
+		private static readonly TimeSpan JudgementDuration = TimeSpan.FromSeconds(6);
+
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Direction dir)
 		{
 			if (!caster.TrySpendSp(skill))
@@ -63,6 +72,8 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			Send.ZC_SKILL_READY(caster, skill, 1, originPos, farPos);
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, 0, originPos, originPos.GetDirection(farPos), Position.Zero);
 			Send.ZC_SKILL_MELEE_TARGET(caster, skill, caster);
+
+			caster.StartBuff(BuffId.FanaticIllusion_Buff, skill.Level, 0f, JudgementDuration, caster, skill.Id);
 
 			_ = caster.PlayEffectToGround("F_burstup036_fire", caster.Position, 1.2f, duration: 800f);
 
@@ -89,7 +100,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			foreach (var enemy in targets.LimitBySDR(caster, skill))
 			{
 				var modifier = SkillModifier.Default;
-				modifier.AttackAttribute = AttributeType.Holy;
+				modifier.AttackAttribute = AttributeType.Fire;
 
 				var skillHitResult = SCR_SkillHit(caster, enemy, skill, modifier);
 				enemy.TakeDamage(skillHitResult.Damage, caster);

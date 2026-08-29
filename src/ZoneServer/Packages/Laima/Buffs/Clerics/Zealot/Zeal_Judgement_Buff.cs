@@ -17,12 +17,14 @@ using static Melia.Zone.Skills.SkillUseFunctions;
 namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 {
 	/// <summary>
-	/// Handler for the Zeal burning state (riding on FanaticIllusion_Buff).
-	/// Zeal is the amplifier: while it burns, the stage damage bonus counts
-	/// double and every attack the Zealot makes deals Fire property damage.
-	/// It costs no Fanaticism at all: the stacks are Pyre's lash count, and
-	/// an amplifier that ate them would just be a worse Pyre. Zeal is paid
-	/// for by its cooldown and by having to be re-pressed.
+	/// Handler for the burning state Blind Faith opens (riding on
+	/// FanaticIllusion_Buff, which is where it lived back when Zeal carried
+	/// it — the buff id stayed, the skill behind it moved).
+	/// While it holds, the stage damage bonus counts double and every attack
+	/// the Zealot makes deals Fire property damage. Zeal became the plain
+	/// press that banks charges towards Immolation; this is the one that
+	/// makes all of it land harder, and it costs nothing but its own
+	/// cooldown.
 	/// The sharing art (Zealot16) turns it from a personal amplifier into a
 	/// party one: the doubling is dropped and every nearby ally carries part
 	/// of the stage bonus instead.

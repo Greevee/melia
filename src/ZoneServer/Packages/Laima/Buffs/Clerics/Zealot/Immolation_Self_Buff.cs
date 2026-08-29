@@ -83,7 +83,6 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			// blows Temper deferred, which have nothing left to burn off in.
 			if (buff.Target is ICombatEntity target)
 			{
-				ZealotBurnFloor.ClearDeferred(target);
 				ZealotBurnFloor.ClearHurt(target);
 			}
 		}
@@ -97,7 +96,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		/// already happened; refusing to collect it below the stage would
 		/// turn Temper into free damage prevention rather than a delay.
 		/// </summary>
-		private void BurnOffDeferred(ICombatEntity target)
+		public static void BurnOffDeferred(ICombatEntity target)
 		{
 			if (target is not Character character)
 				return;
@@ -119,7 +118,9 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			character.ModifyHpSafe(-burn, out _, out var priority);
 			Send.ZC_UPDATE_ALL_STATUS(character, priority);
 
-			ZealotBurnFloor.RecordHurt(target, burn);
+			// Deliberately not recorded: the blow this came from was booked
+			// in full when it landed. Deferring changes when the health
+			// leaves, not whether it does.
 		}
 
 		public override void WhileActive(Buff buff)
@@ -140,7 +141,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			ZealotBurnFloor.PulseAuraVisual(target, visualScale);
 
 			this.BurnTowardsFloor(target);
-			this.BurnOffDeferred(target);
+			BurnOffDeferred(target);
 			this.MendTowardsBalance(buff, target);
 			this.DealAuraDamage(buff, target);
 
@@ -262,11 +263,11 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		/// Every blow the Zealot takes is health the fire took, so it counts
 		/// towards Pyre exactly like the self-burn does. This is what makes
 		/// standing in the fight the way to load the class's payoff.
-		/// Temper's deferral happens here too rather than in a hook of its
-		/// own. Two AfterCalc hooks would run in whatever order the buff
-		/// list happens to hold them, and the wrong order counted the
-		/// deferred share twice — once inside the blow and again when it
-		/// burned off. One hook, one order, one total.
+		/// The whole blow counts here, once, including the share Temper
+		/// defers — deferring changes when the health leaves, not whether it
+		/// does. That is also what keeps this independent of Temper's own
+		/// hook: nothing books the deferred fire a second time, so the order
+		/// the buff list happens to hold the two in cannot matter.
 		/// </summary>
 		[CombatCalcModifier(CombatCalcPhase.AfterCalc, BuffId.Immolation_Self_Buff)]
 		public void OnDefenseAfterCalc(ICombatEntity attacker, ICombatEntity target, Skill skill, SkillModifier modifier, SkillHitResult skillHitResult)
@@ -277,18 +278,6 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			if (skillHitResult.Damage <= 0)
 				return;
 
-			// Tempered: a share of the blow lands as fire over the next few
-			// seconds instead of all at once.
-			if (target.IsBuffActive(BuffId.Fanaticism_Buff))
-			{
-				var deferred = skillHitResult.Damage * ZealotBurnFloor.TemperedDeferredShare;
-
-				skillHitResult.Damage -= deferred;
-				ZealotBurnFloor.AddDeferred(target, deferred);
-			}
-
-			// Only what actually lands counts now; the deferred share counts
-			// when the fire works it off.
 			ZealotBurnFloor.RecordHurt(target, skillHitResult.Damage);
 		}
 

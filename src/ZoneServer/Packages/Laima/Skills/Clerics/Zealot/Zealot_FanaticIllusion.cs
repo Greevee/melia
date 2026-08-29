@@ -18,11 +18,12 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 {
 	/// <summary>
 	/// Handler for the Zealot skill Fanatic Illusion, reworked into "Zeal".
-	/// A hard AoE strike that lights the fire if it is out, and then the
-	/// amplifier state: the stage damage bonus counts double and every
-	/// attack strikes with Fire, for one Fanaticism stack per second (see
-	/// Zeal_Judgement_Buff). Re-pressing repeats the strike; the state
-	/// itself keeps running on its own fuel.
+	/// The kit's plain attack: a hard AoE strike that lights the fire if it
+	/// is out, and banks a charge towards the next Immolation. Three
+	/// charges, three presses, then the blast pays them all back at once —
+	/// that is the loop the class runs on minute to minute, and it is all
+	/// this skill does. The amplifying state it used to carry as well now
+	/// lives on Blind Faith.
 	/// </summary>
 	[Package("laima")]
 	[SkillHandler(SkillId.Zealot_FanaticIllusion)]
@@ -30,13 +31,6 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	{
 		private const float StrikeRadius = 50f;
 
-		/// <summary>
-		/// How long the amplifier holds after a press. Slightly longer than
-		/// the cooldown, so keeping Zeal up is a thing the player does with
-		/// their hands rather than a state that simply exists.
-		/// PLACEHOLDER.
-		/// </summary>
-		private static readonly TimeSpan ZealDuration = TimeSpan.FromSeconds(6);
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
@@ -63,12 +57,8 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			}
 
 			// Three charges, and every one makes the next Immolate hit
-			// harder. That is the class's short loop: three presses that
-			// build towards a fourth that pays, on top of the amplifier the
-			// state itself carries.
+			// harder. One press, one job.
 			Zeal_Charge_BuffOverride.Add(caster, skill.Id);
-
-			caster.StartBuff(BuffId.FanaticIllusion_Buff, skill.Level, 0f, ZealDuration, caster, skill.Id);
 
 			var splashParam = skill.GetSplashParameters(caster, originPos, farPos, StrikeRadius, StrikeRadius, angle: 0);
 			var splashArea = skill.GetSplashArea(SplashType.Circle, splashParam);

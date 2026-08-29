@@ -13,15 +13,16 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	/// <summary>
 	/// Handler for the Zealot skill Invulnerable, reworked into
 	/// "Temper the Flame".
-	/// The class's one defensive press, and it deals no damage at all: a
-	/// heal large enough to matter, one step back up the ladder, and a
-	/// window in which blows land as fire instead of all at once.
-	/// The cost is the stage it gives up — with nothing carrying the old
-	/// bonus over any more, quenching the flame really does cost the
-	/// offence, and Fanaticism is how you buy it back. That is the whole
-	/// ladder: Temper up for safety, Fanaticism down for damage.
-	/// At the top there is nothing left to climb, so the press puts the
-	/// fire out entirely — the way out of the mode.
+	/// The off switch, and the class's one defensive press: it puts the
+	/// fire out, heals hard, and leaves a window in which blows land as
+	/// fire instead of all at once. It deals no damage at all.
+	/// One behaviour, always the same — it used to climb a stage and only
+	/// put the fire out at the top, which meant the same button either
+	/// helped you or deleted the whole class state depending on a number
+	/// nobody watches mid-fight.
+	/// The cost is everything the flame was worth: the stage bonus, the
+	/// aura, the burn that loads the Pyre. Immolate lights it again from
+	/// the top, and Fanaticism digs back down.
 	/// Only usable while the burn mode is active — there is nothing to
 	/// temper otherwise.
 	/// Note: the skill database lists this as useType "MeleeGround", but the
@@ -79,31 +80,18 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			Send.ZC_SKILL_MELEE_TARGET(caster, skill, caster);
 
 			var healed = this.Quench(caster, skill.Level);
-			var atTop = ZealotBurnFloor.Get(caster) >= ZealotBurnFloor.Ignition;
 
-			if (atTop)
-			{
-				// Nowhere left to climb: the press is the way out of the mode.
-				// The aura's OnEnd drops the Fanaticism and the deferred fire
-				// with it — putting the flame out puts all of it out.
-				caster.StopBuff(BuffId.Immolation_Self_Buff);
-
-				Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0,
-					$"The flame is out  +{healed} HP");
-
-				return;
-			}
-
-			var newFloor = ZealotBurnFloor.Shift(caster, ZealotBurnFloor.Step);
-
-			// The window only makes sense while something is burning: the
-			// aura's tick is what works the deferred fire off.
+			// The window is granted before the flame goes out: it carries its
+			// own tick, so it keeps working the deferred fire off with
+			// nothing else burning.
 			caster.StartBuff(BuffId.Fanaticism_Buff, skill.Level, 0f, TemperedDuration, caster, skill.Id);
 
-			_ = caster.PlayEffectToGround("F_wizard_prominence_ground", caster.Position, 1.2f, duration: 1000f);
+			caster.StopBuff(BuffId.Immolation_Self_Buff);
+
+			_ = caster.PlayEffectToGround("F_wizard_prominence_ground", caster.Position, 1.6f, duration: 1200f);
 
 			Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0,
-				$"Tempered to {newFloor}%  +{healed} HP");
+				$"The flame is out  +{healed} HP");
 		}
 
 		/// <summary>
