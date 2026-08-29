@@ -6,6 +6,7 @@ using Melia.Shared.Game.Const;
 using Melia.Shared.L10N;
 using Melia.Shared.Packages;
 using Melia.Shared.World;
+using Melia.Zone.Buffs.Handlers.Clerics.Zealot;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Base;
@@ -64,9 +65,10 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 				ZealotBurnFloor.Set(caster, ZealotBurnFloor.Ignition);
 			}
 
-			// Deliberately does not touch Fanaticism: the stacks are Pyre's
-			// lash count now, and a blast that emptied them would mean every
-			// Immolate silently cancelled a Pyre.
+			// The blast cashes in whatever Zeal banked: three presses of the
+			// fast button make this one land much harder, which is the loop
+			// the class runs on minute to minute.
+			var charges = Zeal_Charge_BuffOverride.Consume(caster);
 			var floor = ZealotBurnFloor.Get(caster);
 
 			this.SpawnCastFire(caster, originPos);
@@ -75,7 +77,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			var splashParam = skill.GetSplashParameters(caster, originPos, farPos, radius, radius, angle: 0);
 			var splashArea = skill.GetSplashArea(SplashType.Circle, splashParam);
 
-			skill.Run(this.Burst(skill, caster, splashArea));
+			skill.Run(this.Burst(skill, caster, splashArea, charges));
 		}
 
 		/// <summary>
@@ -97,12 +99,13 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 
 		/// <summary>
 		/// The fire burst around the caster: the area comes from the stage,
-		/// the damage is plain. This is the kit's reliable press — no
-		/// resource, no condition, just a blast every cooldown.
+		/// the damage from the Zeal charges it just cashed in.
 		/// </summary>
-		private async Task Burst(Skill skill, ICombatEntity caster, ISplashArea splashArea)
+		private async Task Burst(Skill skill, ICombatEntity caster, ISplashArea splashArea, int charges)
 		{
 			await skill.Wait(TimeSpan.FromMilliseconds(100));
+
+			var bonus = 1f + charges * Zeal_Charge_BuffOverride.DamagePerCharge;
 
 			var targets = caster.Map.GetAttackableEnemiesIn(caster, splashArea);
 			var hits = new List<SkillHitInfo>();
@@ -111,6 +114,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			{
 				var modifier = SkillModifier.Default;
 				modifier.AttackAttribute = AttributeType.Fire;
+				modifier.DamageMultiplier *= bonus;
 
 				var skillHitResult = SCR_SkillHit(caster, enemy, skill, modifier);
 				enemy.TakeDamage(skillHitResult.Damage, caster);

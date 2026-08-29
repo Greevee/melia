@@ -83,8 +83,8 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			// blows Temper deferred, which have nothing left to burn off in.
 			if (buff.Target is ICombatEntity target)
 			{
-				ZealotBurnFloor.ConsumeStacks(target);
 				ZealotBurnFloor.ClearDeferred(target);
+				ZealotBurnFloor.ClearHurt(target);
 			}
 		}
 
@@ -119,7 +119,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			character.ModifyHpSafe(-burn, out _, out var priority);
 			Send.ZC_UPDATE_ALL_STATUS(character, priority);
 
-			ZealotBurnFloor.AddBurned(target, burn);
+			ZealotBurnFloor.RecordHurt(target, burn);
 		}
 
 		public override void WhileActive(Buff buff)
@@ -143,7 +143,10 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			this.BurnOffDeferred(target);
 			this.MendTowardsBalance(buff, target);
 			this.DealAuraDamage(buff, target);
-			this.BuildStacks(buff, target);
+
+			// Last, so everything this second recorded still counts before
+			// the window moves on.
+			ZealotBurnFloor.RotateHurtWindow(target);
 		}
 
 		/// <summary>
@@ -206,24 +209,6 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			}
 		}
 
-		/// <summary>
-		/// The burning itself pays: one stack every few seconds, faster the
-		/// deeper the stage — the deepest one funds a channel outright.
-		/// Intervals live in ZealotBurnFloor.
-		/// </summary>
-		private void BuildStacks(Buff buff, ICombatEntity target)
-		{
-			var tick = buff.Vars.GetInt(StackTickVar) + 1;
-
-			if (tick < ZealotBurnFloor.GetStackInterval(target))
-			{
-				buff.Vars.SetInt(StackTickVar, tick);
-				return;
-			}
-
-			buff.Vars.SetInt(StackTickVar, 0);
-			ZealotBurnFloor.AddStacks(target, 1);
-		}
 
 		/// <summary>
 		/// Damages everything inside the burning aura once per second. The
@@ -271,6 +256,23 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			}
 
 			Send.ZC_SKILL_HIT_INFO(caster, hits);
+		}
+
+		/// <summary>
+		/// Every blow the Zealot takes is health the fire took, so it counts
+		/// towards Pyre exactly like the self-burn does. This is what makes
+		/// standing in the fight the way to load the class's payoff.
+		/// </summary>
+		[CombatCalcModifier(CombatCalcPhase.AfterCalc, BuffId.Immolation_Self_Buff)]
+		public void OnDefenseAfterCalc(ICombatEntity attacker, ICombatEntity target, Skill skill, SkillModifier modifier, SkillHitResult skillHitResult)
+		{
+			if (!target.IsBuffActive(BuffId.Immolation_Self_Buff))
+				return;
+
+			if (skillHitResult.Damage <= 0)
+				return;
+
+			ZealotBurnFloor.RecordHurt(target, skillHitResult.Damage);
 		}
 
 		/// <summary>
@@ -375,7 +377,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			// Only health the fire really took feeds the pyre: at the stage
 			// there is nothing to burn, so standing still adds nothing and
 			// being healed back up is what reloads Pyre.
-			ZealotBurnFloor.AddBurned(target, burn);
+			ZealotBurnFloor.RecordHurt(target, burn);
 		}
 	}
 }

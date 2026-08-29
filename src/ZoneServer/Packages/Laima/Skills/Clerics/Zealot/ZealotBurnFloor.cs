@@ -40,11 +40,6 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// </summary>
 		public const int Step = 25;
 
-		/// <summary>
-		/// PLACEHOLDER (concept: "Stack-Cap noch offen") — generous cap,
-		/// since Fanaticism at the minimum floor keeps granting stacks.
-		/// </summary>
-		public const int MaxFanaticismStacks = 20;
 
 		/// <summary>
 		/// Returns the entity's current floor; only meaningful while the
@@ -88,77 +83,8 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			return value;
 		}
 
-		/// <summary>
-		/// Returns the entity's current Fanaticism stacks.
-		/// </summary>
-		public static int GetStacks(ICombatEntity entity)
-			=> Math.Clamp((int)entity.GetTempVar(StacksVar), 0, MaxFanaticismStacks);
 
-		/// <summary>
-		/// The buff carrying the Fanaticism stack display, so the stacks
-		/// show in the resource bar with icon and counter, Frenzy-style
-		/// (Fanaticism_Zealot12_Buff, whose display is known to work).
-		/// Display only — the authoritative count lives in the temp var.
-		/// </summary>
-		public const BuffId StackBuff = BuffId.Fanaticism_Zealot12_Buff;
 
-		/// <summary>
-		/// Adds Fanaticism stacks, up to the cap.
-		/// </summary>
-		public static void AddStacks(ICombatEntity entity, int amount)
-		{
-			var stacks = Math.Min(MaxFanaticismStacks, GetStacks(entity) + amount);
-			entity.SetTempVar(StacksVar, stacks);
-			ShowStacks(entity, stacks);
-		}
-
-		/// <summary>
-		/// Removes all Fanaticism stacks and returns how many there were,
-		/// so the Immolate burst can scale by what it consumed.
-		/// </summary>
-		public static int ConsumeStacks(ICombatEntity entity)
-			=> ConsumeStacks(entity, MaxFanaticismStacks);
-
-		/// <summary>
-		/// Spends at most the given number of stacks and returns how many
-		/// were actually spent, leaving the rest on the bar — a spender with
-		/// a cap cannot empty a full bar on its own.
-		/// </summary>
-		public static int ConsumeStacks(ICombatEntity entity, int max)
-		{
-			var spent = Math.Min(GetStacks(entity), Math.Max(0, max));
-			var remaining = GetStacks(entity) - spent;
-
-			entity.SetTempVar(StacksVar, remaining);
-			ShowStacks(entity, remaining);
-
-			return spent;
-		}
-
-		/// <summary>
-		/// Mirrors the stack count onto the display buff: started with the
-		/// first stack, counter updated on change, removed at zero.
-		/// </summary>
-		private static void ShowStacks(ICombatEntity entity, int stacks)
-		{
-			if (stacks <= 0)
-			{
-				entity.StopBuff(StackBuff);
-				return;
-			}
-
-			if (!entity.TryGetBuff(StackBuff, out var buff))
-			{
-				entity.StartBuff(StackBuff, 1, 0f, TimeSpan.Zero, entity, SkillId.Zealot_Fanaticism);
-				entity.TryGetBuff(StackBuff, out buff);
-			}
-
-			if (buff == null)
-				return;
-
-			buff.OverbuffCounter = stacks;
-			buff.NotifyUpdate();
-		}
 
 		/// <summary>
 		/// Displays the current floor as the stack count on the Immolation
@@ -257,16 +183,6 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		private static readonly float[] StageFlameScale = { 0.7f, 1.2f, 2.0f };
 
 		/// <summary>
-		/// The pyre: the health the fire has actually eaten since the last
-		/// Pyre was lit. Only real burning counts, so a Zealot sitting at
-		/// their stage adds nothing — being healed back up is what keeps the
-		/// fire feeding, which is how healing turns into damage.
-		/// Held on the entity rather than on the aura buff, so putting the
-		/// flame out does not throw the ash away.
-		/// </summary>
-		private const string PyreVar = "Zealot.Pyre";
-
-		/// <summary>
 		/// Blows that Temper the Flame turned into fire and that have not
 		/// burned off yet. Pooled rather than kept as one debuff per hit:
 		/// eight hits inside a window would otherwise be eight overlapping
@@ -327,107 +243,113 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// </summary>
 		public static void ClearDeferred(ICombatEntity entity)
 			=> entity.SetTempVar(DeferredVar, 0f);
-
 		/// <summary>
-		/// How hard a full life of burning makes each Pyre lash hit, and the
-		/// most the pyre is allowed to be worth. The lash *count* comes from
-		/// Fanaticism now — this is only how hard each one lands, which is
-		/// where staying high above the stage pays off: the more health the
-		/// fire actually ate, the heavier the answer. PLACEHOLDER values.
+		/// The rolling record of health the Zealot has lost, one bucket per
+		/// second, ten buckets deep. Everything counts: the self-burn, blows
+		/// from enemies, and the fire Temper deferred. It is all health the
+		/// fire took, and Pyre pays out on the lot.
+		/// One record instead of the old pair of pools — they were always
+		/// measuring the same thing from two different ends.
 		/// </summary>
-		public const float PyreDamagePerLife = 1.0f;
-		public const float PyreMaxLives = 1.0f;
+		private const string HurtVar = "Zealot.Hurt";
+		private const string HurtSlotVar = "Zealot.HurtSlot";
 
 		/// <summary>
-		/// Resolution of the pyre readout: how many buff stacks one life of
-		/// burning is shown as.
+		/// How far Pyre looks back, how much lost health buys one lash, and
+		/// the most lashes one Pyre can throw. PLACEHOLDER values.
+		/// Shown in Pyre's tooltip via captionRatio1/2 and captionTime —
+		/// keep them in sync.
 		/// </summary>
-		private const int PyreReadoutSteps = 10;
+		public const int HurtWindowSeconds = 10;
+		public const float HurtPerLash = 0.10f;
+		public const int MaxLashes = 12;
 
 		/// <summary>
-		/// The buff carrying the pyre readout, counting strikes ready rather
-		/// than raw health — that is the number the player acts on.
+		/// The buff carrying the readout, counting lashes ready rather than
+		/// raw health — that is the number the player acts on.
 		/// </summary>
 		public const BuffId PyreBuff = BuffId.ImmolationMeltArmor_Buff;
 
 		/// <summary>
-		/// Adds health the fire just took to the pyre, capped at exactly what
-		/// a full pyre is worth — burning past that is wasted, and the cap
-		/// keeps the readout honest about it.
+		/// Records health the Zealot just lost, however it was lost.
 		/// </summary>
-		public static void AddBurned(ICombatEntity entity, float amount)
+		public static void RecordHurt(ICombatEntity entity, float amount)
 		{
 			if (amount <= 0)
 				return;
 
-			var maxHp = entity.Properties.GetFloat(PropertyName.MHP);
-			if (maxHp <= 0)
-				return;
+			var slot = GetHurtSlot(entity);
+			entity.SetTempVar(HurtVar + slot, entity.GetTempVar(HurtVar + slot) + amount);
 
-			var ceiling = maxHp * PyreMaxLives;
-			var burned = Math.Min(GetBurned(entity) + amount, ceiling);
-			entity.SetTempVar(PyreVar, burned);
-
-			ShowPyre(entity, GetPyreReadout(entity));
+			ShowPyre(entity, GetPyreLashes(entity));
 		}
 
 		/// <summary>
-		/// Health the pyre currently holds.
+		/// Moves the window on by a second, dropping whatever fell out of the
+		/// back of it. Driven by the aura's tick.
 		/// </summary>
-		public static float GetBurned(ICombatEntity entity)
-			=> Math.Max(0f, entity.GetTempVar(PyreVar));
-
-		/// <summary>
-		/// How much harder every Pyre lash lands right now, as a plain
-		/// multiplier. One whole life burned doubles them.
-		/// </summary>
-		public static float GetPyreBonus(ICombatEntity entity)
+		public static void RotateHurtWindow(ICombatEntity entity)
 		{
-			var maxHp = entity.Properties.GetFloat(PropertyName.MHP);
-			if (maxHp <= 0)
-				return 1f;
+			var slot = (GetHurtSlot(entity) + 1) % HurtWindowSeconds;
 
-			var lives = Math.Clamp(GetBurned(entity) / maxHp, 0f, PyreMaxLives);
+			entity.SetTempVar(HurtSlotVar, slot);
+			entity.SetTempVar(HurtVar + slot, 0f);
 
-			return 1f + lives * PyreDamagePerLife;
+			ShowPyre(entity, GetPyreLashes(entity));
 		}
 
 		/// <summary>
-		/// The pyre as the buff bar shows it: tenths of a life eaten.
+		/// Health lost across the whole window.
 		/// </summary>
-		private static int GetPyreReadout(ICombatEntity entity)
+		public static float GetHurt(ICombatEntity entity)
+		{
+			var total = 0f;
+
+			for (var i = 0; i < HurtWindowSeconds; ++i)
+				total += Math.Max(0f, entity.GetTempVar(HurtVar + i));
+
+			return total;
+		}
+
+		/// <summary>
+		/// How many lashes the last ten seconds are worth.
+		/// </summary>
+		public static int GetPyreLashes(ICombatEntity entity)
 		{
 			var maxHp = entity.Properties.GetFloat(PropertyName.MHP);
 			if (maxHp <= 0)
 				return 0;
 
-			var lives = Math.Clamp(GetBurned(entity) / maxHp, 0f, PyreMaxLives);
+			var perLash = maxHp * HurtPerLash;
+			if (perLash <= 0)
+				return 0;
 
-			return (int)(lives * PyreReadoutSteps);
+			return Math.Clamp((int)(GetHurt(entity) / perLash), 0, MaxLashes);
 		}
 
 		/// <summary>
-		/// Empties the pyre and returns the strikes it was worth — lighting
-		/// it is what resets the build-up, so every Pyre is paid for by the
-		/// burning that came before it.
+		/// Empties the window. Firing Pyre does not do this — the window is a
+		/// record of the last ten seconds and it keeps rolling regardless —
+		/// but putting the flame out does.
 		/// </summary>
-		public static float ConsumePyre(ICombatEntity entity)
+		public static void ClearHurt(ICombatEntity entity)
 		{
-			var bonus = GetPyreBonus(entity);
+			for (var i = 0; i < HurtWindowSeconds; ++i)
+				entity.SetTempVar(HurtVar + i, 0f);
 
-			entity.SetTempVar(PyreVar, 0f);
 			ShowPyre(entity, 0);
-
-			return bonus;
 		}
 
+		private static int GetHurtSlot(ICombatEntity entity)
+			=> Math.Clamp((int)entity.GetTempVar(HurtSlotVar), 0, HurtWindowSeconds - 1);
+
 		/// <summary>
-		/// Mirrors the pyre onto the readout buff, so the build-up is visible
-		/// instead of being a hidden number.
+		/// Mirrors the lashes ready onto the readout buff, so the build-up is
+		/// visible instead of being a hidden number.
 		/// </summary>
-		private static void ShowPyre(ICombatEntity entity, int hits)
+		private static void ShowPyre(ICombatEntity entity, int lashes)
 		{
-			if (hits <= 0)
+			if (lashes <= 0)
 			{
 				entity.StopBuff(PyreBuff);
 				return;
@@ -439,27 +361,14 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 				entity.TryGetBuff(PyreBuff, out buff);
 			}
 
-			if (buff == null)
+			if (buff == null || buff.OverbuffCounter == lashes)
 				return;
 
-			buff.OverbuffCounter = hits;
+			buff.OverbuffCounter = lashes;
 			buff.NotifyUpdate();
 		}
 
-		/// <summary>
-		/// Seconds between two passively generated stacks, per stage. The
-		/// deepest stage funds exactly one channel (Zeal or Blind Faith
-		/// drain one per second), which is the whole point: burning deep
-		/// pays for staying in a state, and the Fanaticism window is what
-		/// banks a surplus on top. PLACEHOLDER values.
-		/// </summary>
-		private static readonly int[] StageStackInterval = { 3, 2, 1 };
 
-		/// <summary>
-		/// Seconds the entity's current stage needs per passive stack.
-		/// </summary>
-		public static int GetStackInterval(ICombatEntity entity)
-			=> StageStackInterval[GetStage(entity) - 1];
 
 		/// <summary>
 		/// The damage bonus the entity's current stage is worth.
@@ -468,8 +377,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			=> StageDamageBonus[GetStage(entity) - 1];
 
 		/// <summary>
-		/// The bonus of a given stage, as a percentage — for tooltips and
-		/// for the ember Temper freezes.
+		/// The bonus of a given stage, as a percentage — for tooltips.
 		/// </summary>
 		public static float GetStageBonusPercent(int stage)
 			=> StageDamageBonus[Math.Clamp(stage, 1, StageCount) - 1] * 100f;
@@ -490,19 +398,5 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		public static void PulseFireHit(ICombatEntity enemy)
 			=> enemy.PlayEffectNode(FireHitEffectName, 1f, AuraNodeName);
 
-		/// <summary>
-		/// Returns the share of maximum HP the entity is currently missing,
-		/// as a percentage — the class damage bonus while burning.
-		/// </summary>
-		public static float GetMissingHpPercent(ICombatEntity entity)
-		{
-			var maxHp = entity.Properties.GetFloat(PropertyName.MHP);
-			if (maxHp <= 0)
-				return 0;
-
-			var missing = 100f * (1f - (entity.Hp / maxHp));
-
-			return Math.Clamp(missing, 0f, 100f);
-		}
 	}
 }

@@ -17,11 +17,13 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 {
 	/// <summary>
 	/// Handler for the Zealot skill Emphatic Trust, reworked into "Pyre".
-	/// The kit's payoff button: one lash of fire per Fanaticism stack, all
-	/// of them spent at once. The stacks decide how many times it hits, and
-	/// the health the fire has eaten since the last Pyre decides how hard
-	/// each one lands — so building stacks is the press and staying high
-	/// above your stage is the investment.
+	/// The kit's payoff button: one lash of fire for every tenth of a life
+	/// the Zealot has lost in the last ten seconds. Burning, blows taken,
+	/// and the fire Temper deferred all count the same — the class loads
+	/// its biggest press by taking punishment, which is the whole reason it
+	/// stands where it stands.
+	/// Firing does not empty the window; it keeps rolling, so whatever is
+	/// left of those ten seconds is still there afterwards.
 	/// </summary>
 	[Package("laima")]
 	[SkillHandler(SkillId.Zealot_EmphasisTrust)]
@@ -48,11 +50,11 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
-			var lashes = ZealotBurnFloor.GetStacks(caster);
+			var lashes = ZealotBurnFloor.GetPyreLashes(caster);
 
 			if (lashes <= 0)
 			{
-				caster.ServerMessage(Localization.Get("No Fanaticism to spend."));
+				caster.ServerMessage(Localization.Get("The pyre is cold."));
 				Send.ZC_SKILL_DISABLE(caster);
 				return;
 			}
@@ -71,16 +73,13 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, target?.Handle ?? 0, originPos, originPos.GetDirection(farPos), Position.Zero);
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
 
-			ZealotBurnFloor.ConsumeStacks(caster);
-			var bonus = ZealotBurnFloor.ConsumePyre(caster);
-
 			// One big answer where the Zealot is pointing, before the rain.
 			_ = caster.PlayEffectToGround(CastEffectName, farPos, 2.0f, duration: 1500f);
 
 			var splashParam = skill.GetSplashParameters(caster, originPos, farPos, StrikeRadius, StrikeRadius, angle: 0);
 			var splashArea = skill.GetSplashArea(SplashType.Circle, splashParam);
 
-			skill.Run(this.Strike(skill, caster, splashArea, lashes, bonus));
+			skill.Run(this.Strike(skill, caster, splashArea, lashes));
 		}
 
 		/// <summary>
@@ -89,7 +88,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// a full pyre is a hard hit rather than a way around the combat
 		/// rules.
 		/// </summary>
-		private async Task Strike(Skill skill, ICombatEntity caster, ISplashArea splashArea, int lashes, float bonus)
+		private async Task Strike(Skill skill, ICombatEntity caster, ISplashArea splashArea, int lashes)
 		{
 			await skill.Wait(TimeSpan.FromMilliseconds(100));
 
@@ -102,7 +101,6 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 				{
 					var modifier = SkillModifier.Default;
 					modifier.AttackAttribute = AttributeType.Fire;
-					modifier.DamageMultiplier *= bonus;
 
 					var skillHitResult = SCR_SkillHit(caster, enemy, skill, modifier);
 					enemy.TakeDamage(skillHitResult.Damage, caster);

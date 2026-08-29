@@ -31,11 +31,6 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// </summary>
 		private static readonly TimeSpan MarkDuration = TimeSpan.FromSeconds(5);
 
-		/// <summary>
-		/// What a kill on this mark pays. Shown in the tooltip via
-		/// captionRatio2 in skills_overrides.txt — keep the two in sync.
-		/// </summary>
-		private const float KillStackReward = 5f;
 
 		/// <summary>
 		/// Distance behind the target the Zealot appears at.
@@ -72,7 +67,11 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 
 			// NumArg2 is what a kill on this mark pays: the precise press is
 			// the rewarding one.
-			target.StartBuff(BuffId.BeadyEyed_Debuff, skill.Level, KillStackReward, MarkDuration, caster, skill.Id);
+			// The mark carries what the press cost, so killing what you jumped
+			// on refunds it exactly — no bookkeeping, no separate resource.
+			var spendSp = skill.Properties.GetFloat(PropertyName.SpendSP);
+
+			target.StartBuff(BuffId.BeadyEyed_Debuff, skill.Level, spendSp, MarkDuration, caster, skill.Id);
 
 			skill.Run(this.Strike(skill, caster, target));
 		}

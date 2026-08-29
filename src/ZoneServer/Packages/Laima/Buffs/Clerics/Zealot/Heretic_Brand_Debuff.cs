@@ -1,3 +1,4 @@
+using System;
 using Melia.Shared.Game.Const;
 using Melia.Shared.Packages;
 using Melia.Zone.Buffs.Base;
@@ -6,6 +7,7 @@ using Melia.Zone.Skills;
 using Melia.Zone.Skills.Combat;
 using Melia.Zone.Skills.Handlers.Clerics.Zealot;
 using Melia.Zone.World.Actors;
+using Melia.Zone.World.Actors.Characters;
 using Melia.Zone.World.Actors.Monsters;
 
 namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
@@ -37,20 +39,15 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		/// <summary>
 		/// Fallback for a mark applied without a reward value.
 		/// </summary>
-		private const int DefaultStackReward = 1;
-
 		/// <summary>
-		/// What a marked kill pays, read from the mark itself (NumArg2): the
-		/// precise press pays well, the sweep pays a little. One mark, two
-		/// price tags — otherwise marking a pack and bombing it would hand
-		/// out a full bar from a single button.
+		/// What a marked kill pays back, carried on the mark itself
+		/// (NumArg2): the SP the press cost. Kill what you jumped on and the
+		/// blink was free, miss and you paid for it. Deliberately the
+		/// simplest possible reward — no resource, no stacking, nothing to
+		/// track.
 		/// </summary>
-		private static int GetStackReward(Buff buff)
-		{
-			var reward = (int)buff.NumArg2;
-
-			return reward > 0 ? reward : DefaultStackReward;
-		}
+		private static float GetSpRefund(Buff buff)
+			=> Math.Max(0f, buff.NumArg2);
 
 		private const string RewardedVar = "Melia.Zealot.BrandRewarded";
 
@@ -65,8 +62,8 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			if (!buff.Target.IsDead)
 				return;
 
-			if (buff.Caster is ICombatEntity marker && !marker.IsDead)
-				ZealotBurnFloor.AddStacks(marker, GetStackReward(buff));
+			if (buff.Caster is Character marker && !marker.IsDead)
+				marker.ModifySp(GetSpRefund(buff));
 		}
 
 		[CombatCalcModifier(CombatCalcPhase.BeforeBonuses, BuffId.BeadyEyed_Debuff)]
@@ -87,9 +84,9 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			if (buff.Vars.GetBool(RewardedVar))
 				return;
 
-			if (target is Mob mob && mob.Rank == MonsterRank.Boss)
+			if (target is Mob mob && mob.Rank == MonsterRank.Boss && attacker is Character bossMarker)
 			{
-				ZealotBurnFloor.AddStacks(attacker, GetStackReward(buff));
+				bossMarker.ModifySp(GetSpRefund(buff));
 				buff.Vars.SetBool(RewardedVar, true);
 			}
 		}

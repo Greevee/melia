@@ -8,6 +8,7 @@ using Melia.Shared.Packages;
 using Melia.Shared.World;
 using Melia.Zone.Network;
 using Melia.Zone.Skills.Combat;
+using Melia.Zone.Buffs.Handlers.Clerics.Zealot;
 using Melia.Zone.Skills.Handlers.Base;
 using Melia.Zone.Skills.SplashAreas;
 using Melia.Zone.World.Actors;
@@ -61,10 +62,12 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 				ZealotBurnFloor.Set(caster, ZealotBurnFloor.Ignition);
 			}
 
-			// The amplifier runs on its own timer and every press refreshes
-			// it. Free of Fanaticism on purpose: the stacks are Pyre's lash
-			// count, so an amplifier that ate them would just be a worse
-			// Pyre. What Zeal costs is the cooldown and the press itself.
+			// Three charges, and every one makes the next Immolate hit
+			// harder. That is the class's short loop: three presses that
+			// build towards a fourth that pays, on top of the amplifier the
+			// state itself carries.
+			Zeal_Charge_BuffOverride.Add(caster, skill.Id);
+
 			caster.StartBuff(BuffId.FanaticIllusion_Buff, skill.Level, 0f, ZealDuration, caster, skill.Id);
 
 			var splashParam = skill.GetSplashParameters(caster, originPos, farPos, StrikeRadius, StrikeRadius, angle: 0);
