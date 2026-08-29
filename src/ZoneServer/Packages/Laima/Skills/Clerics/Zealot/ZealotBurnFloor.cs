@@ -198,6 +198,14 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// Shown in Temper's tooltip via captionRatio3 — keep them in sync.
 		/// </summary>
 		public const float DeferredBurnSeconds = 4f;
+
+		/// <summary>
+		/// The share of a blow Temper the Flame turns into fire while its
+		/// window holds. A delay, not a mitigation: the same total arrives,
+		/// as a burn rather than a spike. PLACEHOLDER.
+		/// Shown in Temper's tooltip via captionRatio2 — keep them in sync.
+		/// </summary>
+		public const float TemperedDeferredShare = 0.20f;
 		private const float DeferredFloorShare = 0.005f;
 
 		/// <summary>
