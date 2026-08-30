@@ -963,10 +963,10 @@
 // Zealot rework: caption values feed the client tooltips via the generic
 // caption push (slots 1-3 + time). Keep them in sync with the constants in
 // Packages/Laima/{Skills,Buffs}/Clerics/Zealot/.
-{ skillId: 41701, className: "Zealot_Invulnerable", name: "Temper the Flame", basicSp: 105, splashRate: 0, factor: 0, factorByLevel: 0, cooldownTime: 30000, overheatCount: "1", captionRatio1: 30, captionRatio2: 20, captionRatio3: 4, captionTime: 15 },
-{ skillId: 41702, className: "Zealot_Immolation", name: "Immolation", basicSp: 36, splashRate: 13, factor: 100, factorByLevel: 10, cooldownTime: 10000, overheatCount: "1", captionRatio1: 10, captionRatio2: 50, captionRatio3: 20 },
+{ skillId: 41701, className: "Zealot_Invulnerable", name: "Temper the Flame", basicSp: 105, splashRate: 0, factor: 0, factorByLevel: 0, cooldownTime: 30000, overheatCount: "2", captionRatio1: 30, captionRatio2: 20, captionRatio3: 4, captionTime: 15 },
+{ skillId: 41702, className: "Zealot_Immolation", name: "Immolation", basicSp: 36, splashRate: 13, factor: 100, factorByLevel: 10, cooldownTime: 10000, overheatCount: "1", captionRatio1: 5, captionRatio2: 50, captionRatio3: 20 },
 { skillId: 41703, className: "Zealot_BeadyEyed", name: "Brand the Heretic", basicSp: 75, splashRate: 0, factor: 140, factorByLevel: 8, cooldownTime: 10000, captionRatio1: 10, captionTime: 5 },
-{ skillId: 41704, className: "Zealot_Fanaticism", name: "Fanaticism", basicSp: 90, splashRate: 6, factor: 100, factorByLevel: 20, cooldownTime: 15000, overheatCount: "1", captionRatio1: 200, captionRatio2: 25, captionTime: 10, basicCast: 0, enableCastMove: true },
+{ skillId: 41704, className: "Zealot_Fanaticism", name: "Fanaticism", basicSp: 90, splashRate: 6, factor: 100, factorByLevel: 20, cooldownTime: 25000, overheatCount: "1", captionRatio1: 200, captionRatio2: 30, captionRatio3: 12.5, captionTime: 10, basicCast: 0, enableCastMove: true },
 { skillId: 41705, className: "Zealot_FanaticIllusion", name: "Zeal", basicSp: 80, splashRate: 10, factor: 120, factorByLevel: 20, cooldownTime: 10000, overheatCount: "3", captionRatio1: 20, captionRatio2: 3 },
 { skillId: 41706, className: "Zealot_BlindFaith", name: "Blind Faith", basicSp: 45, splashRate: 8, factor: 90, factorByLevel: 18, cooldownTime: 5000, overheatCount: "1", captionRatio1: 25, captionRatio2: 2, captionRatio3: 50, captionTime: 6 },
 { skillId: 41707, className: "Zealot_EmphasisTrust", name: "Pyre", basicSp: 41, splashRate: 3, factor: 85, factorByLevel: 17, cooldownTime: 10000, overheatCount: "1", captionRatio1: 10, captionRatio2: 12, captionTime: 10 },

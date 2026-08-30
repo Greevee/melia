@@ -13,18 +13,13 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 	/// <summary>
 	/// Handler for the Zealot skill Invulnerable, reworked into
 	/// "Temper the Flame".
-	/// The off switch, and the class's one defensive press: it puts the
-	/// fire out, heals hard, and leaves a window in which blows land as
-	/// fire instead of all at once. It deals no damage at all.
-	/// One behaviour, always the same — it used to climb a stage and only
-	/// put the fire out at the top, which meant the same button either
-	/// helped you or deleted the whole class state depending on a number
-	/// nobody watches mid-fight.
-	/// The cost is everything the flame was worth: the stage bonus, the
-	/// aura, the burn that loads the Pyre. Immolate lights it again from
-	/// the top, and Fanaticism digs back down.
-	/// Only usable while the burn mode is active — there is nothing to
-	/// temper otherwise.
+	/// The class's one defensive press, and nothing else: a heal large
+	/// enough to matter and a window in which blows land as fire over time
+	/// instead of all at once. It deals no damage and it does not touch the
+	/// fire at all — the flame now lives and dies by its own decay and by
+	/// Fanaticism stoking it, so the defensive button no longer has to
+	/// carry any of that.
+	/// Two charges, so one can be spent aggressively and one kept.
 	/// Note: the skill database lists this as useType "MeleeGround", but the
 	/// client sends CZ_SKILL_SELF for it, so it is handled as a self skill.
 	/// </summary>
@@ -55,13 +50,6 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Direction dir)
 		{
-			if (!caster.IsBuffActive(BuffId.Immolation_Self_Buff))
-			{
-				caster.ServerMessage(Localization.Get("The flame is not lit."));
-				Send.ZC_SKILL_DISABLE(caster);
-				return;
-			}
-
 			if (!caster.TrySpendSp(skill))
 			{
 				caster.ServerMessage(Localization.Get("Not enough SP."));
@@ -81,17 +69,12 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 
 			var healed = this.Quench(caster, skill.Level);
 
-			// The window is granted before the flame goes out: it carries its
-			// own tick, so it keeps working the deferred fire off with
-			// nothing else burning.
 			caster.StartBuff(BuffId.Fanaticism_Buff, skill.Level, 0f, TemperedDuration, caster, skill.Id);
 
-			caster.StopBuff(BuffId.Immolation_Self_Buff);
-
-			_ = caster.PlayEffectToGround("F_wizard_prominence_ground", caster.Position, 1.6f, duration: 1200f);
+			_ = caster.PlayEffectToGround("F_wizard_prominence_ground", caster.Position, 1.2f, duration: 1000f);
 
 			Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0,
-				$"The flame is out  +{healed} HP");
+				$"Tempered  +{healed} HP");
 		}
 
 		/// <summary>

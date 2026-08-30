@@ -24,16 +24,17 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		private const string StacksVar = "Zealot.FanaticismStacks";
 
 		/// <summary>
-		/// The floor Immolate sets when the burn mode is first activated,
-		/// and the top of the ladder.
+		/// The floor Immolate sets when the burn mode is first activated:
+		/// stage zero, where nothing burns yet. The fire only starts eating
+		/// once Fanaticism stokes it down a step.
 		/// </summary>
-		public const int Ignition = 75;
+		public const int Ignition = 100;
 
 		/// <summary>
 		/// Lowest floor Fanaticism can settle on — the third and deepest
 		/// stage.
 		/// </summary>
-		public const int Min = 25;
+		public const int Min = 0;
 
 		/// <summary>
 		/// Step size for lowering (Fanaticism) and raising (Temper).
@@ -148,7 +149,7 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			// Sized by how deep the Zealot has committed, not by current
 			// health: with a healer keeping them up, stage three has to look
 			// like stage three.
-			var scale = StageFlameScale[GetStage(entity) - 1];
+			var scale = StageFlameScale[GetStage(entity)];
 			entity.PlayEffectNode(AuraEffectName, scale * FlameSizeFactor * scaleFactor, AuraNodeName);
 		}
 
@@ -159,15 +160,15 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// </summary>
 		public static int GetStage(ICombatEntity entity)
 		{
-			var stage = (Ignition - Get(entity)) / Step + 1;
+			var stage = (Ignition - Get(entity)) / Step;
 
-			return Math.Clamp(stage, 1, StageCount);
+			return Math.Clamp(stage, 0, MaxStage);
 		}
 
 		/// <summary>
 		/// Number of stages the floor can reach: 75%, 50%, 25%.
 		/// </summary>
-		public const int StageCount = 3;
+		public const int MaxStage = 4;
 
 		/// <summary>
 		/// Damage bonus per stage, applied to everything the burning Zealot
@@ -175,12 +176,12 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// stage into +100%. PLACEHOLDER values; mirrored into Immolate's
 		/// captionRatio2 for the tooltip.
 		/// </summary>
-		private static readonly float[] StageDamageBonus = { 0.10f, 0.25f, 0.50f };
+		private static readonly float[] StageDamageBonus = { 0f, 0.125f, 0.25f, 0.375f, 0.50f };
 
 		/// <summary>
 		/// Flame size per stage — the visual tell for which stage is live.
 		/// </summary>
-		private static readonly float[] StageFlameScale = { 0.7f, 1.2f, 2.0f };
+		private static readonly float[] StageFlameScale = { 0.5f, 0.8f, 1.2f, 1.6f, 2.0f };
 
 		/// <summary>
 		/// Blows that Temper the Flame turned into fire and that have not
@@ -382,13 +383,13 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// The damage bonus the entity's current stage is worth.
 		/// </summary>
 		public static float GetStageBonus(ICombatEntity entity)
-			=> StageDamageBonus[GetStage(entity) - 1];
+			=> StageDamageBonus[GetStage(entity)];
 
 		/// <summary>
 		/// The bonus of a given stage, as a percentage — for tooltips.
 		/// </summary>
 		public static float GetStageBonusPercent(int stage)
-			=> StageDamageBonus[Math.Clamp(stage, 1, StageCount) - 1] * 100f;
+			=> StageDamageBonus[Math.Clamp(stage, 0, MaxStage)] * 100f;
 
 		/// <summary>
 		/// The sparks thrown off an enemy struck by Zeal, so a fire hit

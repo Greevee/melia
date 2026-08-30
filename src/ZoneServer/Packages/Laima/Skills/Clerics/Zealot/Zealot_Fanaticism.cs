@@ -12,13 +12,13 @@ using Melia.Zone.World.Actors;
 namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 {
 	/// <summary>
-	/// Handler for the Zealot skill Fanaticism.
-	/// Two effects, no exceptions: it opens the frenzy — a window in which
-	/// every attack builds a Fanaticism stack — and it drives the fire one
-	/// stage deeper while there is a stage left to take. At the deepest
-	/// stage only the frenzy opens.
-	/// Only usable while the burn mode is active; deals no damage of its
-	/// own. Temper the Flame is the way back up.
+	/// Handler for the Zealot skill Fanaticism — the stoker.
+	/// Drives the fire one stage deeper, flares out as a fire strike, and
+	/// opens the frenzy window. Its opposite number is not a button any
+	/// more: the fire dies down a stage every half minute on its own, so
+	/// pressing this on cooldown is what keeps the flame roaring and
+	/// letting it rest is what puts it out.
+	/// Only usable while the burn mode is active.
 	/// </summary>
 	[Package("laima")]
 	[SkillHandler(SkillId.Zealot_Fanaticism)]
@@ -69,8 +69,10 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, targetHandle, originPos, originPos.GetDirection(farPos), Position.Zero);
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
 
-			// One rule, no exception: the frenzy always opens, and the fire
-			// steps one stage deeper whenever there is a stage left to take.
+			// Stoking the fire: one stage deeper per press, against the decay
+			// that pulls it one stage shallower every half minute. Pressed on
+			// cooldown the fire climbs; left alone it dies. That tug is the
+			// whole engine of the class now.
 			var stageBefore = ZealotBurnFloor.GetStage(caster);
 			var newFloor = ZealotBurnFloor.Shift(caster, -ZealotBurnFloor.Step);
 			var stageNow = ZealotBurnFloor.GetStage(caster);
@@ -109,9 +111,9 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		}
 
 		/// <summary>
-		/// The attack-speed window on every use. Auto attacks inside it
-		/// build Fanaticism stacks (see Zeal_Rush_Buff). PLACEHOLDER values;
-		/// duration shown via captionTime in skills_overrides.txt.
+		/// The attack-speed window on every use (see Zeal_Rush_Buff).
+		/// PLACEHOLDER values; duration shown via captionTime in
+		/// skills_overrides.txt.
 		/// </summary>
 		private void GrantZealRush(Skill skill, ICombatEntity caster)
 		{

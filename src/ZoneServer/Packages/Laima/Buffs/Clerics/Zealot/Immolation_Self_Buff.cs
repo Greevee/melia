@@ -33,7 +33,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		/// Share of CURRENT HP burned per second while above the floor, so
 		/// the descent eases off as it approaches. PLACEHOLDER.
 		/// </summary>
-		private const float BurnPerSecond = 0.10f;
+		private const float BurnPerSecond = 0.05f;
 
 		/// <summary>
 		/// Never burns the caster to death; enemies should do that.
@@ -54,6 +54,15 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		private const float MaxFireMitigation = 0.5f;
 
 		private const string TickVar = "Immolation.Tick";
+		private const string DecayTickVar = "Immolation.DecayTick";
+
+		/// <summary>
+		/// Seconds until the fire dies down one stage on its own. The flame
+		/// needs feeding: left alone it climbs back to stage zero and then
+		/// goes out — at most two and a half minutes from the deepest stage.
+		/// Fanaticism is what stokes it back down. PLACEHOLDER.
+		/// </summary>
+		private const int DecaySeconds = 30;
 		private const string StackTickVar = "Immolation.StackTick";
 
 		/// <summary>
@@ -85,6 +94,38 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			{
 				ZealotBurnFloor.ClearHurt(target);
 			}
+		}
+
+		/// <summary>
+		/// The fire dies down one stage every half minute; stoking it is the
+		/// player's job. At stage zero there is nothing left to die down, so
+		/// the flame goes out entirely — which is also how the mode cleans
+		/// itself up after a fight without anyone pressing anything.
+		/// </summary>
+		private void DecayFire(Buff buff, ICombatEntity target)
+		{
+			var tick = buff.Vars.GetInt(DecayTickVar) + 1;
+
+			if (tick < DecaySeconds)
+			{
+				buff.Vars.SetInt(DecayTickVar, tick);
+				return;
+			}
+
+			buff.Vars.SetInt(DecayTickVar, 0);
+
+			if (ZealotBurnFloor.Get(target) >= ZealotBurnFloor.Ignition)
+			{
+				target.StopBuff(BuffId.Immolation_Self_Buff);
+
+				Send.ZC_NORMAL.PlayTextEffect(target, target, "SHOW_CUSTOM_TEXT", 0, "The flame is out");
+				return;
+			}
+
+			ZealotBurnFloor.Shift(target, ZealotBurnFloor.Step);
+
+			Send.ZC_NORMAL.PlayTextEffect(target, target, "SHOW_CUSTOM_TEXT", 0,
+				$"The fire dies down  (Stage {ZealotBurnFloor.GetStage(target)})");
 		}
 
 		/// <summary>
@@ -140,6 +181,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 
 			ZealotBurnFloor.PulseAuraVisual(target, visualScale);
 
+			this.DecayFire(buff, target);
 			this.BurnTowardsFloor(target);
 			BurnOffDeferred(target);
 			this.MendTowardsBalance(buff, target);
