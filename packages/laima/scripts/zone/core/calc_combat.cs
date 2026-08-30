@@ -428,6 +428,16 @@ public class CombatCalculationsScript : GeneralScript
 		}
 
 		// Target buffs/debuffs
+		// Zealot: the fire drinks the blessing. While the flame burns,
+		// healing received grows by the same 12.5% per stage everything
+		// else scales by - one rule for damage and mending alike. This is
+		// the class's entire sustain since it has no regeneration of its
+		// own: Heal tiles, Aukuras and party healers all land harder the
+		// deeper the Zealot has committed.
+		if (target.IsBuffActive(BuffId.Immolation_Self_Buff))
+		{
+			healAmount *= 1f + Melia.Zone.Skills.Handlers.Clerics.Zealot.ZealotBurnFloor.GetStageBonus(target);
+		}
 		if (target.TryGetBuff(BuffId.Daino_Buff, out var dainoBuff))
 		{
 			var healBonus = dainoBuff.NumArg2;
