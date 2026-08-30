@@ -75,8 +75,6 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 
 			caster.StartBuff(BuffId.FanaticIllusion_Buff, skill.Level, 0f, JudgementDuration, caster, skill.Id);
 
-			_ = caster.PlayEffectToGround("F_burstup036_fire", caster.Position, 1.2f, duration: 800f);
-
 			var splashParam = skill.GetSplashParameters(caster, originPos, farPos, StrikeRadius, StrikeRadius, angle: 0);
 			var splashArea = skill.GetSplashArea(SplashType.Circle, splashParam);
 

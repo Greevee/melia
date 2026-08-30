@@ -37,17 +37,6 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 		/// </summary>
 		private static readonly TimeSpan HitSpacing = TimeSpan.FromMilliseconds(120);
 
-		/// <summary>
-		/// The fire that spreads where the Zealot points, and the column that
-		/// erupts on every enemy each lash. Both have been checked in game
-		/// and actually read as fire — the explosion names picked off the
-		/// string table turned out to look like light, which is the exact
-		/// opposite of what this skill is.
-		/// Compare them in game with >testeffect &lt;name&gt; &lt;seconds&gt;.
-		/// </summary>
-		private const string CastEffectName = "F_wizard_prominence_ground";
-		private const string LashEffectName = "F_archer_MagicArrow_ground_fire_loop";
-
 		public void Handle(Skill skill, ICombatEntity caster, Position originPos, Position farPos, ICombatEntity target)
 		{
 			var lashes = ZealotBurnFloor.GetPyreLashes(caster);
@@ -72,9 +61,6 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			Send.ZC_SKILL_READY(caster, skill, 1, originPos, farPos);
 			Send.ZC_NORMAL.UpdateSkillEffect(caster, target?.Handle ?? 0, originPos, originPos.GetDirection(farPos), Position.Zero);
 			Send.ZC_SKILL_MELEE_GROUND(caster, skill, farPos);
-
-			// One big answer where the Zealot is pointing, before the rain.
-			_ = caster.PlayEffectToGround(CastEffectName, farPos, 2.0f, duration: 1500f);
 
 			var splashParam = skill.GetSplashParameters(caster, originPos, farPos, StrikeRadius, StrikeRadius, angle: 0);
 			var splashArea = skill.GetSplashArea(SplashType.Circle, splashParam);
@@ -106,10 +92,6 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 					enemy.TakeDamage(skillHitResult.Damage, caster);
 
 					skillHits.Add(new SkillHitInfo(caster, enemy, skill, skillHitResult, TimeSpan.Zero, TimeSpan.Zero));
-
-					// A column on each enemy each lash, so the number that
-					// pops has something to pop out of.
-					_ = caster.PlayEffectToGround(LashEffectName, enemy.Position, 0.9f, duration: 600f);
 				}
 
 				if (skillHits.Count > 0)
