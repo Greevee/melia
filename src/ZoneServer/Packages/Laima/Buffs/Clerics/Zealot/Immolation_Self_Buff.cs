@@ -106,6 +106,17 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		}
 
 		/// <summary>
+		/// Resets the decay clock, so a stoke at the deepest stage is never
+		/// a wasted press: the stage cannot go deeper, but the fire stays
+		/// fed for a full half minute again.
+		/// </summary>
+		public static void RefreshDecay(ICombatEntity target)
+		{
+			if (target.TryGetBuff(BuffId.Immolation_Self_Buff, out var buff))
+				buff.Vars.SetInt(DecayTickVar, 0);
+		}
+
+		/// <summary>
 		/// The fire dies down one stage every half minute; stoking it is the
 		/// player's job. At stage zero there is nothing left to die down, so
 		/// the flame goes out entirely — which is also how the mode cleans

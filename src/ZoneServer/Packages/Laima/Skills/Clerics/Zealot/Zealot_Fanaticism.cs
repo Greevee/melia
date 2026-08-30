@@ -73,6 +73,12 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			var newFloor = ZealotBurnFloor.Shift(caster, -ZealotBurnFloor.Step);
 			var stageNow = ZealotBurnFloor.GetStage(caster);
 
+			// At the deepest stage the step has nowhere to go, so the press
+			// feeds the fire instead: the decay clock starts over. No stoke
+			// is ever wasted.
+			if (stageNow == stageBefore)
+				Melia.Zone.Buffs.Handlers.Clerics.Zealot.Immolation_Self_BuffOverride.RefreshDecay(caster);
+
 			this.GrantMartyrdom(skill, caster);
 
 			// The shockwave: fast, flat, centred on the Zealot.
