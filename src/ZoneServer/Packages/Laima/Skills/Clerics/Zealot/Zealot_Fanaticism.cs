@@ -13,25 +13,21 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 {
 	/// <summary>
 	/// Handler for the Zealot skill Fanaticism — the stoker.
-	/// Drives the fire one stage deeper, flares out as a fire strike, and
-	/// opens the frenzy window. Its opposite number is not a button any
-	/// more: the fire dies down a stage every half minute on its own, so
-	/// pressing this on cooldown is what keeps the flame roaring and
-	/// letting it rest is what puts it out.
+	/// Drives the fire one stage deeper and flares out as a quick fire
+	/// shockwave around the Zealot. Its opposite number is not a button:
+	/// the fire dies down a stage every half minute on its own, so pressing
+	/// this on cooldown is what keeps the flame roaring and letting it rest
+	/// is what puts it out.
+	/// The unflinching that used to ride here as a window is a property of
+	/// the flame itself now (see Immolation_Self_Buff) — permanent while
+	/// burning, which is what an always-relevant passive should be instead
+	/// of a ten second errand.
 	/// Only usable while the burn mode is active.
 	/// </summary>
 	[Package("laima")]
 	[SkillHandler(SkillId.Zealot_Fanaticism)]
 	public class Zealot_FanaticismOverride : IGroundSkillHandler
 	{
-		/// <summary>
-		/// How long the attack-speed window stays open. Ten seconds against
-		/// the fifteen second cooldown, so it is up two thirds of the time
-		/// and Fanaticism stays the clock the rest of the kit runs on.
-		/// Shown in the tooltip via captionTime in skills_overrides.txt —
-		/// keep the two in sync.
-		/// </summary>
-		private static readonly TimeSpan RushDuration = TimeSpan.FromSeconds(10);
 
 		/// <summary>
 		/// How wide the flare reaches when the Zealot drops a stage.
@@ -77,13 +73,13 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			var newFloor = ZealotBurnFloor.Shift(caster, -ZealotBurnFloor.Step);
 			var stageNow = ZealotBurnFloor.GetStage(caster);
 
-			this.GrantZealRush(skill, caster);
 			this.GrantMartyrdom(skill, caster);
 
-			_ = caster.PlayEffectToGround("F_explosion050_fire", caster.Position, 1.4f, duration: 900f);
+			// The shockwave: fast, flat, centred on the Zealot.
+			_ = caster.PlayEffectToGround("F_wizard_prominence_ground", caster.Position, 1.4f, duration: 800f);
 
 			Send.ZC_NORMAL.PlayTextEffect(caster, caster, "SHOW_CUSTOM_TEXT", 0,
-				stageNow > stageBefore ? $"Stage {stageNow}  ({newFloor}%)" : "Frenzy");
+				stageNow > stageBefore ? $"Stage {stageNow}  ({newFloor}%)" : "The fire rages");
 
 			// Throwing yourself deeper makes the fire flare. Without this the
 			// press changed everything and showed nothing.
@@ -110,14 +106,5 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			caster.StartBuff(BuffId.Fanaticism_Martyrdom_Buff, abilityLevel, 0f, duration, caster, skill.Id);
 		}
 
-		/// <summary>
-		/// The attack-speed window on every use (see Zeal_Rush_Buff).
-		/// PLACEHOLDER values; duration shown via captionTime in
-		/// skills_overrides.txt.
-		/// </summary>
-		private void GrantZealRush(Skill skill, ICombatEntity caster)
-		{
-			caster.StartBuff(BuffId.BeadyEyed_Buff, skill.Level, 0f, RushDuration, caster, skill.Id);
-		}
 	}
 }

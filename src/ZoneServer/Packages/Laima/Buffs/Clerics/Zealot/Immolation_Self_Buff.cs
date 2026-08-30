@@ -27,7 +27,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 	/// </summary>
 	[Package("laima")]
 	[BuffHandler(BuffId.Immolation_Self_Buff)]
-	public class Immolation_Self_BuffOverride : BuffHandler
+	public class Immolation_Self_BuffOverride : BuffHandler, IBuffBeforeKnockbackHandler, IBuffBeforeKnockdownHandler
 	{
 		/// <summary>
 		/// Share of CURRENT HP burned per second while above the floor, so
@@ -85,6 +85,18 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 		/// </summary>
 		private const int AuraBaseTargets = 15;
 		private const int AuraTargetsPerLevel = 1;
+
+		/// <summary>
+		/// A burning fanatic does not flinch: while the flame is lit, no
+		/// knockback and no knockdown. This is the class's stand-your-ground
+		/// tool — permanent as long as the fire is, paid for by the burn
+		/// rather than by SP the way Iron Skin charges for it.
+		/// </summary>
+		public KnockResult OnBeforeKnockback(Buff buff, ICombatEntity attacker, ICombatEntity target)
+			=> KnockResult.Prevent;
+
+		public KnockResult OnBeforeKnockdown(Buff buff, ICombatEntity attacker, ICombatEntity target)
+			=> KnockResult.Prevent;
 
 		public override void OnEnd(Buff buff)
 		{
