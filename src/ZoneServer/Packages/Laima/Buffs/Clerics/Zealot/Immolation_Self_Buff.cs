@@ -100,12 +100,9 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 
 		public override void OnEnd(Buff buff)
 		{
-			// Ending the mode resets the risk dial entirely — including the
-			// blows Temper deferred, which have nothing left to burn off in.
-			if (buff.Target is ICombatEntity target)
-			{
-				ZealotBurnFloor.ClearHurt(target);
-			}
+			// Nothing to reset any more: the deferred fire keeps burning off
+			// through the Tempered window's own tick, and the rest of the
+			// state lives on the floor value itself.
 		}
 
 		/// <summary>
@@ -170,10 +167,6 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 
 			character.ModifyHpSafe(-burn, out _, out var priority);
 			Send.ZC_UPDATE_ALL_STATUS(character, priority);
-
-			// Deliberately not recorded: the blow this came from was booked
-			// in full when it landed. Deferring changes when the health
-			// leaves, not whether it does.
 		}
 
 		public override void WhileActive(Buff buff)
@@ -197,10 +190,6 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			this.BurnTowardsFloor(target);
 			BurnOffDeferred(target);
 			this.DealAuraDamage(buff, target);
-
-			// Last, so everything this second recorded still counts before
-			// the window moves on.
-			ZealotBurnFloor.RotateHurtWindow(target);
 		}
 
 
@@ -256,27 +245,6 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			Send.ZC_SKILL_HIT_INFO(caster, hits);
 		}
 
-		/// <summary>
-		/// Every blow the Zealot takes is health the fire took, so it counts
-		/// towards Pyre exactly like the self-burn does. This is what makes
-		/// standing in the fight the way to load the class's payoff.
-		/// The whole blow counts here, once, including the share Temper
-		/// defers — deferring changes when the health leaves, not whether it
-		/// does. That is also what keeps this independent of Temper's own
-		/// hook: nothing books the deferred fire a second time, so the order
-		/// the buff list happens to hold the two in cannot matter.
-		/// </summary>
-		[CombatCalcModifier(CombatCalcPhase.AfterCalc, BuffId.Immolation_Self_Buff)]
-		public void OnDefenseAfterCalc(ICombatEntity attacker, ICombatEntity target, Skill skill, SkillModifier modifier, SkillHitResult skillHitResult)
-		{
-			if (!target.IsBuffActive(BuffId.Immolation_Self_Buff))
-				return;
-
-			if (skillHitResult.Damage <= 0)
-				return;
-
-			ZealotBurnFloor.RecordHurt(target, skillHitResult.Damage);
-		}
 
 		/// <summary>
 		/// The class damage bonus: everything the burning Zealot does hits
@@ -377,10 +345,7 @@ namespace Melia.Zone.Buffs.Handlers.Clerics.Zealot
 			character.ModifyHpSafe(-burn, out _, out var priority);
 			Send.ZC_UPDATE_ALL_STATUS(character, priority);
 
-			// Only health the fire really took feeds the pyre: at the stage
-			// there is nothing to burn, so standing still adds nothing and
-			// being healed back up is what reloads Pyre.
-			ZealotBurnFloor.RecordHurt(target, burn);
+
 		}
 	}
 }

@@ -62,7 +62,10 @@ namespace Melia.Zone.Skills.Handlers.Clerics.Zealot
 			if (!caster.IsBuffActive(BuffId.Immolation_Self_Buff))
 			{
 				caster.StartBuff(BuffId.Immolation_Self_Buff, skill.Level, 0f, AuraDuration, caster, skill.Id);
-				ZealotBurnFloor.Set(caster, ZealotBurnFloor.Ignition);
+				// Lighting is the commitment, so it brings the first stage
+				// along: the cast burns from the start instead of opening a
+				// free, inert mode.
+				ZealotBurnFloor.Set(caster, ZealotBurnFloor.Ignition - ZealotBurnFloor.Step);
 			}
 
 			// The blast cashes in whatever Zeal banked: three presses of the
